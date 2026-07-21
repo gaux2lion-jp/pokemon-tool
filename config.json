@@ -1,0 +1,1038 @@
+{
+  "discord_webhook_url": "",
+  "report_url": "",
+  "exclude_variant_keywords": [
+    "カートン"
+  ],
+  "products": [
+    {
+      "display_name": "ストームエメラルダ",
+      "keywords": [
+        "ストームエメラルダ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "アビスアイ",
+      "keywords": [
+        "アビスアイ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ニンジャスピナー",
+      "keywords": [
+        "ニンジャスピナー"
+      ],
+      "jan_codes": [
+        "4521329432786"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ムニキスゼロ",
+      "keywords": [
+        "ムニキスゼロ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "MEGAドリームex",
+      "keywords": [
+        "MEGAドリームex"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "インフェルノX",
+      "keywords": [
+        "インフェルノX"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "メガブレイブ",
+      "keywords": [
+        "メガブレイブ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "メガシンフォニア",
+      "keywords": [
+        "メガシンフォニア"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ブラックボルト",
+      "keywords": [
+        "ブラックボルト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [
+        "DX"
+      ],
+      "cost_price": null
+    },
+    {
+      "display_name": "ホワイトフレア",
+      "keywords": [
+        "ホワイトフレア"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [
+        "DX"
+      ],
+      "cost_price": null
+    },
+    {
+      "display_name": "ブラックボルト DX",
+      "keywords": [
+        "ブラックボルト DX",
+        "ブラックボルトDX",
+        "ブラックボルト DX",
+        "ブラックボルトデラックス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ホワイトフレア DX",
+      "keywords": [
+        "ホワイトフレア DX",
+        "ホワイトフレアDX",
+        "ホワイトフレア DX",
+        "ホワイトフレアデラックス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ロケット団の栄光",
+      "keywords": [
+        "ロケット団の栄光"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "熱風のアリーナ",
+      "keywords": [
+        "熱風のアリーナ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "バトルパートナーズ",
+      "keywords": [
+        "バトルパートナーズ"
+      ],
+      "jan_codes": [
+        "4521329362649"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "テラスタルフェスex",
+      "keywords": [
+        "テラスタルフェスex"
+      ],
+      "jan_codes": [
+        "4521329362342"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "超電ブレイカー",
+      "keywords": [
+        "超電ブレイカー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "楽園ドラゴーナ",
+      "keywords": [
+        "楽園ドラゴーナ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ステラミラクル",
+      "keywords": [
+        "ステラミラクル"
+      ],
+      "jan_codes": [
+        "4521329361000"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ナイトワンダラー",
+      "keywords": [
+        "ナイトワンダラー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "変幻の仮面",
+      "keywords": [
+        "変幻の仮面"
+      ],
+      "jan_codes": [
+        "4521329362526"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "クリムゾンヘイズ",
+      "keywords": [
+        "クリムゾンヘイズ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ワイルドフォース",
+      "keywords": [
+        "ワイルドフォース"
+      ],
+      "jan_codes": [
+        "4521329394831"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "サイバージャッジ",
+      "keywords": [
+        "サイバージャッジ"
+      ],
+      "jan_codes": [
+        "4521329394848"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "シャイニートレジャーex",
+      "keywords": [
+        "シャイニートレジャーex"
+      ],
+      "jan_codes": [
+        "4521329394824"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "古代の咆哮",
+      "keywords": [
+        "古代の咆哮"
+      ],
+      "jan_codes": [
+        "4521329394732"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "未来の一閃",
+      "keywords": [
+        "未来の一閃"
+      ],
+      "jan_codes": [
+        "4521329394756"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "レイジングサーフ",
+      "keywords": [
+        "レイジングサーフ"
+      ],
+      "jan_codes": [
+        "4521329391397"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "黒炎の支配者",
+      "keywords": [
+        "黒炎の支配者"
+      ],
+      "jan_codes": [
+        "4521329346014"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ポケモンカード151",
+      "keywords": [
+        "ポケモンカード151"
+      ],
+      "jan_codes": [
+        "4521329346038"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "クレイバースト",
+      "keywords": [
+        "クレイバースト"
+      ],
+      "jan_codes": [
+        "4521329346182"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スノーハザード",
+      "keywords": [
+        "スノーハザード"
+      ],
+      "jan_codes": [
+        "4521329346229"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "トリプレットビート",
+      "keywords": [
+        "トリプレットビート"
+      ],
+      "jan_codes": [
+        "4521329346274"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スカーレットex",
+      "keywords": [
+        "スカーレットex"
+      ],
+      "jan_codes": [
+        "4521329373515"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "バイオレットex",
+      "keywords": [
+        "バイオレットex"
+      ],
+      "jan_codes": [
+        "4521329373539"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "VSTARユニバース",
+      "keywords": [
+        "VSTARユニバース"
+      ],
+      "jan_codes": [
+        "4521329373362"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "パラダイムトリガー",
+      "keywords": [
+        "パラダイムトリガー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "白熱のアルカナ",
+      "keywords": [
+        "白熱のアルカナ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ロストアビス",
+      "keywords": [
+        "ロストアビス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ポケモンGO",
+      "keywords": [
+        "ポケモンGO"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ダークファンタズマ",
+      "keywords": [
+        "ダークファンタズマ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スペースジャグラー",
+      "keywords": [
+        "スペースジャグラー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "タイムゲイザー",
+      "keywords": [
+        "タイムゲイザー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "バトルリージョン",
+      "keywords": [
+        "バトルリージョン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スターバース",
+      "keywords": [
+        "スターバース"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "VMAXクライマックス",
+      "keywords": [
+        "VMAXクライマックス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "25thアニバーサリー",
+      "keywords": [
+        "25thアニバーサリー",
+        "25th ANNIVERSARY",
+        "25th アニバーサリー",
+        "25thアニバーサリー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "フュージョンアーツ",
+      "keywords": [
+        "フュージョンアーツ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "蒼空ストリーム",
+      "keywords": [
+        "蒼空ストリーム"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "摩天パーフェクト",
+      "keywords": [
+        "摩天パーフェクト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "イーブイヒーローズ",
+      "keywords": [
+        "イーブイヒーローズ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "漆黒のガイスト",
+      "keywords": [
+        "漆黒のガイスト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "白銀のランス",
+      "keywords": [
+        "白銀のランス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "双璧のファイター",
+      "keywords": [
+        "双璧のファイター"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "連撃マスター",
+      "keywords": [
+        "連撃マスター"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "一撃マスター",
+      "keywords": [
+        "一撃マスター"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "シャイニースターv",
+      "keywords": [
+        "シャイニースターv",
+        "シャイニースターV",
+        "シャイニースターＶ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "仰天のボルテッカー",
+      "keywords": [
+        "仰天のボルテッカー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "伝説の鼓動",
+      "keywords": [
+        "伝説の鼓動"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ムゲンゾーン",
+      "keywords": [
+        "ムゲンゾーン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "爆炎ウォーカー",
+      "keywords": [
+        "爆炎ウォーカー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "反逆クラッシュ",
+      "keywords": [
+        "反逆クラッシュ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "vmaxライジング",
+      "keywords": [
+        "vmaxライジング",
+        "VMAXライジング"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "シールド",
+      "keywords": [
+        "シールド"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ソード",
+      "keywords": [
+        "ソード"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "タッグオールスターズ",
+      "keywords": [
+        "タッグオールスターズ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "オルタージェネシス",
+      "keywords": [
+        "オルタージェネシス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ドリームリーグ",
+      "keywords": [
+        "ドリームリーグ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "リミックスバウト",
+      "keywords": [
+        "リミックスバウト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ミラクルツイン",
+      "keywords": [
+        "ミラクルツイン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "名探偵ピカチュウ",
+      "keywords": [
+        "名探偵ピカチュウ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スカイレジェンド",
+      "keywords": [
+        "スカイレジェンド"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ジージーエンド",
+      "keywords": [
+        "ジージーエンド"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ダブルブレイズ",
+      "keywords": [
+        "ダブルブレイズ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "フルメタルウォール",
+      "keywords": [
+        "フルメタルウォール"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ナイトユニゾン",
+      "keywords": [
+        "ナイトユニゾン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "タッグボルト",
+      "keywords": [
+        "タッグボルト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ウルトラシャイニー",
+      "keywords": [
+        "ウルトラシャイニー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ダークオーダー",
+      "keywords": [
+        "ダークオーダー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "超爆インパクト",
+      "keywords": [
+        "超爆インパクト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "フェアリーライズ",
+      "keywords": [
+        "フェアリーライズ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "迅雷スパーク",
+      "keywords": [
+        "迅雷スパーク"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "裂空のカリスマ",
+      "keywords": [
+        "裂空のカリスマ"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "チャンピオンロード",
+      "keywords": [
+        "チャンピオンロード"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ドラゴンストーム",
+      "keywords": [
+        "ドラゴンストーム"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "禁断の光",
+      "keywords": [
+        "禁断の光"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ウルトラフォース",
+      "keywords": [
+        "ウルトラフォース"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ウルトラムーン",
+      "keywords": [
+        "ウルトラムーン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ウルトラサン",
+      "keywords": [
+        "ウルトラサン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "GXバトルブースト",
+      "keywords": [
+        "GXバトルブースト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "超次元の暴獣",
+      "keywords": [
+        "超次元の暴獣"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "覚醒の勇者",
+      "keywords": [
+        "覚醒の勇者"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ひかる伝説",
+      "keywords": [
+        "ひかる伝説"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "光を喰らう闇",
+      "keywords": [
+        "光を喰らう闇"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "闘う虹を見たか",
+      "keywords": [
+        "闘う虹を見たか"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "新たなる試練の向こう",
+      "keywords": [
+        "新たなる試練の向こう"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "THE BEST OF XY",
+      "keywords": [
+        "THE BEST OF XY"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "アローラの月光",
+      "keywords": [
+        "アローラの月光"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "キミを待つ島々",
+      "keywords": [
+        "キミを待つ島々"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "サン＆ムーン",
+      "keywords": [
+        "サン＆ムーン",
+        "サン&ムーン",
+        "サン&amp;ムーン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "コレクションムーン",
+      "keywords": [
+        "コレクションムーン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "コレクションサン",
+      "keywords": [
+        "コレクションサン"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "20th Anniversary",
+      "keywords": [
+        "20th Anniversary",
+        "20th ANNIVERSARY"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スペシャルBOXポケモンセンタートウホク",
+      "keywords": [
+        "ポケモンセンタートウホク",
+        "トウホク"
+      ],
+      "jan_codes": [
+        "4521329431277"
+      ],
+      "exclude_keywords": [
+        "ヒロシマ",
+        "フクオカ"
+      ],
+      "cost_price": null
+    },
+    {
+      "display_name": "スペシャルBOXポケモンセンターヒロシマ",
+      "keywords": [
+        "ポケモンセンターヒロシマ",
+        "ヒロシマ"
+      ],
+      "jan_codes": [
+        "4521329427669"
+      ],
+      "exclude_keywords": [
+        "トウホク",
+        "フクオカ"
+      ],
+      "cost_price": null
+    },
+    {
+      "display_name": "スペシャルBOXポケモンセンターフクオカ",
+      "keywords": [
+        "ポケモンセンターフクオカ",
+        "フクオカ"
+      ],
+      "jan_codes": [
+        "4521329431536"
+      ],
+      "exclude_keywords": [
+        "トウホク",
+        "ヒロシマ"
+      ],
+      "cost_price": null
+    }
+  ]
+}
