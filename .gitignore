@@ -1,0 +1,9 @@
+# デバッグ用に保存される生HTML（容量が大きく、毎回中身が変わるため除外）
+debug_html/
+
+# CSV出力先（--csv オプション使用時のみ作成される）
+results/
+
+# Python関連
+__pycache__/
+*.pyc
