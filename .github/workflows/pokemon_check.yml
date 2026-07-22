@@ -1,40 +1,34 @@
-name: ポケモン買取価格チェック
-
+name: 買取価格チェック
 on:
   workflow_dispatch:
     # 外部サービス(cron-job.org)から、正確な時間にこのトリガーを呼び出してもらう。
     # GitHub内蔵の schedule 機能は混雑時に遅延・間引きされることがあるため使わない。
-
 permissions:
   contents: write  # price_history.json をコミットし直すために必要
-
 jobs:
   check-prices:
     runs-on: ubuntu-latest
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
-
       - name: Pythonをセットアップ
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: 必要なライブラリをインストール
         run: pip install -r requirements.txt
-
-      - name: ポケモン買取価格チェックを実行
+      - name: 買取価格チェックを実行
         env:
           # DiscordのWebhook URLはコードに直接書かず、
           # GitHubのSecrets（Settings > Secrets and variables > Actions）
           # に登録した値をここで読み込む
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python pokemon_scraper.py
-
-      - name: 価格履歴とレポートページを保存
+        run: python kaitori_scraper.py
+      - name: 価格履歴(price_history.json)を保存
         run: |
-          git config user.name "pokemon-bot"
-          git config user.email "pokemon-bot@users.noreply.github.com"
-          git add price_history.json docs/index.html
-          git diff --staged --quiet || git commit -m "価格履歴・レポートを更新"
-          git push
+          git config user.name "kaitori-bot"
+          git config user.email "kaitori-bot@users.noreply.github.com"
+          git pull origin main --ff-only
+          git add price_history.json
+          git diff --staged --quiet || git commit -m "価格履歴を更新"
+          git push origin main
