@@ -1,8 +1,13 @@
 {
   "discord_webhook_url": "",
-  "report_url": "https://gaux2lion-jp.github.io/pokemon-tool/",
+  "report_url": "",
   "exclude_variant_keywords": [
-    "カートン"
+    "カートン",
+    "シュリンク無",
+    "シュリンクなし未開封",
+    "ぺりぺり無し(サーチ買取不可)",
+    "シュリンクなし",
+    "新:ペリペリ・シュリンク無"
   ],
   "products": [
     {
@@ -423,6 +428,42 @@
       "cost_price": null
     },
     {
+      "display_name": "シャイニースター",
+      "keywords": [
+        "シャイニースター"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "スターバースト",
+      "keywords": [
+        "スターバースト"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "シャイニートレジャー",
+      "keywords": [
+        "シャイニートレジャー"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "バーストハート",
+      "keywords": [
+        "バーストハート"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
       "display_name": "スペースジャグラー",
       "keywords": [
         "スペースジャグラー"
@@ -441,18 +482,45 @@
       "cost_price": null
     },
     {
-      "display_name": "バトルリージョン",
+      "display_name": "スイートバタフリア",
       "keywords": [
-        "バトルリージョン"
+        "スイートバタフリア"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "スターバース",
+      "display_name": "25周年ゴールデンボックス",
       "keywords": [
-        "スターバース"
+        "25周年ゴールデンボックス"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "Shiny Star V",
+      "keywords": [
+        "Shiny Star V"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "Shiny VMAX",
+      "keywords": [
+        "Shiny VMAX"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "ゴールドスター",
+      "keywords": [
+        "ゴールドスター"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
@@ -468,45 +536,6 @@
       "cost_price": null
     },
     {
-      "display_name": "25thアニバーサリー",
-      "keywords": [
-        "25thアニバーサリー",
-        "25th ANNIVERSARY",
-        "25th アニバーサリー",
-        "25thアニバーサリー"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "フュージョンアーツ",
-      "keywords": [
-        "フュージョンアーツ"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "蒼空ストリーム",
-      "keywords": [
-        "蒼空ストリーム"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "摩天パーフェクト",
-      "keywords": [
-        "摩天パーフェクト"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
       "display_name": "イーブイヒーローズ",
       "keywords": [
         "イーブイヒーローズ"
@@ -516,138 +545,90 @@
       "cost_price": null
     },
     {
-      "display_name": "漆黒のガイスト",
+      "display_name": "シャイニーレイザ",
       "keywords": [
-        "漆黒のガイスト"
+        "シャイニーレイザ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "白銀のランス",
+      "display_name": "アスナ",
       "keywords": [
-        "白銀のランス"
+        "アスナ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "双璧のファイター",
+      "display_name": "ブリリアントスターズ",
       "keywords": [
-        "双璧のファイター"
+        "ブリリアントスターズ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "連撃マスター",
+      "display_name": "スターダッシュ",
       "keywords": [
-        "連撃マスター"
+        "スターダッシュ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "一撃マスター",
+      "display_name": "プレミアムトレーナーボックス",
       "keywords": [
-        "一撃マスター"
+        "プレミアムトレーナーボックス"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "シャイニースターv",
+      "display_name": "エスコートデッキ",
       "keywords": [
-        "シャイニースターv",
-        "シャイニースターV",
-        "シャイニースターＶ"
+        "エスコートデッキ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "仰天のボルテッカー",
+      "display_name": "ルミナスメイズ",
       "keywords": [
-        "仰天のボルテッカー"
+        "ルミナスメイズ"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "伝説の鼓動",
+      "display_name": "ビルドバトル",
       "keywords": [
-        "伝説の鼓動"
+        "ビルドバトル"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "ムゲンゾーン",
+      "display_name": "シャイニースターV",
       "keywords": [
-        "ムゲンゾーン"
+        "シャイニースターV"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
     {
-      "display_name": "爆炎ウォーカー",
+      "display_name": "VSTARシャイニースターF",
       "keywords": [
-        "爆炎ウォーカー"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "反逆クラッシュ",
-      "keywords": [
-        "反逆クラッシュ"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "vmaxライジング",
-      "keywords": [
-        "vmaxライジング",
-        "VMAXライジング"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "シールド",
-      "keywords": [
-        "シールド"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "ソード",
-      "keywords": [
-        "ソード"
-      ],
-      "jan_codes": [],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "タッグオールスターズ",
-      "keywords": [
-        "タッグオールスターズ"
+        "VSTARシャイニースターF"
       ],
       "jan_codes": [],
       "exclude_keywords": [],
