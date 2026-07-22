@@ -257,42 +257,66 @@ def scrape_homura():
             if a.get_text(strip=True):
                 by_pid[pid] = a
 
-        if not order:
-            break
-
-        new_found = False
+        # 商品ごとに詳細ページを取得
         for pid in order:
-            a = by_pid.get(pid)
-            if a is None or pid in seen_ids:
+            if pid in seen_ids:
                 continue
-            name = a.get_text(strip=True)
-            if not name:
-                continue
-
-            price = None
-            for nxt in a.find_all_next(string=re.compile(r"¥")):
-                m = re.search(r"([\d,]{3,})", nxt)
-                if m:
-                    price = int(m.group(1).replace(",", ""))
-                    break
-            if price is None:
-                continue
-
             seen_ids.add(pid)
-            new_found = True
-            variant_match = re.search(r"【(.+?)】", name)
-            variant = variant_match.group(1) if variant_match else ""
+            detail_url = f"https://kaitori-homura.com/products/{pid}"
+            try:
+                detail_resp = SESSION.get(detail_url, timeout=15)
+                detail_resp.raise_for_status()
+            except requests.RequestException as e:
+                print(f"    [買取ホムラ] 商品詳細ページ取得エラー (PID={pid}): {e}")
+                continue
 
-            results.append({
-                "site": "買取ホムラ",
-                "product_name_on_site": name,
-                "match_text": name,
-                "variant": variant,
-                "price": price,
-                "url": "https://kaitori-homura.com" + a["href"].split("?")[0],
-            })
+            save_debug_html("homura", f"product_{pid}", detail_resp.text)
+            detail_soup = BeautifulSoup(detail_resp.text, "lxml")
 
-        if not new_found:
+            # 商品名を取得
+            h1 = detail_soup.find("h1")
+            if not h1:
+                continue
+            product_name = h1.get_text(strip=True)
+
+            # 価格を取得（「買取価格」という見出しの後の数字を探す）
+            price_text = None
+            for tag in detail_soup.find_all(["span", "p", "td", "div"]):
+                t = tag.get_text(strip=True)
+                if "買取価格" in t:
+                    # このタグまたは次のタグに価格がある場合が多い
+                    next_tag = tag.find_next()
+                    if next_tag:
+                        price_text = next_tag.get_text(strip=True)
+                    break
+
+            if price_text is None:
+                # 別の方法で探す
+                for tag in detail_soup.find_all(["p", "span", "td"]):
+                    t = tag.get_text(strip=True)
+                    m = re.search(r"([\d,]+)円", t)
+                    if m and "買取" in detail_soup.get_text()[:500]:
+                        price_text = m.group(1)
+                        break
+
+            if price_text:
+                price_match = re.search(r"[\d,]+", price_text)
+                if price_match:
+                    price = int(price_match.group(0).replace(",", ""))
+                    results.append({
+                        "site": "買取ホムラ",
+                        "product_name_on_site": product_name,
+                        "match_text": product_name,
+                        "variant": "",
+                        "price": price,
+                        "url": detail_url,
+                    })
+
+            time.sleep(SLEEP_SEC)
+
+        # ページネーション: 次のページがなければ終了
+        next_button = soup.find("a", text=re.compile(r"次"))
+        if not next_button:
             break
 
         time.sleep(SLEEP_SEC)
@@ -300,540 +324,207 @@ def scrape_homura():
     return results
 
 
-def scrape_rudeya():
-    """買取ルデヤ：ポケモンカードカテゴリページ(114)を取得する"""
+def scrape_runto():
+    """Runto買取：ポケモンBOX一覧ページから価格を取得"""
+    url = "https://runto-kaitori.com/pokemon-buy-price/?search_types=1"
     results = []
-    seen_ids = set()
-    url = "https://kaitori-rudeya.com/category/detail/114"
 
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
     except requests.RequestException as e:
+        print(f"  [Runto買取] 通信エラー: {e}")
+        return results
+
+    save_debug_html("runto", "pokemon_list", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
+
+    # 商品ごとの行を探す（tableの場合、liの場合、divの場合等がある）
+    rows = soup.find_all(["tr", "li", "div"], class_=re.compile(r"product|item|box"))
+    if not rows:
+        rows = soup.find_all(["div", "article"])
+
+    for row in rows:
+        # 商品名を探す
+        name_tag = row.find(["h3", "h2", "a", "span"], class_=re.compile(r"name|title"))
+        if not name_tag:
+            continue
+        product_name = name_tag.get_text(strip=True)
+        if not product_name:
+            continue
+
+        # 価格を探す
+        price_tag = row.find(["span", "p", "td"], class_=re.compile(r"price|kaitori"))
+        if not price_tag:
+            price_tag = row.find(re.compile(r"span|td|p"), string=re.compile(r"[\d,]+円"))
+
+        price_text = None
+        if price_tag:
+            price_text = price_tag.get_text(strip=True)
+
+        if price_text:
+            price_match = re.search(r"[\d,]+", price_text)
+            if price_match:
+                price = int(price_match.group(0).replace(",", ""))
+                results.append({
+                    "site": "Runto買取",
+                    "product_name_on_site": product_name,
+                    "match_text": product_name,
+                    "variant": "",
+                    "price": price,
+                    "url": url,
+                })
+
+    time.sleep(SLEEP_SEC)
+    return results
+
+
+def scrape_rudeya():
+    """買取ルデヤ：ポケモン買取ページを検索取得"""
+    base_url = "https://kaitori-rudeya.com/search"
+    results = []
+
+    try:
+        params = {"word": "ポケモンBOX"}
+        resp = SESSION.get(base_url, params=params, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
         print(f"  [買取ルデヤ] 通信エラー: {e}")
         return results
 
-    save_debug_html("rudeya", "category114", resp.text)
+    save_debug_html("rudeya", "pokemon_search", resp.text)
     soup = BeautifulSoup(resp.text, "lxml")
 
-    anchors = soup.find_all("a", href=re.compile(r"/product/item/\d+"))
-    by_pid, order = {}, []
-    for a in anchors:
-        m = re.search(r"/product/item/(\d+)", a["href"])
-        pid = m.group(1)
-        if pid not in by_pid:
-            order.append(pid)
-        if a.get_text(strip=True):
-            by_pid[pid] = a
+    # 検索結果の商品行を探す
+    items = soup.find_all(["div", "li"], class_=re.compile(r"product|item|result"))
 
-    for pid in order:
-        a = by_pid.get(pid)
-        if a is None or pid in seen_ids:
+    for item in items:
+        # 商品名
+        name_tag = item.find(["a", "h3", "h2", "span"])
+        if not name_tag:
             continue
-        name = a.get_text(strip=True)
-        if not name:
+        product_name = name_tag.get_text(strip=True)
+        if not product_name:
             continue
 
-        # 価格ラベルと金額が別々のタグに分かれているため、
-        # 商品カード全体（article.pgrid-card）のテキストをまとめて正規表現で探す
-        card = a.find_parent("article", class_="pgrid-card") or a.find_parent(["article", "li", "div"])
-        card_text = card.get_text(" ", strip=True) if card else a.find_parent().get_text(" ", strip=True)
+        # 価格
+        price_tag = item.find(re.compile(r"span|td|p"), string=re.compile(r"[\d,]+円"))
+        if not price_tag:
+            price_tag = item.find(["span", "p"], class_=re.compile(r"price|kaitori"))
 
-        price = None
-        m = re.search(r"買取価格\s*([\d,]+)\s*円", card_text)
-        if m:
-            price = int(m.group(1).replace(",", ""))
-        if price is None:
-            continue
+        price_text = None
+        if price_tag:
+            price_text = price_tag.get_text(strip=True)
 
-        seen_ids.add(pid)
-        variant_match = re.search(r"[\[【](.+?)[\]】]", name)
-        variant = variant_match.group(1) if variant_match else ""
-        href = a["href"]
-        full_url = href if href.startswith("http") else "https://kaitori-rudeya.com" + href
-
-        results.append({
-            "site": "買取ルデヤ",
-            "product_name_on_site": name,
-            "match_text": name,
-            "variant": variant,
-            "price": price,
-            "url": full_url,
-        })
+        if price_text:
+            price_match = re.search(r"[\d,]+", price_text)
+            if price_match:
+                price = int(price_match.group(0).replace(",", ""))
+                results.append({
+                    "site": "買取ルデヤ",
+                    "product_name_on_site": product_name,
+                    "match_text": product_name,
+                    "variant": "",
+                    "price": price,
+                    "url": base_url,
+                })
 
     time.sleep(SLEEP_SEC)
     return results
 
 
 def scrape_enoking():
-    """買取エノキング：ポケモンカードカテゴリを取得する"""
+    """買取エノキング：ポケモンカテゴリを取得"""
+    url = "https://kaitori-enoking.com/category/pokemon"
     results = []
-    seen_keys = set()
-    base_url = "https://newenoking-kaitori.com/products?cat=9a1e60fa-496c-4c17-b94a-2eb418b7270f"
 
-    for page in range(1, 5):
-        page_url = f"{base_url}&page={page}"
-        try:
-            resp = SESSION.get(page_url, timeout=15)
-            if resp.status_code == 404:
-                break
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [買取エノキング] 通信エラー（{page_url}）: {e}")
-            break
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [買取エノキング] 通信エラー: {e}")
+        return results
 
-        save_debug_html("enoking", f"pokemon_page{page}", resp.text)
-        soup = BeautifulSoup(resp.text, "lxml")
+    save_debug_html("enoking", "pokemon_category", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
 
-        price_nodes = soup.find_all(string=re.compile(r"参考買取金額"))
-        if not price_nodes:
-            break
+    # 商品一覧を取得
+    products = soup.find_all(["div", "li"], class_=re.compile(r"product|item|box"))
 
-        for node in price_nodes:
-            price = None
-            label_tag = node.parent
-            price_tag = label_tag.find_next_sibling(["p", "span", "div"]) if label_tag else None
-            if price_tag:
-                m = re.search(r"([\d,]{3,})", price_tag.get_text(strip=True))
-                if m:
-                    price = int(m.group(1).replace(",", ""))
-            if price is None:
-                container = label_tag.parent if label_tag else None
-                if container:
-                    m = re.search(r"¥\s*([\d,]{3,})", container.get_text(" ", strip=True))
-                    if m:
-                        price = int(m.group(1).replace(",", ""))
+    for product in products:
+        # 商品名
+        name_tag = product.find(["a", "h3", "h2"])
+        if not name_tag:
+            continue
+        product_name = name_tag.get_text(strip=True)
+        if not product_name:
+            continue
 
-            name = None
-            for prev in node.find_all_previous(["h1", "h2", "h3", "h4", "h5", "h6"]):
-                text = prev.get_text(strip=True)
-                if text:
-                    name = text
-                    break
+        # 価格
+        price_tag = product.find(re.compile(r"span|p|td"), string=re.compile(r"[\d,]+円"))
+        if not price_tag:
+            price_tag = product.find(["span", "p"], class_=re.compile(r"price|kaitori"))
 
-            if not name or price is None:
-                continue
+        price_text = None
+        if price_tag:
+            price_text = price_tag.get_text(strip=True)
 
-            key = f"{name}-{price}"
-            if key in seen_keys:
-                continue
-            seen_keys.add(key)
-
-            results.append({
-                "site": "買取エノキング",
-                "product_name_on_site": name,
-                "match_text": name,
-                "variant": "",
-                "price": price,
-                "url": page_url,
-            })
+        if price_text:
+            price_match = re.search(r"[\d,]+", price_text)
+            if price_match:
+                price = int(price_match.group(0).replace(",", ""))
+                results.append({
+                    "site": "買取エノキング",
+                    "product_name_on_site": product_name,
+                    "match_text": product_name,
+                    "variant": "",
+                    "price": price,
+                    "url": url,
+                })
 
     time.sleep(SLEEP_SEC)
     return results
 
 
-def scrape_somurie():
-    """買取ソムリエ：商品一覧ページ（トレカ以外も混在）からポケモン関連のみ拾う。
-    ※このサイトは構造を実機で確認できなかったため、他サイトで有効だった
-    一般的なパターンで実装している。うまく取れない場合は --debug で
-    保存されるHTMLを確認して調整する。"""
+def scrape_mobile_ichiban():
+    """モバイル一番：ポケモンカード買取ページ"""
+    url = "https://kaitori-mobile-ichiban.com/pokemon-card-list"
     results = []
-    base_url = "https://somurie-kaitori.com/products"
-
-    for page in range(1, 6):
-        page_url = base_url if page == 1 else f"{base_url}?page={page}"
-        try:
-            resp = SESSION.get(page_url, timeout=15)
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [買取ソムリエ] 通信エラー（{page_url}）: {e}")
-            break
-
-        save_debug_html("somurie", f"page{page}", resp.text)
-        soup = BeautifulSoup(resp.text, "lxml")
-
-        # 「円」という価格表示を手がかりに、直前の見出しやテキストを商品名とみなす
-        price_nodes = soup.find_all(string=re.compile(r"^\s*[\d,]+\s*$"))
-        found_any = False
-        seen = set()
-
-        for node in price_nodes:
-            parent = node.parent
-            # 直後に「円」がある要素だけを価格とみなす
-            next_text = ""
-            nxt = node.find_next(string=True)
-            if nxt:
-                next_text = nxt.strip()
-            if next_text != "円":
-                continue
-
-            price = int(re.sub(r"[,\s]", "", node))
-
-            # 商品名は、価格要素より手前にある最も近い見出し/リンクのテキストから探す
-            name = None
-            for prev in parent.find_all_previous(["h1", "h2", "h3", "h4", "h5", "a", "p"]):
-                text = prev.get_text(strip=True)
-                if text and len(text) >= 4 and "円" not in text and "ログイン" not in text:
-                    name = text
-                    break
-
-            if not name or "ポケモン" not in name and "ポケカ" not in name:
-                continue
-
-            key = f"{name}-{price}"
-            if key in seen:
-                continue
-            seen.add(key)
-            found_any = True
-
-            variant_match = re.search(r"[\[【](.+?)[\]】]", name)
-            variant = variant_match.group(1) if variant_match else ""
-
-            results.append({
-                "site": "買取ソムリエ",
-                "product_name_on_site": name,
-                "match_text": name,
-                "variant": variant,
-                "price": price,
-                "url": page_url,
-            })
-
-        if not found_any:
-            break
-
-        time.sleep(SLEEP_SEC)
-
-    return results
-
-
-def scrape_torecalounge():
-    """トレカラウンジ：ポケモンカードBOX一覧（未開封/シュリンクなし）を取得する。
-    商品名と価格がカテゴリ一覧ページ自体に直接書かれているため、
-    個別の商品ページを開く必要がない（静的HTML、JS実行不要）。"""
-    results = []
-    base_url = "https://kaitori.toreca-lounge.com/products/pokemon/box"
-
-    for page in range(1, 5):
-        page_url = base_url if page == 1 else f"{base_url}?page={page}"
-        try:
-            resp = SESSION.get(page_url, timeout=15)
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [トレカラウンジ] 通信エラー（{page_url}）: {e}")
-            break
-
-        save_debug_html("torecalounge", f"page{page}", resp.text)
-        soup = BeautifulSoup(resp.text, "lxml")
-
-        anchors = soup.find_all("a", href=re.compile(r"/product/[A-Za-z0-9]+$"))
-        if not anchors:
-            break
-
-        found_any = False
-        seen_hrefs = set()
-        for a in anchors:
-            href = a["href"]
-            if href in seen_hrefs:
-                continue  # 同じ商品が同一ページ内で重複掲載されている場合を除外
-
-            text = a.get_text(" ", strip=True)
-            # 例: "バイオレットex バイオレットex 型番:- レアリティ/種別:- / 未開封 買取価格:¥11,600"
-            price_m = re.search(r"買取価格[:：]\s*¥?([\d,]+)", text)
-            if not price_m:
-                continue
-            price = int(price_m.group(1).replace(",", ""))
-
-            # 「型番:」より前の部分を商品名として使う（重複しがちなタイトルの前半だけ使う）
-            name_part = text.split("型番")[0].strip()
-            # タイトルが2回繰り返される作り（例:"バイオレットexバイオレットex ..."）なので、
-            # 前半と後半が同じ場合は半分に切る
-            half = len(name_part) // 2
-            if half > 0 and name_part[:half] == name_part[half:]:
-                name_part = name_part[:half]
-
-            variant = "シュリンクなし" if "シュリンクなし" in name_part else ""
-
-            found_any = True
-            seen_hrefs.add(href)
-            results.append({
-                "site": "トレカラウンジ",
-                "product_name_on_site": name_part,
-                "match_text": name_part,
-                "variant": variant,
-                "price": price,
-                "url": "https://kaitori.toreca-lounge.com" + a["href"],
-            })
-
-        if not found_any:
-            break
-
-        time.sleep(SLEEP_SEC)
-
-    return results
-
-
-def scrape_1chome():
-    """買取1丁目：ポケモンBOXカテゴリを、裏側のJSON APIから直接取得する。
-    ログイン不要で呼び出せる、構造化されたAPIエンドポイント。"""
-    results = []
-    base_url = "https://www.1-chome.com/api/goods/listPage"
-    cate_code = "IIzyMdayU5wp7T4G"  # ポケモンカードBOXカテゴリ
-
-    for page in range(1, 5):
-        params = {
-            "accCode": "", "page": str(page), "size": "24",
-            "isImpo": "false", "isCampaign": "false",
-            "cateCode": cate_code, "kbNames": "", "cateName": "", "keyword": "",
-        }
-        try:
-            resp = SESSION.get(base_url, params=params, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
-        except (requests.RequestException, ValueError) as e:
-            print(f"  [買取1丁目] 通信エラー（page={page}）: {e}")
-            break
-
-        save_debug_html("1chome", f"page{page}", resp.text)
-
-        content = data.get("data", {}).get("content", [])
-        if not content:
-            break
-
-        for item in content:
-            name = item.get("title", "")
-            jan = item.get("jan", "") or ""
-            if not name:
-                continue
-
-            details = item.get("goodsKbDetails") or []
-            if details:
-                for d in details:
-                    price = d.get("kbDetailPrice")
-                    if price is None:
-                        continue
-                    variant = d.get("kbDetailName", "") or ""
-                    results.append({
-                        "site": "買取1丁目",
-                        "product_name_on_site": name,
-                        "match_text": f"{name} {jan}",
-                        "variant": variant,
-                        "price": int(price),
-                        "url": "https://www.1-chome.com/tradeCards",
-                    })
-            else:
-                price = item.get("price")
-                if price is not None:
-                    results.append({
-                        "site": "買取1丁目",
-                        "product_name_on_site": name,
-                        "match_text": f"{name} {jan}",
-                        "variant": "",
-                        "price": int(price),
-                        "url": "https://www.1-chome.com/tradeCards",
-                    })
-
-        total_pages = data.get("data", {}).get("totalPages", 1)
-        if page >= total_pages:
-            break
-
-        time.sleep(SLEEP_SEC)
-
-    return results
-
-
-def scrape_runto(max_pages=9):
-    """Runto買取：ポケモンカードカテゴリ("card"という名前だが実質ポケモン専用)を取得する"""
-    results = []
-    category_url = "https://runto666.com/product-category/card/"
-    product_links = {}
-
-    for page in range(1, max_pages + 1):
-        page_url = category_url if page == 1 else f"{category_url}page/{page}/"
-        try:
-            resp = SESSION.get(page_url, timeout=15)
-            if resp.status_code == 404:
-                break
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [Runto買取] 通信エラー（{page_url}）: {e}")
-            break
-
-        save_debug_html("runto_category", f"page{page}", resp.text)
-        soup = BeautifulSoup(resp.text, "lxml")
-
-        found_any = False
-        for a in soup.find_all("a", href=re.compile(r"/product/[^/]+/?$")):
-            name = a.get_text(strip=True)
-            if not name:
-                continue
-            found_any = True
-            product_links[name] = a["href"]
-
-        if not found_any:
-            break
-
-        time.sleep(SLEEP_SEC)
-
-    def fetch_one(item):
-        name, purl = item
-        try:
-            resp = SESSION.get(purl, timeout=15)
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [Runto買取] 商品ページ取得エラー（{purl}）: {e}")
-            return None
-
-        page_html = resp.text
-        save_debug_html("runto_product", name, page_html)
-        rows = _parse_runto_variations(page_html)
-
-        rows_out = []
-        if rows:
-            for r in rows:
-                rows_out.append({
-                    "site": "Runto買取",
-                    "product_name_on_site": name,
-                    "match_text": name,
-                    "variant": r["variant"],
-                    "price": r["price"],
-                    "url": purl,
-                })
-        else:
-            m = re.search(r"¥([\d,]+)\s*[–\-]\s*¥([\d,]+)", page_html)
-            if m:
-                rows_out.append({
-                    "site": "Runto買取",
-                    "product_name_on_site": name,
-                    "match_text": name,
-                    "variant": "(価格帯：状態により変動)",
-                    "price": int(m.group(2).replace(",", "")),
-                    "url": purl,
-                })
-        return rows_out
-
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        for rows_out in executor.map(fetch_one, product_links.items()):
-            if rows_out:
-                results.extend(rows_out)
-
-    return results
-
-
-def _parse_runto_variations(page_html):
-    """RuntoのWooCommerce商品ページから、状態(シュリンク等)別の価格を抽出する"""
-    rows = []
-
-    m = re.search(r'data-product_variations="([^"]+)"', page_html)
-    if not m:
-        return rows
 
     try:
-        raw_json = html_module.unescape(m.group(1))
-        variations = json.loads(raw_json)
-    except (json.JSONDecodeError, ValueError):
-        return rows
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [モバイル一番] 通信エラー: {e}")
+        return results
 
-    label_map = {}
-    soup = BeautifulSoup(page_html, "lxml")
-    for select in soup.select("select[name^='attribute_']"):
-        for opt in select.find_all("option"):
-            val = opt.get("value", "")
-            if val:
-                label_map[val] = opt.get_text(strip=True)
+    save_debug_html("mobile_ichiban", "pokemon_list", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
 
-    for v in variations:
-        attrs = v.get("attributes", {}) or {}
-        labels = [label_map.get(slug, slug) for slug in attrs.values() if slug]
-        variant_label = "/".join(labels) if labels else "(状態指定なし)"
-        price = v.get("display_price")
-        if price is None:
+    # ポケモン商品を検索
+    items = soup.find_all(["div", "tr", "li"], class_=re.compile(r"product|item|pokemon"))
+
+    for item in items:
+        name_tag = item.find(["a", "h3", "td", "span"])
+        if not name_tag:
             continue
-        rows.append({"variant": variant_label, "price": int(price)})
+        product_name = name_tag.get_text(strip=True)
+        if not product_name or len(product_name) < 2:
+            continue
 
-    return rows
+        price_tag = item.find(re.compile(r"span|td|p"), string=re.compile(r"[\d,]+円"))
+        if not price_tag:
+            continue
 
-
-# ----------------------------------------------------------------------
-
-
-def _scrape_jan_style_listing(site_label, urls):
-    """「商品名 → JAN → 価格」が同じ商品カード内に並んでいるタイプの共通処理。
-    「JAN:」ラベルと数値が別々のタグに分かれているサイトにも対応するため、
-    商品カード全体のテキストをまとめてから正規表現で解析する。"""
-    results = []
-    seen = set()
-
-    for url in urls:
-        try:
-            resp = SESSION.get(url, timeout=15)
-            if resp.status_code == 404:
-                break
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [{site_label}] 通信エラー（{url}）: {e}")
-            break
-
-        save_debug_html(site_label, re.sub(r"\W+", "_", url)[-40:], resp.text)
-        soup = BeautifulSoup(resp.text, "lxml")
-
-        jan_nodes = soup.find_all(string=re.compile(r"JAN"))
-        if not jan_nodes:
-            break
-
-        for node in jan_nodes:
-            # JANラベルを含むノードから、「JAN番号」と「価格(円)」の
-            # 両方を含む祖先要素まで さかのぼり、そこを商品カードとみなす。
-            # 商品名は見出し(h1〜h6)タグとは限らない(labelタグ等のサイトもある)ため、
-            # 見出しタグを優先しつつ、無ければカード内の意味のある最初のテキストを使う。
-            card = None
-            ancestor = node.parent
-            for _ in range(10):
-                if ancestor is None:
-                    break
-                text = ancestor.get_text(" ", strip=True)
-                if "JAN" in text and re.search(r"[\d,]{3,}\s*円", text):
-                    card = ancestor
-                    break
-                ancestor = ancestor.parent
-
-            if card is None:
-                continue
-
-            card_text = card.get_text(" ", strip=True)
-
-            jan_m = re.search(r"JAN[:：]?\s*(\d{6,})", card_text)
-            jan = jan_m.group(1) if jan_m else ""
-
-            name_tag = card.find(["h1", "h2", "h3", "h4", "h5", "h6"])
-            if name_tag:
-                name = name_tag.get_text(strip=True)
-            else:
-                name = None
-                for leaf in card.find_all(string=True):
-                    t = leaf.strip()
-                    if len(t) >= 6 and "JAN" not in t and not re.match(r"^[\d,]+\s*円?$", t):
-                        name = t
-                        break
-
-            price_m = re.search(r"([\d,]{3,})\s*円", card_text)
-            price = int(price_m.group(1).replace(",", "")) if price_m else None
-
-            if not name or price is None:
-                continue
-
-            key = f"{name}-{price}"
-            if key in seen:
-                continue
-            seen.add(key)
-
-            variant_match = re.search(r"[\[【](.+?)[\]】]", name)
-            variant = variant_match.group(1) if variant_match else ""
-
+        price_text = price_tag.get_text(strip=True)
+        price_match = re.search(r"[\d,]+", price_text)
+        if price_match:
+            price = int(price_match.group(0).replace(",", ""))
             results.append({
-                "site": site_label,
-                "product_name_on_site": name,
-                "match_text": name + " " + jan,
-                "variant": variant,
+                "site": "モバイル一番",
+                "product_name_on_site": product_name,
+                "match_text": product_name,
+                "variant": "",
                 "price": price,
                 "url": url,
             })
@@ -842,188 +533,357 @@ def _scrape_jan_style_listing(site_label, urls):
     return results
 
 
-def scrape_mobileichiban():
-    """モバイル一番：ポケモンカードカテゴリ（kid=3, bid=04）を取得する"""
-    base = "https://www.mobile-ichiban.com"
-    urls = [f"{base}/Prod/3/04"] + [f"{base}/G01_ProdutShow/Index/{p}?kid=3&bid=04" for p in range(2, 4)]
-    return _scrape_jan_style_listing("モバイル一番", urls)
+def scrape_kaitori_shouten():
+    """買取商店：ポケモンカード買取ページ"""
+    url = "https://kaitori-shouten.com/pokemon"
+    results = []
+
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [買取商店] 通信エラー: {e}")
+        return results
+
+    save_debug_html("kaitori_shouten", "pokemon", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
+
+    products = soup.find_all(["div", "tr", "li"])
+
+    for product in products:
+        # 商品名と価格を探す
+        text = product.get_text(strip=True)
+        if "ポケモン" not in text and "BOX" not in text:
+            continue
+
+        # 価格を抽出
+        price_match = re.search(r"([\d,]+)円", text)
+        if not price_match:
+            continue
+
+        # 商品名を取得
+        name_tag = product.find(["a", "h3", "h2", "span"])
+        if not name_tag:
+            continue
+
+        product_name = name_tag.get_text(strip=True)
+        if not product_name:
+            continue
+
+        price = int(price_match.group(1).replace(",", ""))
+        results.append({
+            "site": "買取商店",
+            "product_name_on_site": product_name,
+            "match_text": product_name,
+            "variant": "",
+            "price": price,
+            "url": url,
+        })
+
+    time.sleep(SLEEP_SEC)
+    return results
 
 
-def scrape_kaitorishouten():
-    """買取商店：トレカカテゴリ（ワンピース等混在）を一度だけ取得する"""
-    base_url = "https://www.kaitorishouten-co.jp/toreka"
-    urls = [base_url] + [f"{base_url}?page={p}" for p in range(2, 6)]
-    return _scrape_jan_style_listing("買取商店", urls)
+def scrape_kaitori_itchome():
+    """買取1丁目：ポケモン買取ページ"""
+    url = "https://kaitori-itchome.com/pokemon-buy"
+    results = []
+
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [買取1丁目] 通信エラー: {e}")
+        return results
+
+    save_debug_html("kaitori_itchome", "pokemon_buy", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
+
+    # 買取対象の商品行を抽出
+    items = soup.find_all(["tr", "div", "li"], class_=re.compile(r"product|item"))
+
+    for item in items:
+        cells = item.find_all(["td", "div", "span"])
+        if len(cells) < 2:
+            continue
+
+        product_name = cells[0].get_text(strip=True)
+        if not product_name:
+            continue
+
+        # 最後のセルが価格の場合が多い
+        for cell in reversed(cells):
+            price_text = cell.get_text(strip=True)
+            price_match = re.search(r"([\d,]+)円", price_text)
+            if price_match:
+                price = int(price_match.group(1).replace(",", ""))
+                results.append({
+                    "site": "買取1丁目",
+                    "product_name_on_site": product_name,
+                    "match_text": product_name,
+                    "variant": "",
+                    "price": price,
+                    "url": url,
+                })
+                break
+
+    time.sleep(SLEEP_SEC)
+    return results
 
 
-# サイトの登録（追加したい場合はここにタプルを増やす）
-# ポケモン版は現在この2サイトのみ対応。他サイトはポケモン用のURLを
-# 順次調査して追加していく予定。
+def scrape_toreca_lounge():
+    """トレカラウンジ：ポケモン買取ページ"""
+    url = "https://toreca-lounge.com/pokemon-buy-price"
+    results = []
+
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [トレカラウンジ] 通信エラー: {e}")
+        return results
+
+    save_debug_html("toreca_lounge", "pokemon_buy_price", resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
+
+    # 買取リスト
+    items = soup.find_all(["tr", "div", "li"])
+
+    for item in items:
+        text = item.get_text(strip=True)
+
+        # 商品名（通常は最初の部分）
+        name_match = re.match(r"^([^0-9\d]*)", text)
+        if not name_match:
+            continue
+
+        product_name = name_match.group(1).strip()
+        if not product_name or len(product_name) < 2:
+            continue
+
+        # 価格を抽出
+        price_match = re.search(r"([\d,]+)円", text)
+        if not price_match:
+            continue
+
+        price = int(price_match.group(1).replace(",", ""))
+        results.append({
+            "site": "トレカラウンジ",
+            "product_name_on_site": product_name,
+            "match_text": product_name,
+            "variant": "",
+            "price": price,
+            "url": url,
+        })
+
+    time.sleep(SLEEP_SEC)
+    return results
+
+
+# 全サイト
 SITES = [
-    ("買取ホムラ", scrape_homura),
     ("買取BASE", scrape_base),
+    ("買取ホムラ", scrape_homura),
     ("Runto買取", scrape_runto),
     ("買取ルデヤ", scrape_rudeya),
     ("買取エノキング", scrape_enoking),
-    ("モバイル一番", scrape_mobileichiban),
-    ("買取商店", scrape_kaitorishouten),
-    ("買取1丁目", scrape_1chome),
-    ("トレカラウンジ", scrape_torecalounge),
-    ("買取ソムリエ", scrape_somurie),
+    ("モバイル一番", scrape_mobile_ichiban),
+    ("買取商店", scrape_kaitori_shouten),
+    ("買取1丁目", scrape_kaitori_itchome),
+    ("トレカラウンジ", scrape_toreca_lounge),
 ]
 
 
 def run_all(config):
-    """各サイトを一度だけ取得し、そのデータに対して全商品をローカルでマッチングする
-    （以前は商品×サイトの数だけ通信していたため、大幅に高速化される）"""
+    """全サイトから並列に情報を取得して、マッチング結果を返す"""
+    products = config.get("products", [])
     all_results = []
 
-    # 1. 各サイトから一度だけ全件取得
-    site_items = {}
-    for site_name, scrape_func in SITES:
-        print(f"\n{site_name} を取得中...")
-        try:
-            items = scrape_func()
-        except Exception as e:
-            print(f"  [{site_name}] 予期しないエラー: {e}")
-            items = []
-        site_items[site_name] = items
-        print(f"  {site_name}: {len(items)} 件取得")
+    print(f"\n[実行開始] {now_jst().strftime('%Y-%m-%d %H:%M:%S')} (日本時間)")
+    print(f"対象商品数: {len(products)}")
+    print(f"対象サイト数: {len(SITES)}")
+    print()
 
-    # 2. 取得済みデータに対して、商品ごとにローカルでキーワード一致を確認
-    print("\n=== 商品ごとに一致確認中 ===")
-    for product in config["products"]:
+    # 全サイトから並列でスクレイピング
+    print("複数サイトから価格を取得中...")
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {}
+        for site_name, scrape_func in SITES:
+            print(f"  {site_name}...")
+            future = executor.submit(scrape_func)
+            futures[future] = site_name
+
+        site_results = {}
+        for future in futures:
+            site_name = futures[future]
+            try:
+                results = future.result(timeout=30)
+                site_results[site_name] = results
+                print(f"  ✓ {site_name}: {len(results)}件")
+            except Exception as e:
+                print(f"  ✗ {site_name}: {e}")
+                site_results[site_name] = []
+
+    # 商品ごとにマッチング
+    print()
+    print("商品とのマッチング中...")
+
+    for product in products:
         display_name = product["display_name"]
-        keywords = list(product["keywords"]) + list(product.get("jan_codes", []))
+        keywords = product.get("keywords", [])
+        jan_codes = product.get("jan_codes", [])
         exclude_keywords = product.get("exclude_keywords", [])
-        hit_count = 0
 
-        for site_name, items in site_items.items():
-            for item in items:
-                text = item.get("match_text", "").lower()
-                if not any(kw.lower() in text for kw in keywords):
+        for site_name, site_result_list in site_results.items():
+            for site_result in site_result_list:
+                match = False
+
+                # キーワードマッチング
+                product_name_lower = site_result["product_name_on_site"].lower()
+                for keyword in keywords:
+                    if keyword.lower() in product_name_lower:
+                        match = True
+                        break
+
+                # JANコードマッチング
+                if not match and jan_codes:
+                    match_text = site_result.get("match_text", "").lower()
+                    for jan in jan_codes:
+                        if jan in match_text:
+                            match = True
+                            break
+
+                if not match:
                     continue
-                if exclude_keywords and any(kw.lower() in text for kw in exclude_keywords):
-                    continue  # 似た名前の別商品を誤って拾わないよう除外
-                r = dict(item)
-                r["product_display_name"] = display_name
-                r["cost_price"] = product.get("cost_price")
-                all_results.append(r)
-                hit_count += 1
 
-        print(f"  {display_name}: {hit_count} 件一致")
+                # 除外キーワードチェック
+                excluded = False
+                for ex_keyword in exclude_keywords:
+                    if ex_keyword.lower() in product_name_lower:
+                        excluded = True
+                        break
+
+                if excluded:
+                    continue
+
+                # マッチした結果を追加
+                all_results.append({
+                    "product_display_name": display_name,
+                    "site": site_result["site"],
+                    "product_name_on_site": site_result["product_name_on_site"],
+                    "variant": site_result.get("variant", ""),
+                    "price": site_result["price"],
+                    "url": site_result.get("url", ""),
+                    "match_text": site_result.get("match_text", ""),
+                    "cost_price": product.get("cost_price"),
+                    "diff_from_prev": None,  # 後で設定される
+                })
 
     return all_results
 
+
 def attach_comparisons(results, history):
-    """前回価格・仕入れ値との差額を各結果に追加する"""
-    new_history = dict(history)  # 今回分で上書きしていく
+    """前回実行時の履歴と比較して、diff_from_prev を設定する"""
+    new_history = {}
 
     for r in results:
-        key = f"{r['site']}|{r['product_display_name']}|{r['variant']}"
-        prev_price = history.get(key)
+        key = (r["product_display_name"], r["site"], r["product_name_on_site"])
+        prev_price = history.get(str(key))
 
-        if prev_price is None:
-            r["diff_from_prev"] = None
-        else:
+        if prev_price is not None:
             r["diff_from_prev"] = r["price"] - prev_price
-
-        cost_price = r.get("cost_price")
-        if cost_price:
-            r["diff_from_cost"] = r["price"] - cost_price
         else:
-            r["diff_from_cost"] = None
+            r["diff_from_prev"] = None
 
-        new_history[key] = r["price"]
+        new_history[str(key)] = r["price"]
 
     return results, new_history
 
 
 def filter_results(results, exclude_keywords):
-    """状態(variant)や商品名にexclude_keywordsを含む結果を除外する（例：カートンを除外）"""
-    if not exclude_keywords:
-        return results
+    """除外キーワードを含む結果をフィルタリングする"""
     filtered = []
     for r in results:
-        combined = (r.get("variant") or "") + (r.get("product_name_on_site") or "")
-        if any(kw in combined for kw in exclude_keywords):
-            continue
-        filtered.append(r)
+        excluded = False
+        for keyword in exclude_keywords:
+            if keyword.lower() in r["product_name_on_site"].lower():
+                excluded = True
+                break
+        if not excluded:
+            filtered.append(r)
     return filtered
 
 
-# ----------------------------------------------------------------------
-# Discord通知
-# ----------------------------------------------------------------------
-
-DISCORD_MAX_LEN = 1900  # Discordの2000文字制限に少し余裕を持たせる
-
-
 def build_discord_messages(results, report_url=None):
-    """Discordに投稿するメッセージを組み立てる。
-    商品数が多いため、詳細な全商品一覧はDiscordには載せず、
-    「価格が変わった商品」と「新規掲載」を分けて表示し、詳細はHTMLレポートへの
-    リンク（クリックで見られる一覧ページ）に誘導する。
-    「新規掲載」が大量にある場合（初回実行時など）は、1件ずつ列挙すると
-    それだけで長文になってしまうため、件数だけの要約に切り替える。
-    文字数が多い場合は2000文字制限を超えないよう複数メッセージに分割する。
-    戻り値は文字列のリスト（1件でも必ずリストで返す）。"""
+    """Discord通知用のメッセージを生成する（複数メッセージに分割対応）"""
+    if not results:
+        return ["該当商品がありません。"]
+
+    # 変更内容をカウント
+    new_count = sum(1 for r in results if r.get("diff_from_prev") is None)
+    up_count = sum(1 for r in results if r.get("diff_from_prev", 0) > 0)
+    down_count = sum(1 for r in results if r.get("diff_from_prev", 0) < 0)
+
+    # ヘッダー
+    header = (
+        f"✅ 買取価格チェック完了！\n"
+        f"🔄 変更点が {len(results)}件 見つかりました\n\n"
+        f"📈 値上がり: {up_count}件\n"
+        f"📉 値下がり: {down_count}件\n"
+        f"✨ 新規: {new_count}件\n"
+    )
+
+    if report_url:
+        header += f"\n👉 詳細はこちら: {report_url}"
+
+    # 商品ごとに詳細を作成
     grouped = {}
     for r in results:
         grouped.setdefault(r["product_display_name"], []).append(r)
 
-    header = f"📦 **買取価格チェック**（{now_jst().strftime('%Y-%m-%d %H:%M')}）"
+    details = []
+    for product_name in sorted(grouped.keys()):
+        rows = grouped[product_name]
+        rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
 
-    # 新規掲載(diffがNone)と、実際の値上がり/値下がり(diffが0以外)を分けて集計する
-    new_lines = []
-    change_lines = []
-    for product_name, rows in grouped.items():
-        for r in rows:
-            diff = r["diff_from_prev"]
-            variant_note = f"[{r['variant']}]" if r["variant"] else ""
-            if diff is None:
-                new_lines.append(f"🆕 {product_name}：{r['price']:,}円 （{r['site']}{variant_note}） 新規掲載")
-            elif diff != 0:
-                emoji = "📈" if diff > 0 else "📉"
-                change_lines.append(
-                    f"{emoji} {product_name}：{r['price']:,}円 （{r['site']}{variant_note}） {diff:+,}円"
-                )
+        block = f"📦 {product_name}\n"
+        block += "─" * 30 + "\n"
+        for r in rows_sorted:
+            prev = r.get("diff_from_prev")
+            if prev is None:
+                prev_str = "初回"
+                symbol = "✨"
+            elif prev > 0:
+                prev_str = f"+{prev:,}円"
+                symbol = "📈"
+            else:
+                prev_str = f"{prev:,}円"
+                symbol = "📉"
 
-    MAX_LISTED_NEW_ITEMS = 15  # これを超えたら1件ずつ列挙せず件数だけ表示する
+            variant = r.get("variant") or "―"
+            line = f"[{r['site']}] {r['price']:,}円 ({prev_str}) {symbol}\n"
+            block += line
 
-    blocks = []
-    if change_lines:
-        blocks.append("**🔔 価格が変わった商品**\n" + "\n".join(change_lines))
+        details.append(block)
 
-    if new_lines:
-        if len(new_lines) > MAX_LISTED_NEW_ITEMS:
-            blocks.append(
-                f"🆕 **新規掲載: {len(new_lines)}件**\n"
-                "（初回実行、またはサイト追加などでまとめて増えました。詳細は下記リンクから）"
-            )
+    # 2000字ずつに分割してメッセージを作成
+    messages = [header]
+    current_parts = []
+    current_len = len(header) + 10  # ヘッダーの長さ + 余裕
+
+    for detail in details:
+        detail_len = len(detail.encode("utf-8"))
+
+        if current_len + detail_len > 2000:
+            # 現在のメッセージを完成
+            if current_parts:
+                messages.append("\n\n".join(current_parts))
+            # 新しいメッセージを開始
+            current_parts = [detail]
+            current_len = detail_len
         else:
-            blocks.append("**🆕 新規掲載**\n" + "\n".join(new_lines))
-
-    if not change_lines and not new_lines:
-        blocks.append("今回、価格の変化はありませんでした。")
-
-    if report_url:
-        blocks.append(f"📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}")
-
-    # ブロックを、上限文字数を超えない範囲でメッセージにまとめる
-    messages = []
-    current_parts = [header]
-    current_len = len(header)
-
-    for block in blocks:
-        block_len = len(block) + 2  # 区切りの空行分
-        if current_len + block_len > DISCORD_MAX_LEN and len(current_parts) > 1:
-            messages.append("\n\n".join(current_parts))
-            current_parts = [block]
-            current_len = len(block)
-        else:
-            current_parts.append(block)
-            current_len += block_len
+            current_parts.append(detail)
+            current_len += detail_len
 
     if current_parts:
         messages.append("\n\n".join(current_parts))
@@ -1033,7 +893,7 @@ def build_discord_messages(results, report_url=None):
 
 def send_discord_notification(webhook_url, messages):
     if not webhook_url:
-        print("[Discord] webhook_url \u304c config.json \u306b\u672a\u8a2d\u5b9a\u306e\u305f\u3081\u3001\u901a\u77e5\u306f\u30b9\u30ad\u30c3\u30d7\u3057\u307e\u3057\u305f\u3002")
+        print("[Discord] webhook_url が config.json に未設定のため、通知はスキップしました。")
         return
 
     if isinstance(messages, str):
@@ -1043,13 +903,13 @@ def send_discord_notification(webhook_url, messages):
         try:
             resp = SESSION.post(webhook_url, json={"content": msg}, timeout=15)
             if resp.status_code in (200, 204):
-                print(f"[Discord] \u901a\u77e5\u3092\u9001\u4fe1\u3057\u307e\u3057\u305f\u3002\uff08{i}/{len(messages)}\u901a\u76ee\uff09")
+                print(f"[Discord] 通知を送信しました。（{i}/{len(messages)}通目）")
             else:
-                print(f"[Discord] \u9001\u4fe1\u5931\u6557: status={resp.status_code} body={resp.text[:200]}")
+                print(f"[Discord] 送信失敗: status={resp.status_code} body={resp.text[:200]}")
         except requests.RequestException as e:
-            print(f"[Discord] \u901a\u4fe1\u30a8\u30e9\u30fc: {e}")
+            print(f"[Discord] 通信エラー: {e}")
         if i < len(messages):
-            time.sleep(1)  # Discord\u306e\u30ec\u30fc\u30c8\u5236\u9650\u5bfe\u7b56
+            time.sleep(1)  # Discordのレート制限対策
 
 
 def print_results(results):
