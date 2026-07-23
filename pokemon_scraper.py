@@ -822,7 +822,7 @@ def build_discord_messages(results, report_url=None):
     # 変更内容をカウント
     new_count = sum(1 for r in results if r.get("diff_from_prev") is None)
     up_count = sum(1 for r in results if (r.get("diff_from_prev") or 0) > 0)
-    down_count = sum(1 for r in results if r.get("diff_from_prev", 0) < 0)
+    down_count = sum(1 for r in results if (r.get("diff_from_prev") or 0) < 0)
 
     # ヘッダー
     header = (
