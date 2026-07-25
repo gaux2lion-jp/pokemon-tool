@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ポケモンカード買取価格チェッカー
-複数の買取サイトから価格を自動取得・比較
+8つの買取サイトから価格を自動取得・比較
 """
 
 import os
@@ -31,7 +31,6 @@ except ImportError:
 # =====================================================================
 
 def display_width(text):
-    """全角文字(2)・半角文字(1)を区別した表示上の文字幅を計算する"""
     width = 0
     for ch in str(text):
         w = unicodedata.east_asian_width(ch)
@@ -39,7 +38,6 @@ def display_width(text):
     return width
 
 def pad_display(text, width, align="left"):
-    """表示幅を揃えるためのパディング（全角文字を考慮）"""
     text = str(text)
     pad = max(0, width - display_width(text))
     if align == "right":
@@ -56,7 +54,7 @@ HISTORY_PATH = os.path.join(BASE_DIR, "price_history.json")
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
 REPORT_DIR = os.path.join(BASE_DIR, "docs")
 
-SLEEP_SEC = 0.8
+SLEEP_SEC = 1.0
 JST = timezone(timedelta(hours=9))
 SAVE_DEBUG_HTML = False
 DEBUG_DIR = os.path.join(BASE_DIR, "debug_html")
@@ -107,18 +105,18 @@ def save_history(history):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 # =====================================================================
-# スクレイピング関数
+# スクレイピング関数（8サイト）
 # =====================================================================
 
 def scrape_base():
-    """買取BASE - トレカ買取価格表"""
+    """買取BASE"""
     url = "https://kaitori-base.com/?p=9534"
     results = []
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f" [買取BASE] 通信エラー: {e}")
+    except Exception as e:
+        print(f" [買取BASE] エラー: {e}")
         return results
     
     save_debug_html("base", "main", resp.text)
@@ -126,28 +124,17 @@ def scrape_base():
     
     try:
         table = soup.find("table", class_="wp-block-table")
-        if not table:
-            return results
-        
-        for row in table.find_all("tr")[1:]:
-            cells = row.find_all("td")
-            if len(cells) < 2:
-                continue
-            
-            product_name = cells[0].get_text(strip=True)
-            price_text = cells[1].get_text(strip=True)
-            
-            try:
-                price = int(re.sub(r"[^\d]", "", price_text))
-            except:
-                continue
-            
-            results.append({
-                "product_name": product_name,
-                "site": "買取BASE",
-                "price": price,
-                "variant": None,
-            })
+        if table:
+            for row in table.find_all("tr")[1:]:
+                cells = row.find_all("td")
+                if len(cells) >= 2:
+                    name = cells[0].get_text(strip=True)
+                    price_text = cells[1].get_text(strip=True)
+                    try:
+                        price = int(re.sub(r"[^\d]", "", price_text))
+                        results.append({"product_name": name, "site": "買取BASE", "price": price, "variant": None})
+                    except:
+                        pass
     except Exception as e:
         print(f" [買取BASE] 解析エラー: {e}")
     
@@ -160,35 +147,25 @@ def scrape_runto():
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f" [Runto買取] 通信エラー: {e}")
+    except Exception as e:
+        print(f" [Runto買取] エラー: {e}")
         return results
     
     save_debug_html("runto", "main", resp.text)
     soup = BeautifulSoup(resp.text, "html.parser")
     
     try:
-        # Runto買取のHTML構造に合わせたセレクタ
-        rows = soup.find_all("tr", class_="item")
-        for row in rows:
+        rows = soup.find_all("tr")
+        for row in rows[1:]:
             cells = row.find_all("td")
-            if len(cells) < 3:
-                continue
-            
-            product_name = cells[0].get_text(strip=True)
-            price_text = cells[2].get_text(strip=True)  # 価格は3番目のセル
-            
-            try:
-                price = int(re.sub(r"[^\d]", "", price_text))
-            except:
-                continue
-            
-            results.append({
-                "product_name": product_name,
-                "site": "Runto買取",
-                "price": price,
-                "variant": None,
-            })
+            if len(cells) >= 3:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[2].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "Runto買取", "price": price, "variant": None})
+                except:
+                    pass
     except Exception as e:
         print(f" [Runto買取] 解析エラー: {e}")
     
@@ -201,35 +178,25 @@ def scrape_newenoking():
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f" [買取エノキング] 通信エラー: {e}")
+    except Exception as e:
+        print(f" [買取エノキング] エラー: {e}")
         return results
     
     save_debug_html("newenoking", "main", resp.text)
     soup = BeautifulSoup(resp.text, "html.parser")
     
     try:
-        # 買取エノキングのHTML構造に合わせたセレクタ
         rows = soup.find_all("tr")
-        for row in rows[1:]:  # ヘッダー行をスキップ
+        for row in rows[1:]:
             cells = row.find_all("td")
-            if len(cells) < 3:
-                continue
-            
-            product_name = cells[0].get_text(strip=True)
-            price_text = cells[1].get_text(strip=True)
-            
-            try:
-                price = int(re.sub(r"[^\d]", "", price_text))
-            except:
-                continue
-            
-            results.append({
-                "product_name": product_name,
-                "site": "買取エノキング",
-                "price": price,
-                "variant": None,
-            })
+            if len(cells) >= 2:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[1].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "買取エノキング", "price": price, "variant": None})
+                except:
+                    pass
     except Exception as e:
         print(f" [買取エノキング] 解析エラー: {e}")
     
@@ -242,35 +209,25 @@ def scrape_mobile_ichiban():
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f" [モバイル一番] 通信エラー: {e}")
+    except Exception as e:
+        print(f" [モバイル一番] エラー: {e}")
         return results
     
     save_debug_html("mobile_ichiban", "main", resp.text)
     soup = BeautifulSoup(resp.text, "html.parser")
     
     try:
-        # モバイル一番のHTML構造に合わせたセレクタ
         rows = soup.find_all("tr")
         for row in rows[1:]:
             cells = row.find_all("td")
-            if len(cells) < 3:
-                continue
-            
-            product_name = cells[0].get_text(strip=True)
-            price_text = cells[2].get_text(strip=True)  # 価格は3番目のセル
-            
-            try:
-                price = int(re.sub(r"[^\d]", "", price_text))
-            except:
-                continue
-            
-            results.append({
-                "product_name": product_name,
-                "site": "モバイル一番",
-                "price": price,
-                "variant": None,
-            })
+            if len(cells) >= 3:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[2].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "モバイル一番", "price": price, "variant": None})
+                except:
+                    pass
     except Exception as e:
         print(f" [モバイル一番] 解析エラー: {e}")
     
@@ -283,37 +240,120 @@ def scrape_1chome():
     try:
         resp = SESSION.get(url, timeout=15)
         resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f" [買取１丁目] 通信エラー: {e}")
+    except Exception as e:
+        print(f" [買取１丁目] エラー: {e}")
         return results
     
     save_debug_html("1chome", "main", resp.text)
     soup = BeautifulSoup(resp.text, "html.parser")
     
     try:
-        # 買取１丁目のHTML構造に合わせたセレクタ
         rows = soup.find_all("tr")
         for row in rows[1:]:
             cells = row.find_all("td")
-            if len(cells) < 3:
-                continue
-            
-            product_name = cells[0].get_text(strip=True)
-            price_text = cells[1].get_text(strip=True)
-            
-            try:
-                price = int(re.sub(r"[^\d]", "", price_text))
-            except:
-                continue
-            
-            results.append({
-                "product_name": product_name,
-                "site": "買取１丁目",
-                "price": price,
-                "variant": None,
-            })
+            if len(cells) >= 2:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[1].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "買取１丁目", "price": price, "variant": None})
+                except:
+                    pass
     except Exception as e:
         print(f" [買取１丁目] 解析エラー: {e}")
+    
+    return results
+
+def scrape_rudeya():
+    """買取るであ"""
+    url = "https://kaitori-rudeya.com/"
+    results = []
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f" [買取るであ] エラー: {e}")
+        return results
+    
+    save_debug_html("rudeya", "main", resp.text)
+    soup = BeautifulSoup(resp.text, "html.parser")
+    
+    try:
+        rows = soup.find_all("tr")
+        for row in rows[1:]:
+            cells = row.find_all("td")
+            if len(cells) >= 2:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[1].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "買取るであ", "price": price, "variant": None})
+                except:
+                    pass
+    except Exception as e:
+        print(f" [買取るであ] 解析エラー: {e}")
+    
+    return results
+
+def scrape_somurie():
+    """買取ソムリエ"""
+    url = "https://somurie-kaitori.com/"
+    results = []
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f" [買取ソムリエ] エラー: {e}")
+        return results
+    
+    save_debug_html("somurie", "main", resp.text)
+    soup = BeautifulSoup(resp.text, "html.parser")
+    
+    try:
+        rows = soup.find_all("tr")
+        for row in rows[1:]:
+            cells = row.find_all("td")
+            if len(cells) >= 2:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[1].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "買取ソムリエ", "price": price, "variant": None})
+                except:
+                    pass
+    except Exception as e:
+        print(f" [買取ソムリエ] 解析エラー: {e}")
+    
+    return results
+
+def scrape_toreca_lounge():
+    """トレカラウンジ"""
+    url = "https://kaitori.toreca-lounge.com/pokemon"
+    results = []
+    try:
+        resp = SESSION.get(url, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f" [トレカラウンジ] エラー: {e}")
+        return results
+    
+    save_debug_html("toreca_lounge", "main", resp.text)
+    soup = BeautifulSoup(resp.text, "html.parser")
+    
+    try:
+        rows = soup.find_all("tr")
+        for row in rows[1:]:
+            cells = row.find_all("td")
+            if len(cells) >= 2:
+                name = cells[0].get_text(strip=True)
+                price_text = cells[1].get_text(strip=True)
+                try:
+                    price = int(re.sub(r"[^\d]", "", price_text))
+                    results.append({"product_name": name, "site": "トレカラウンジ", "price": price, "variant": None})
+                except:
+                    pass
+    except Exception as e:
+        print(f" [トレカラウンジ] 解析エラー: {e}")
     
     return results
 
@@ -322,18 +362,15 @@ def scrape_1chome():
 # =====================================================================
 
 def run_all(config, save_csv_file=False):
-    """すべてのサイトから価格を取得"""
-    
     config_products = {p.get("display_name", p.get("name")): p for p in config.get("products", [])}
     
     print(f"\n{'='*60}")
-    print(f"ポケモンカード買取価格チェック")
-    print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S (日本時間)')}")
+    print(f"ポケモンカード買取価格チェック（8サイト対応）")
+    print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
     
     all_results = []
     
-    # スクレイピング実行
     print("スクレイピング中...\n")
     all_results.extend(scrape_base())
     time.sleep(SLEEP_SEC)
@@ -345,8 +382,13 @@ def run_all(config, save_csv_file=False):
     time.sleep(SLEEP_SEC)
     all_results.extend(scrape_1chome())
     time.sleep(SLEEP_SEC)
+    all_results.extend(scrape_rudeya())
+    time.sleep(SLEEP_SEC)
+    all_results.extend(scrape_somurie())
+    time.sleep(SLEEP_SEC)
+    all_results.extend(scrape_toreca_lounge())
+    time.sleep(SLEEP_SEC)
     
-    # product_display_nameを追加
     history = load_history()
     for result in all_results:
         product_key = result["product_name"]
@@ -355,7 +397,6 @@ def run_all(config, save_csv_file=False):
         else:
             result["product_display_name"] = product_key
         
-        # 前回との差を計算
         hist_key = f"{result['product_display_name']}_{result['site']}"
         prev_price = history.get(hist_key)
         if prev_price is not None:
@@ -363,25 +404,18 @@ def run_all(config, save_csv_file=False):
         else:
             result["diff_from_prev"] = None
         
-        # 履歴を更新
         history[hist_key] = result["price"]
     
     save_history(history)
-    
-    # HTMLレポート生成
     generate_html_report(all_results)
-    
-    # コンソール表示
     print_results(all_results)
     
     if save_csv_file:
         save_csv(all_results)
     
-    # Discord通知
     send_discord_notification(all_results)
 
 def print_results(results):
-    """コンソールに結果を表示"""
     grouped = {}
     for r in results:
         grouped.setdefault(r["product_display_name"], []).append(r)
@@ -401,7 +435,6 @@ def print_results(results):
         print()
 
 def save_csv(results):
-    """結果をCSVで保存"""
     os.makedirs(RESULTS_DIR, exist_ok=True)
     ts = now_jst().strftime("%Y%m%d_%H%M%S")
     filepath = os.path.join(RESULTS_DIR, f"pokemon_prices_{ts}.csv")
@@ -414,7 +447,6 @@ def save_csv(results):
             writer.writerow([r["product_display_name"], r["site"], r["price"], diff])
 
 def generate_html_report(results):
-    """HTMLレポート生成"""
     os.makedirs(REPORT_DIR, exist_ok=True)
     
     grouped = {}
@@ -428,13 +460,11 @@ def generate_html_report(results):
         rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
         best = rows_sorted[0]
         
-        # 商品ヘッダー行
         rows_html.append(
             f'<tr class="product-row"><td colspan="4"><strong>{product_name}</strong> '
             f'<span class="best">最高値 {best["price"]:,}円 ({best["site"]})</span></td></tr>'
         )
         
-        # 全ショップの価格行
         for r in rows_sorted:
             diff_html = ""
             if r["diff_from_prev"] is None:
@@ -447,12 +477,7 @@ def generate_html_report(results):
                 diff_html = '<span class="badge flat">±0</span>'
             
             rows_html.append(
-                f'<tr>'
-                f'<td>{r["site"]}</td>'
-                f'<td>―</td>'
-                f'<td class="price">{r["price"]:,}円</td>'
-                f'<td>{diff_html}</td>'
-                f'</tr>'
+                f'<tr><td>{r["site"]}</td><td>―</td><td class="price">{r["price"]:,}円</td><td>{diff_html}</td></tr>'
             )
     
     html = f"""<!DOCTYPE html>
@@ -491,7 +516,6 @@ td {{ padding:8px 10px; border-bottom:1px solid #eee; font-size:14px; }}
         f.write(html)
 
 def send_discord_notification(results):
-    """Discord通知"""
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         return
@@ -537,15 +561,12 @@ def send_discord_notification(results):
         print(f"Discord通知エラー: {e}")
 
 if __name__ == "__main__":
-    # Git操作（stash → pull → commit）
     os.system("git stash")
     os.system("git pull origin main --rebase")
     
-    # スクレイピング実行
     config = load_config()
     run_all(config, save_csv_file=False)
     
-    # 結果をコミット
     os.system("git add -A")
     os.system(f'git commit -m "Update prices: {now_jst().strftime(\"%Y-%m-%d %H:%M\")}"')
     os.system("git push origin main")
