@@ -3,6 +3,10 @@ name: ポケモン買取価格チェック
 on:
   workflow_dispatch:
     # 外部サービス(cron-job.org)から、正確な時間にこのトリガーを呼び出してもらう。
+
+    concurrency:
+      group: price-check
+        cancel-in-progress: false
     # GitHub内蔵の schedule 機能は混雑時に遅延・間引きされることがあるため使わない。
 
 permissions:
