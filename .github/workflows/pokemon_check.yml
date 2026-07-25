@@ -38,4 +38,4 @@ jobs:
           git pull origin main --rebase
           git add price_history.json docs/index.html
           git diff --staged --quiet || git commit -m "価格履歴・レポートを更新"
-          git push
+          git push origin main
