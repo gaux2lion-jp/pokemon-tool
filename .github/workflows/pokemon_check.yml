@@ -34,6 +34,7 @@ jobs:
       - name: 価格履歴とレポートページを保存
         run: |
           git config user.name "pokemon-bot"
+                      git stash
           git config user.email "pokemon-bot@users.noreply.github.com"
           git pull origin main --rebase
           git add price_history.json docs/index.html
