@@ -1,485 +1,620 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー
-8つの買取サイトから価格を自動取得・比較
+ポケモンカード買取価格チェッカー（買取1丁目 複数ページAPI巡回・最終完全網羅版）
 """
 
 import os
 import re
-import csv
-import sys
 import json
 import time
+import sys
 import unicodedata
-import html as html_module
+import logging
+import urllib.request
+import urllib.parse
 from datetime import datetime, timezone, timedelta
-from concurrent.futures import ThreadPoolExecutor
-
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 
-try:
-    from curl_cffi import requests as curl_requests
-    HAS_CURL_CFFI = True
-except ImportError:
-    HAS_CURL_CFFI = False
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
-# =====================================================================
-# ユーティリティ
-# =====================================================================
+# ──────────────────────────────────────────────────
+# 🚀 運用設定
+#   False : 全ページ・全件取得（本番用）
+#   True  : ページ巡回数を制限（テスト用）
+# ──────────────────────────────────────────────────
+TEST_MODE = False
 
-def display_width(text):
-    width = 0
-    for ch in str(text):
-        w = unicodedata.east_asian_width(ch)
-        width += 2 if w in ("W", "F") else 1
-    return width
-
-def pad_display(text, width, align="left"):
-    text = str(text)
-    pad = max(0, width - display_width(text))
-    if align == "right":
-        return " " * pad + text
-    return text + " " * pad
-
-# =====================================================================
-# グローバル設定
-# =====================================================================
+logging.basicConfig(level=logging.WARNING)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 HISTORY_PATH = os.path.join(BASE_DIR, "price_history.json")
-RESULTS_DIR = os.path.join(BASE_DIR, "results")
 REPORT_DIR = os.path.join(BASE_DIR, "docs")
+LOG_FILE_PATH = os.path.join(BASE_DIR, "latest_run.log")
 
-SLEEP_SEC = 1.0
 JST = timezone(timedelta(hours=9))
-SAVE_DEBUG_HTML = False
-DEBUG_DIR = os.path.join(BASE_DIR, "debug_html")
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-    "Connection": "keep-alive",
-}
+class AutoLogger(object):
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w", encoding="utf-8")
 
-SESSION = requests.Session()
-SESSION.headers.update(HEADERS)
-_retry = Retry(total=3, backoff_factor=1.5, status_forcelist=[429, 500, 502, 503, 504])
-_adapter = HTTPAdapter(max_retries=_retry)
-SESSION.mount("https://", _adapter)
-SESSION.mount("http://", _adapter)
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
 
 def now_jst():
     return datetime.now(JST)
 
-def save_debug_html(site_name, label, html_text):
-    if not SAVE_DEBUG_HTML:
-        return
-    os.makedirs(DEBUG_DIR, exist_ok=True)
-    ts = now_jst().strftime("%Y%m%d_%H%M%S")
-    safe_label = re.sub(r"[^\w\-]+", "_", label)[:50]
-    path = os.path.join(DEBUG_DIR, f"{site_name}_{safe_label}_{ts}.html")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html_text)
-
-# =====================================================================
-# 設定・履歴の読み書き
-# =====================================================================
-
 def load_config():
+    if not os.path.exists(CONFIG_PATH):
+        return {}
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def load_history():
     if not os.path.exists(HISTORY_PATH):
         return {}
-    with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(HISTORY_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
 def save_history(history):
     with open(HISTORY_PATH, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
-# =====================================================================
-# スクレイピング関数（8サイト）
-# =====================================================================
+def init_driver():
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1280,720")
+    
+    options.add_argument('--blink-settings=imagesEnabled=false')
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    options.add_experimental_option("prefs", prefs)
+    
+    options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    )
 
-def scrape_base():
-    """買取BASE"""
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.set_page_load_timeout(25)
+    return driver
+
+def scroll_down(driver):
+    try:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
+        time.sleep(0.5)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1.0)
+    except Exception:
+        pass
+
+def normalize_str(s):
+    """全角英数・記号を半角に変換し、小文字化する"""
+    if not s:
+        return ""
+    return unicodedata.normalize('NFKC', str(s)).lower()
+
+def matches_product(text, product, global_exclude_keywords):
+    norm_text = normalize_str(text)
+
+    # 1. 全体除外キーワードの判定
+    for g_kw in global_exclude_keywords:
+        if not g_kw: continue
+        kw_norm = normalize_str(g_kw)
+        
+        if kw_norm == "開封" and "未開封" in norm_text:
+            if "開封済" in norm_text or "開封品" in norm_text:
+                return False
+            continue
+            
+        if kw_norm == "パック" and ("拡張パック" in norm_text or "ハイクラスパック" in norm_text):
+            if "バラパック" in norm_text or "パック販売" in norm_text:
+                return False
+            continue
+
+        if kw_norm in norm_text:
+            return False
+
+    # 2. 個別除外キーワードの判定
+    for ex_kw in product.get("exclude_keywords", []):
+        if ex_kw and normalize_str(ex_kw) in norm_text:
+            return False
+
+    # 3. マッチキーワードの判定
+    keywords = product.get("keywords", [])
+    if not keywords:
+        keywords = [product.get("display_name", "")]
+
+    for kw in keywords:
+        if kw and normalize_str(kw) in norm_text:
+            return True
+
+    return False
+
+def add_or_update_result(results, site_name, product_name, price, jan_code):
+    """同一商品が見つかった場合、より高い金額で上書きする"""
+    for r in results:
+        if r["site"] == site_name and r["product_name"] == product_name:
+            if price > r["price"]:
+                r["price"] = price
+            return
+    results.append({
+        "product_name": product_name,
+        "site": site_name,
+        "price": price,
+        "jan_code": jan_code
+    })
+
+# 1. 買取BASE
+def scrape_base(driver, config):
+    site_name = "買取BASE"
     url = "https://kaitori-base.com/?p=9534"
     results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [買取BASE] エラー: {e}")
-        return results
-    
-    save_debug_html("base", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        table = soup.find("table", class_="wp-block-table")
-        if table:
-            for row in table.find_all("tr")[1:]:
-                cells = row.find_all("td")
-                if len(cells) >= 2:
-                    name = cells[0].get_text(strip=True)
-                    price_text = cells[1].get_text(strip=True)
-                    try:
-                        price = int(re.sub(r"[^\d]", "", price_text))
-                        results.append({"product_name": name, "site": "買取BASE", "price": price, "variant": None})
-                    except:
-                        pass
-    except Exception as e:
-        print(f" [買取BASE] 解析エラー: {e}")
-    
-    return results
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
 
-def scrape_runto():
-    """Runto買取"""
-    url = "https://runto666.com/kaitori/pokemon/"
+    try:
+        print(f" ⏳ [{site_name:15}] アクセス中...")
+        driver.get(url)
+        time.sleep(2.0)
+
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        tables = soup.find_all("table")
+
+        for table in reversed(tables):
+            rows = table.find_all("tr")
+            if len(rows) > 10:
+                for row in rows[1:]:
+                    cells = row.find_all("td")
+                    if len(cells) >= 2:
+                        name = cells[0].get_text(strip=True)
+                        price_text = cells[-1].get_text(strip=True)
+
+                        for product in products_config:
+                            if matches_product(name, product, global_exclude):
+                                try:
+                                    prices = re.findall(r"[\d,]+", price_text)
+                                    valid_prices = [int(p.replace(",", "")) for p in prices if len(p.replace(",", "")) >= 4]
+                                    if valid_prices:
+                                        price = valid_prices[-1]
+                                        if 3000 <= price <= 5000000:
+                                            add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                except Exception:
+                                    pass
+                                break
+                if results:
+                    break
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 2. Runto買取
+def scrape_runto(driver, config):
+    site_name = "Runto買取"
+    base_url = "https://runto666.com/product-category/card/"
     results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [Runto買取] エラー: {e}")
-        return results
-    
-    save_debug_html("runto", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 3:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[2].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "Runto買取", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [Runto買取] 解析エラー: {e}")
-    
-    return results
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
 
-def scrape_newenoking():
-    """買取エノキング"""
-    url = "https://newenoking-kaitori.com/"
+    try:
+        print(f" ⏳ [{site_name:15}] 全ページ巡回中...")
+        max_pages = 2 if TEST_MODE else 15
+        target_items = []
+
+        for page in range(1, max_pages + 1):
+            url = base_url if page == 1 else f"{base_url}page/{page}/"
+            try:
+                driver.get(url)
+                time.sleep(1.2)
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                product_links = soup.find_all("a", class_="woocommerce-LoopProduct-link")
+
+                if not product_links:
+                    break
+
+                for link in product_links:
+                    product_url = link.get("href")
+                    product_name_elem = link.find("h2") or link.find("h3")
+
+                    if product_name_elem and product_url:
+                        name = product_name_elem.get_text(strip=True)
+                        for product in products_config:
+                            if matches_product(name, product, global_exclude):
+                                target_items.append((product_url, product))
+                                break
+            except Exception:
+                break
+
+        for product_url, product in target_items:
+            try:
+                driver.get(product_url)
+                time.sleep(0.8)
+                detail_soup = BeautifulSoup(driver.page_source, "html.parser")
+                summary = detail_soup.find("div", class_="summary entry-summary")
+                price_area = summary.find("p", class_="price") if summary else detail_soup.find("p", class_="price")
+
+                if price_area:
+                    price_text = price_area.get_text(strip=True)
+                    prices = re.findall(r"[\d,]+", price_text)
+                    valid_prices = [int(p.replace(",", "")) for p in prices if len(p.replace(",", "")) >= 4]
+
+                    if valid_prices:
+                        price = max(valid_prices)
+                        if 3000 <= price <= 5000000:
+                            add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+            except Exception:
+                pass
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 3. 買取エノキング
+def scrape_newenoking(driver, config):
+    site_name = "買取エノキング"
+    base_url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
     results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [買取エノキング] エラー: {e}")
-        return results
-    
-    save_debug_html("newenoking", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 2:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[1].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "買取エノキング", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [買取エノキング] 解析エラー: {e}")
-    
-    return results
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
 
-def scrape_mobile_ichiban():
-    """モバイル一番"""
-    url = "https://www.mobile-ichiban.com/Prod/3/04"
-    results = []
     try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [モバイル一番] エラー: {e}")
-        return results
-    
-    save_debug_html("mobile_ichiban", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 3:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[2].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "モバイル一番", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [モバイル一番] 解析エラー: {e}")
-    
-    return results
-
-def scrape_1chome():
-    """買取１丁目"""
-    url = "https://www.1-chome.com/index"
-    results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [買取１丁目] エラー: {e}")
-        return results
-    
-    save_debug_html("1chome", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 2:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[1].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "買取１丁目", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [買取１丁目] 解析エラー: {e}")
-    
-    return results
-
-def scrape_rudeya():
-    """買取るであ"""
-    url = "https://kaitori-rudeya.com/"
-    results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [買取るであ] エラー: {e}")
-        return results
-    
-    save_debug_html("rudeya", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 2:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[1].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "買取るであ", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [買取るであ] 解析エラー: {e}")
-    
-    return results
-
-def scrape_somurie():
-    """買取ソムリエ"""
-    url = "https://somurie-kaitori.com/"
-    results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [買取ソムリエ] エラー: {e}")
-        return results
-    
-    save_debug_html("somurie", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 2:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[1].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "買取ソムリエ", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [買取ソムリエ] 解析エラー: {e}")
-    
-    return results
-
-def scrape_toreca_lounge():
-    """トレカラウンジ"""
-    url = "https://kaitori.toreca-lounge.com/pokemon"
-    results = []
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-    except Exception as e:
-        print(f" [トレカラウンジ] エラー: {e}")
-        return results
-    
-    save_debug_html("toreca_lounge", "main", resp.text)
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    try:
-        rows = soup.find_all("tr")
-        for row in rows[1:]:
-            cells = row.find_all("td")
-            if len(cells) >= 2:
-                name = cells[0].get_text(strip=True)
-                price_text = cells[1].get_text(strip=True)
-                try:
-                    price = int(re.sub(r"[^\d]", "", price_text))
-                    results.append({"product_name": name, "site": "トレカラウンジ", "price": price, "variant": None})
-                except:
-                    pass
-    except Exception as e:
-        print(f" [トレカラウンジ] 解析エラー: {e}")
-    
-    return results
-
-# =====================================================================
-# メイン処理
-# =====================================================================
-
-def run_all(config, save_csv_file=False):
-    config_products = {p.get("display_name", p.get("name")): p for p in config.get("products", [])}
-    
-    print(f"\n{'='*60}")
-    print(f"ポケモンカード買取価格チェック（8サイト対応）")
-    print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"{'='*60}\n")
-    
-    all_results = []
-    
-    print("スクレイピング中...\n")
-    all_results.extend(scrape_base())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_runto())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_newenoking())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_mobile_ichiban())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_1chome())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_rudeya())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_somurie())
-    time.sleep(SLEEP_SEC)
-    all_results.extend(scrape_toreca_lounge())
-    time.sleep(SLEEP_SEC)
-    
-    history = load_history()
-    for result in all_results:
-        product_key = result["product_name"]
-        if product_key in config_products:
-            result["product_display_name"] = config_products[product_key].get("display_name", product_key)
-        else:
-            result["product_display_name"] = product_key
+        print(f" ⏳ [{site_name:15}] RSC直接解析中...")
+        max_pages = 2 if TEST_MODE else 10 
         
-        hist_key = f"{result['product_display_name']}_{result['site']}"
-        prev_price = history.get(hist_key)
-        if prev_price is not None:
-            result["diff_from_prev"] = result["price"] - prev_price
-        else:
-            result["diff_from_prev"] = None
-        
-        history[hist_key] = result["price"]
-    
-    save_history(history)
-    generate_html_report(all_results)
-    print_results(all_results)
-    
-    if save_csv_file:
-        save_csv(all_results)
-    
-    send_discord_notification(all_results)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Encoding": "identity",
+        }
 
-def print_results(results):
-    grouped = {}
-    for r in results:
-        grouped.setdefault(r["product_display_name"], []).append(r)
-    
-    for product_name in sorted(grouped.keys()):
-        rows = grouped[product_name]
-        print(f"{product_name}")
-        print("─" * 60)
-        
-        for r in sorted(rows, key=lambda x: x["price"], reverse=True):
-            diff_str = "初回"
-            if r["diff_from_prev"] is not None:
-                diff_str = f"{r['diff_from_prev']:+,}" if r["diff_from_prev"] != 0 else "0"
+        for page in range(1, max_pages + 1):
+            url = f"{base_url}&page={page}"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                html = resp.read().decode("utf-8", errors="ignore")
+
+            rsc_matches = re.findall(r'self\.__next_f\.push\(\[(.*?)\]\s*\)', html, re.DOTALL)
+            if not rsc_matches and page > 1:
+                break
+
+            for rsc in rsc_matches:
+                name_match = re.search(r'\\"name\\":\\"([^\\]+)\\"', rsc) or re.search(r'"name":"([^"]+)"', rsc)
+                alt_match = re.search(r'"alt":"([^"]+)"', rsc)
+                price_match = re.search(r'"referencePrice":(\d+)', rsc) or re.search(r'\\"referencePrice\\":(\d+)', rsc)
+                
+                name = (name_match.group(1) if name_match else '') or (alt_match.group(1) if alt_match else '')
+                price = int(price_match.group(1)) if price_match else None
+                
+                if name and price and 3000 <= price <= 5000000:
+                    for product in products_config:
+                        if matches_product(name, product, global_exclude):
+                            add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                            break
+            time.sleep(0.5)
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 4. 買取ホムラ
+def scrape_homura(driver, config):
+    site_name = "買取ホムラ"
+    base_url = "https://kaitori-homura.com/products?q%5Bproduct_sub_category_product_category_id_eq%5D=14"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 全カテゴリ巡回中...")
+        max_pages = 2 if TEST_MODE else 20
+
+        for page in range(1, max_pages + 1):
+            url = f"{base_url}&page={page}"
+            driver.get(url)
+            time.sleep(1.8)
+            scroll_down(driver)
+
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            cards = soup.find_all("div", class_=re.compile(r"product|card|item", re.I))
+
+            if not cards:
+                break
+
+            for card in cards:
+                text = card.get_text(strip=True)
+                for product in products_config:
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"買取金額[^\d]*¥?\s*([\d,]{4,8})", text) or re.search(r"¥\s*([\d,]{4,8})", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    break
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 5. モバイル一番
+def scrape_mobile_ichiban(driver, config):
+    site_name = "モバイル一番"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 全ページ巡回中...")
+        max_pages = 2 if TEST_MODE else 10
+
+        for page in range(1, max_pages + 1):
+            if page == 1:
+                url = "https://www.mobile-ichiban.com/Prod/3/04"
+            else:
+                url = f"https://www.mobile-ichiban.com/G01_ProdutShow/Index/{page}?kid=3&bid=04"
             
-            print(f"  [{r['site']}] {r['price']:,}円 ({diff_str})")
-        
-        print()
+            driver.get(url)
+            time.sleep(2.5)
+            scroll_down(driver)
 
-def save_csv(results):
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    ts = now_jst().strftime("%Y%m%d_%H%M%S")
-    filepath = os.path.join(RESULTS_DIR, f"pokemon_prices_{ts}.csv")
-    
-    with open(filepath, "w", newline="", encoding="utf-8-sig") as f:
-        writer = csv.writer(f)
-        writer.writerow(["商品名", "サイト", "価格", "前回との差"])
-        for r in results:
-            diff = r["diff_from_prev"] if r["diff_from_prev"] is not None else "初回"
-            writer.writerow([r["product_display_name"], r["site"], r["price"], diff])
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            items = soup.find_all("div", class_=re.compile(r"card|item|prod|list", re.I)) or soup.find_all("tr")
+
+            if not items:
+                break
+
+            for item in items:
+                text = item.get_text(strip=True)
+                for product in products_config:
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"([\d,]+)\s*円", text) or re.search(r"¥\s*([\d,]+)", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    break
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 6. 買取1丁目（★全ページAPI巡回＆JAN照合強化版）
+def scrape_kaitori_itchome(driver, config):
+    site_name = "買取１丁目"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] API全ページ巡回中...")
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.1-chome.com/tradeCards",
+            "Origin": "https://www.1-chome.com"
+        }
+
+        max_pages = 2 if TEST_MODE else 10
+
+        for page in range(1, max_pages + 1):
+            params = {
+                "accCode": "",
+                "page": str(page),
+                "size": "50",
+                "keyword": "",
+                "isImpo": "false",
+                "isCampaign": "false",
+                "cateCode": "IIzyMdayU5wp7T4G",
+                "kbNames": "",
+                "cateName": ""
+            }
+            url = "https://www.1-chome.com/api/goods/listPage?" + urllib.parse.urlencode(params)
+            
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            
+            content = data.get("data", {}).get("content", [])
+            if not content:
+                break
+
+            for item in content:
+                name = item.get("title", "")
+                item_jan = str(item.get("jan", "")).strip()
+                
+                for product in products_config:
+                    p_name = product.get("display_name")
+                    jan_codes = [str(j).strip() for j in product.get("jan_codes", []) if j]
+                    
+                    is_match = False
+                    if item_jan and item_jan in jan_codes:
+                        is_match = True
+                    elif matches_product(name, product, global_exclude):
+                        is_match = True
+
+                    if is_match:
+                        for kd in item.get("goodsKbDetails", []):
+                            cond_name = kd.get("kbDetailName", "")
+                            price = kd.get("kbDetailPrice")
+                            
+                            if price and 3000 <= price <= 5000000:
+                                full_text = f"{name} {cond_name}"
+                                if matches_product(full_text, product, global_exclude):
+                                    add_or_update_result(results, site_name, p_name, price, jan_codes[0] if jan_codes else None)
+                                    break
+            
+            time.sleep(0.3)
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 7. 買取ルデヤ
+def scrape_rudeya(driver, config):
+    site_name = "買取ルデヤ"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 個別検索中...")
+        target_products = products_config[:5] if TEST_MODE else products_config
+
+        for product in target_products:
+            jan_codes = product.get("jan_codes", [])
+            
+            if jan_codes:
+                url = f"https://kaitori-rudeya.com/search/index/-/{jan_codes[0]}/-/-"
+            else:
+                search_word = urllib.parse.quote(product.get("display_name", ""))
+                url = f"https://kaitori-rudeya.com/search/index/{search_word}/-/-/-"
+
+            try:
+                driver.get(url)
+                time.sleep(1.0)
+                scroll_down(driver)
+
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                cards = soup.find_all("article", class_=re.compile(r"card", re.I)) or soup.find_all("div", class_=re.compile(r"item|product|box", re.I))
+
+                for card in cards:
+                    text = card.get_text(strip=True)
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"買取価格\s*([\d,]+)\s*円", text) or re.search(r"([\d,]+)\s*円", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, jan_codes[0] if jan_codes else None)
+                                    break
+            except Exception:
+                pass
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 8. トレカラウンジ
+def scrape_toreca_lounge(driver, config):
+    site_name = "トレカラウンジ"
+    base_url = "https://kaitori.toreca-lounge.com/products?keyword="
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 個別検索中...")
+        target_products = products_config[:5] if TEST_MODE else products_config
+
+        for product in target_products:
+            search_word = urllib.parse.quote(product.get("display_name", ""))
+            url = f"{base_url}{search_word}"
+            
+            try:
+                driver.get(url)
+                time.sleep(1.0)
+                scroll_down(driver)
+
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                items = soup.find_all("div", class_=re.compile(r"product|card|item_box", re.I)) or soup.find_all("tr")
+
+                for item in items:
+                    text = item.get_text(strip=True)
+                    
+                    norm_item = normalize_str(text)
+                    if any(ck in norm_item for ck in ["カートン", "carton", "1c/s", "1cs", "ケース"]):
+                        continue
+
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"買取価格\s*:\s*¥?\s*([\d,]+)", text) or re.search(r"¥\s*([\d,]+)", text) or re.search(r"([\d,]+)\s*円", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                p_display = product.get("display_name", "")
+                                if price > 400000 and "20th" not in p_display and "best of" not in p_display.lower():
+                                    continue
+                                    
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, p_display, price, product.get("jan_codes", [None])[0])
+                                    break
+            except Exception:
+                pass
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
-    
     grouped = {}
     for r in results:
-        grouped.setdefault(r["product_display_name"], []).append(r)
-    
+        grouped.setdefault(r["product_name"], []).append(r)
+
     rows_html = []
-    
     for product_name in sorted(grouped.keys()):
         rows = grouped[product_name]
         rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
         best = rows_sorted[0]
-        
+
         rows_html.append(
-            f'<tr class="product-row"><td colspan="4"><strong>{product_name}</strong> '
+            f'<tr class="product-row"><td colspan="3"><strong>{product_name}</strong> '
             f'<span class="best">最高値 {best["price"]:,}円 ({best["site"]})</span></td></tr>'
         )
-        
+
         for r in rows_sorted:
-            diff_html = ""
-            if r["diff_from_prev"] is None:
-                diff_html = '<span class="badge new">初回</span>'
-            elif r["diff_from_prev"] > 0:
-                diff_html = f'<span class="badge up">+{r["diff_from_prev"]:,}円 ▲</span>'
-            elif r["diff_from_prev"] < 0:
-                diff_html = f'<span class="badge down">{r["diff_from_prev"]:,}円 ▼</span>'
-            else:
-                diff_html = '<span class="badge flat">±0</span>'
-            
             rows_html.append(
-                f'<tr><td>{r["site"]}</td><td>―</td><td class="price">{r["price"]:,}円</td><td>{diff_html}</td></tr>'
+                f'<tr><td style="padding-left: 20px;">{r["site"]}</td><td>―</td><td class="price">{r["price"]:,}円</td></tr>'
             )
-    
+
     html = f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -487,86 +622,100 @@ def generate_html_report(results):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>買取価格一覧</title>
 <style>
-body {{ font-family: -apple-system, "Hiragino Sans", sans-serif; background:#f5f5f7; margin:0; padding:16px; }}
+body {{ font-family: -apple-system, sans-serif; background:#f5f5f7; margin:0; padding:16px; color:#333; }}
+.container {{ max-width: 800px; margin: 0 auto; }}
 h1 {{ font-size: 20px; }}
 .updated {{ color:#666; font-size: 13px; margin-bottom: 16px; }}
-table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); }}
-td {{ padding:8px 10px; border-bottom:1px solid #eee; font-size:14px; }}
-.product-row td {{ background:#eef2ff; padding-top:12px; padding-bottom:12px; font-weight:500; }}
-.best {{ color:#3355dd; font-size:12px; margin-left:8px; }}
+table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8px; overflow:hidden; }}
+td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
+.product-row td {{ background:#eef2ff; font-weight:500; }}
+.best {{ color:#2563eb; font-size:12px; margin-left:8px; }}
 .price {{ text-align:right; font-weight:600; }}
-.badge {{ display:inline-block; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:500; }}
-.badge.new {{ background:#e8f4fd; color:#0066cc; }}
-.badge.up {{ background:#ffe8e8; color:#cc0000; }}
-.badge.down {{ background:#e8f4e8; color:#00aa00; }}
-.badge.flat {{ background:#f0f0f0; color:#666; }}
 </style>
 </head>
 <body>
+<div class="container">
 <h1>📊 買取価格一覧（ポケモンカード）</h1>
 <div class="updated">最終更新: {now_jst().strftime('%Y-%m-%d %H:%M (日本時間)')}</div>
 <table>
 {"".join(rows_html)}
 </table>
+</div>
 </body>
 </html>"""
-    
+
     filepath = os.path.join(REPORT_DIR, "index.html")
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)
+    print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
-def send_discord_notification(results):
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
-    if not webhook_url:
-        return
-    
-    grouped = {}
-    for r in results:
-        grouped.setdefault(r["product_display_name"], []).append(r)
-    
-    messages = []
-    new_count = 0
-    up_count = 0
-    down_count = 0
-    
-    for product_name in sorted(grouped.keys()):
-        rows = grouped[product_name]
-        best = max(rows, key=lambda x: x["price"])
-        
-        diff_str = "初回"
-        if best["diff_from_prev"] is not None:
-            diff_str = f"{best['diff_from_prev']:+,}円"
-            if best["diff_from_prev"] > 0:
-                up_count += 1
-            elif best["diff_from_prev"] < 0:
-                down_count += 1
-        else:
-            new_count += 1
-        
-        messages.append(f"{product_name} ────────────────────────────── [{best['site']}] {best['price']:,}円 ({diff_str})")
-    
-    content = (
-        f"買取価格チェック完了！\n"
-        f"変更点が {len(results)}件 見つかりました\n"
-        f"値上がり: {up_count}件\n"
-        f"値下がり: {down_count}件\n"
-        f"新規: {new_count}件\n"
-        f"詳細はこちら: https://gaux2lion-jp.github.io/pokemon-tool/\n\n"
-        + "\n".join(messages)
-    )
-    
+def run_all(config):
+    print(f"\n{'='*60}")
+    mode_label = "【🚀 テストモード（検証）】" if TEST_MODE else "【✅ 本番モード（全件取得）】"
+    print(f"ポケモンカード買取価格チェック {mode_label}")
+    print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*60}\n")
+
+    driver = None
+    all_results = []
+
     try:
-        requests.post(webhook_url, json={"content": content}, timeout=10)
+        driver = init_driver()
+
+        all_results.extend(scrape_base(driver, config))
+        all_results.extend(scrape_runto(driver, config))
+        all_results.extend(scrape_newenoking(driver, config))
+        all_results.extend(scrape_homura(driver, config))
+        all_results.extend(scrape_mobile_ichiban(driver, config))
+        all_results.extend(scrape_kaitori_itchome(driver, config))
+        all_results.extend(scrape_rudeya(driver, config))
+        all_results.extend(scrape_toreca_lounge(driver, config))
+
     except Exception as e:
-        print(f"Discord通知エラー: {e}")
+        print(f"\n ❌ エラー: {e}")
+    finally:
+        if driver:
+            try:
+                driver.quit()
+            except Exception:
+                pass
+
+    print(f"\n{'='*60}")
+    print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
+    print(f"{'='*60}\n")
+
+    if not all_results:
+        print(" ⚠️ データが取得できませんでした。")
+        return
+
+    history = load_history()
+    grouped = {}
+    for result in all_results:
+        product_name = result["product_name"]
+        grouped.setdefault(product_name, []).append(result)
+
+        hist_key = f"{product_name}_{result['site']}"
+        prev_price = history.get(hist_key)
+        result["prev_price"] = prev_price
+        history[hist_key] = result["price"]
+
+    save_history(history)
+
+    for product_name in sorted(grouped.keys()):
+        rows = sorted(grouped[product_name], key=lambda x: x["price"], reverse=True)
+        print(f"📦 {product_name}")
+        print("─" * 60)
+        for r in rows:
+            diff_str = "初回"
+            if r["prev_price"] is not None:
+                diff = r["price"] - r["prev_price"]
+                diff_str = f"{diff:+,}円" if diff != 0 else "変動なし"
+            print(f"  [{r['site']:12}] {r['price']:,}円 ({diff_str})")
+        print()
+
+    generate_html_report(all_results)
 
 if __name__ == "__main__":
-    os.system("git stash")
-    os.system("git pull origin main --rebase")
-    
+    sys.stdout = AutoLogger(LOG_FILE_PATH)
     config = load_config()
-    run_all(config, save_csv_file=False)
-    
-    os.system("git add -A")
-    os.system(f'git commit -m "Update prices: {now_jst().strftime(\"%Y-%m-%d %H:%M\")}"')
-    os.system("git push origin main")
+    run_all(config)
