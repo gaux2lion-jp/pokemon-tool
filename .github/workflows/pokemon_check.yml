@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
     # 外部サービス(cron-job.org)から、正確な時間にこのトリガーを呼び出してもらう。
 
-
 permissions:
   contents: write  # price_history.json をコミットし直すために必要
 
@@ -21,7 +20,9 @@ jobs:
           python-version: '3.11'
 
       - name: 必要なライブラリをインストール
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium beautifulsoup4 webdriver-manager
 
       - name: ポケモン買取価格チェックを実行
         env:
@@ -34,9 +35,10 @@ jobs:
       - name: 価格履歴とレポートページを保存
         run: |
           git config user.name "pokemon-bot"
-                      git stash
           git config user.email "pokemon-bot@users.noreply.github.com"
+          git stash
           git pull origin main --rebase
+          git stash pop || echo "No stash to pop"
           git add price_history.json docs/index.html
           git diff --staged --quiet || git commit -m "価格履歴・レポートを更新"
           git push origin main
