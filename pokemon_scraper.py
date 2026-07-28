@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（爆速化Requests版 ＆ Discord通知詳細化）
+ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知詳細化 ＆ HTML差額表示 最終形態）
 """
 
 import os
@@ -534,6 +534,7 @@ def scrape_toreca_lounge(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
+# ★ HTMLレポートの生成処理（差額カラー表示＆ソート機能を追加）
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
     grouped = {}
@@ -541,7 +542,11 @@ def generate_html_report(results):
         grouped.setdefault(r["product_name"], []).append(r)
 
     rows_html = []
-    for product_name in sorted(grouped.keys()):
+    
+    # 辞書順（数字 → アルファベット → カナ → 漢字）にソート
+    sorted_product_names = sorted(grouped.keys(), key=lambda x: unicodedata.normalize('NFKC', str(x)).lower())
+    
+    for product_name in sorted_product_names:
         rows = grouped[product_name]
         rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
         best = rows_sorted[0]
@@ -552,8 +557,20 @@ def generate_html_report(results):
         )
 
         for r in rows_sorted:
+            # 差額の計算とカラー装飾
+            diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(変動なし)</span>'
+            if r.get("prev_price") is not None:
+                diff = r["price"] - r["prev_price"]
+                if diff > 0:
+                    diff_html = f'<span style="color:#ef4444; font-size:12px; margin-left:8px; font-weight:bold;">(▲ +{diff:,}円)</span>'
+                elif diff < 0:
+                    diff_html = f'<span style="color:#3b82f6; font-size:12px; margin-left:8px; font-weight:bold;">(▼ {diff:,}円)</span>'
+            else:
+                diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(初回)</span>'
+
             rows_html.append(
-                f'<tr><td style="padding-left: 20px;">{r["site"]}</td><td>―</td><td class="price">{r["price"]:,}円</td></tr>'
+                f'<tr><td style="padding-left: 20px;">{r["site"]}</td><td>―</td>'
+                f'<td class="price">{r["price"]:,}円{diff_html}</td></tr>'
             )
 
     html = f"""<!DOCTYPE html>
@@ -571,7 +588,8 @@ table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8
 td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 .product-row td {{ background:#eef2ff; font-weight:500; }}
 .best {{ color:#2563eb; font-size:12px; margin-left:8px; }}
-.price {{ text-align:right; font-weight:600; }}
+/* white-space:nowrap を追加して価格と差額が改行されないように調整 */
+.price {{ text-align:right; font-weight:600; white-space: nowrap; }}
 </style>
 </head>
 <body>
@@ -639,7 +657,6 @@ def run_all(config):
     all_results = []
 
     try:
-        # ブラウザ(Selenium)を廃止し、引数もスッキリ！
         all_results.extend(scrape_base(config))
         all_results.extend(scrape_runto(config))
         all_results.extend(scrape_newenoking(config))
@@ -696,6 +713,7 @@ def run_all(config):
             print(f"  [{r['site']:12}] {r['price']:,}円 ({diff_str})")
         print()
 
+    # 変更点を保持した状態でHTMLを生成
     generate_html_report(all_results)
     send_discord_notification(config, changed_items)
 
