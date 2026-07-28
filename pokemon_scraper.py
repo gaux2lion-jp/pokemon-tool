@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（買取1丁目 複数ページAPI巡回・最終完全網羅版）
+ポケモンカード買取価格チェッカー（全サイト完全網羅・API・個別検索・Discord通知 最終形態）
 """
 
 import os
@@ -12,6 +12,7 @@ import unicodedata
 import logging
 import urllib.request
 import urllib.parse
+import requests  # Discord通知用に追加
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
@@ -415,7 +416,7 @@ def scrape_mobile_ichiban(driver, config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 6. 買取1丁目（★全ページAPI巡回＆JAN照合強化版）
+# 6. 買取1丁目
 def scrape_kaitori_itchome(driver, config):
     site_name = "買取１丁目"
     results = []
@@ -426,7 +427,7 @@ def scrape_kaitori_itchome(driver, config):
         print(f" ⏳ [{site_name:15}] API全ページ巡回中...")
         
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*",
             "Referer": "https://www.1-chome.com/tradeCards",
             "Origin": "https://www.1-chome.com"
@@ -480,7 +481,6 @@ def scrape_kaitori_itchome(driver, config):
                                 if matches_product(full_text, product, global_exclude):
                                     add_or_update_result(results, site_name, p_name, price, jan_codes[0] if jan_codes else None)
                                     break
-            
             time.sleep(0.3)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
@@ -649,6 +649,32 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
         f.write(html)
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
+# ★ココにDiscord通知用の処理を追加
+def send_discord_notification(config):
+    # GitHubのSecrets(環境変数)を最優先で取得、なければconfig.jsonから取得
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or config.get("discord_webhook_url")
+    
+    if not webhook_url:
+        print(" ⚠️ DiscordのWebhook URLが設定されていないため、通知をスキップします。")
+        return
+
+    report_url = config.get("report_url", "https://gaux2lion-jp.github.io/pokemon-tool/")
+    now_str = now_jst().strftime('%Y-%m-%d %H:%M')
+    
+    content = (
+        f"✅ **ポケモンカード買取価格の自動チェックが完了しました！** ({now_str})\n"
+        f"全8サイトの最新最高値データを更新しました。\n\n"
+        f"📊 **詳細レポートはこちら**\n{report_url}"
+    )
+    
+    payload = {"content": content}
+    try:
+        response = requests.post(webhook_url, json=payload)
+        response.raise_for_status()
+        print(" ✓ Discordへ更新完了の通知を送信しました！")
+    except Exception as e:
+        print(f" ❌ Discord通知エラー: {e}")
+
 def run_all(config):
     print(f"\n{'='*60}")
     mode_label = "【🚀 テストモード（検証）】" if TEST_MODE else "【✅ 本番モード（全件取得）】"
@@ -714,6 +740,9 @@ def run_all(config):
         print()
 
     generate_html_report(all_results)
+    
+    # ★ココでDiscordへの通知処理を呼び出す
+    send_discord_notification(config)
 
 if __name__ == "__main__":
     sys.stdout = AutoLogger(LOG_FILE_PATH)
