@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（Discord通知詳細化バージョン）
+ポケモンカード買取価格チェッカー（爆速化Requests版 ＆ Discord通知詳細化）
 """
 
 import os
@@ -10,19 +10,10 @@ import time
 import sys
 import unicodedata
 import logging
-import urllib.request
 import urllib.parse
 import requests
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 # ──────────────────────────────────────────────────
 # 🚀 運用設定
@@ -76,36 +67,15 @@ def save_history(history):
     with open(HISTORY_PATH, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
-def init_driver():
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1280,720")
-    
-    options.add_argument('--blink-settings=imagesEnabled=false')
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    options.add_experimental_option("prefs", prefs)
-    
-    options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    )
-
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(25)
-    return driver
-
-def scroll_down(driver):
-    try:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
-        time.sleep(0.5)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1.0)
-    except Exception:
-        pass
+def fetch_soup(url):
+    """ブラウザを使わず、HTMLを直接爆速で取得する"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
+    }
+    resp = requests.get(url, headers=headers, timeout=15)
+    resp.raise_for_status()
+    return BeautifulSoup(resp.text, "html.parser")
 
 def normalize_str(s):
     """全角英数・記号を半角に変換し、小文字化する"""
@@ -165,7 +135,7 @@ def add_or_update_result(results, site_name, product_name, price, jan_code):
     })
 
 # 1. 買取BASE
-def scrape_base(driver, config):
+def scrape_base(config):
     site_name = "買取BASE"
     url = "https://kaitori-base.com/?p=9534"
     results = []
@@ -174,10 +144,7 @@ def scrape_base(driver, config):
 
     try:
         print(f" ⏳ [{site_name:15}] アクセス中...")
-        driver.get(url)
-        time.sleep(2.0)
-
-        soup = BeautifulSoup(driver.page_source, "html.parser")
+        soup = fetch_soup(url)
         tables = soup.find_all("table")
 
         for table in reversed(tables):
@@ -212,7 +179,7 @@ def scrape_base(driver, config):
         return results
 
 # 2. Runto買取
-def scrape_runto(driver, config):
+def scrape_runto(config):
     site_name = "Runto買取"
     base_url = "https://runto666.com/product-category/card/"
     results = []
@@ -227,9 +194,7 @@ def scrape_runto(driver, config):
         for page in range(1, max_pages + 1):
             url = base_url if page == 1 else f"{base_url}page/{page}/"
             try:
-                driver.get(url)
-                time.sleep(1.2)
-                soup = BeautifulSoup(driver.page_source, "html.parser")
+                soup = fetch_soup(url)
                 product_links = soup.find_all("a", class_="woocommerce-LoopProduct-link")
 
                 if not product_links:
@@ -245,14 +210,13 @@ def scrape_runto(driver, config):
                             if matches_product(name, product, global_exclude):
                                 target_items.append((product_url, product))
                                 break
+                time.sleep(0.3)
             except Exception:
                 break
 
         for product_url, product in target_items:
             try:
-                driver.get(product_url)
-                time.sleep(0.8)
-                detail_soup = BeautifulSoup(driver.page_source, "html.parser")
+                detail_soup = fetch_soup(product_url)
                 summary = detail_soup.find("div", class_="summary entry-summary")
                 price_area = summary.find("p", class_="price") if summary else detail_soup.find("p", class_="price")
 
@@ -265,6 +229,7 @@ def scrape_runto(driver, config):
                         price = max(valid_prices)
                         if 3000 <= price <= 5000000:
                             add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                time.sleep(0.3)
             except Exception:
                 pass
 
@@ -276,7 +241,7 @@ def scrape_runto(driver, config):
         return results
 
 # 3. 買取エノキング
-def scrape_newenoking(driver, config):
+def scrape_newenoking(config):
     site_name = "買取エノキング"
     base_url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
     results = []
@@ -288,16 +253,13 @@ def scrape_newenoking(driver, config):
         max_pages = 2 if TEST_MODE else 10 
         
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Encoding": "identity",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
 
         for page in range(1, max_pages + 1):
             url = f"{base_url}&page={page}"
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
+            resp = requests.get(url, headers=headers, timeout=15)
+            html = resp.text
 
             rsc_matches = re.findall(r'self\.__next_f\.push\(\[(.*?)\]\s*\)', html, re.DOTALL)
             if not rsc_matches and page > 1:
@@ -316,7 +278,7 @@ def scrape_newenoking(driver, config):
                         if matches_product(name, product, global_exclude):
                             add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                             break
-            time.sleep(0.5)
+            time.sleep(0.3)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -326,7 +288,7 @@ def scrape_newenoking(driver, config):
         return results
 
 # 4. 買取ホムラ
-def scrape_homura(driver, config):
+def scrape_homura(config):
     site_name = "買取ホムラ"
     base_url = "https://kaitori-homura.com/products?q%5Bproduct_sub_category_product_category_id_eq%5D=14"
     results = []
@@ -339,11 +301,7 @@ def scrape_homura(driver, config):
 
         for page in range(1, max_pages + 1):
             url = f"{base_url}&page={page}"
-            driver.get(url)
-            time.sleep(1.8)
-            scroll_down(driver)
-
-            soup = BeautifulSoup(driver.page_source, "html.parser")
+            soup = fetch_soup(url)
             cards = soup.find_all("div", class_=re.compile(r"product|card|item", re.I))
 
             if not cards:
@@ -361,6 +319,7 @@ def scrape_homura(driver, config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
+            time.sleep(0.3)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -370,7 +329,7 @@ def scrape_homura(driver, config):
         return results
 
 # 5. モバイル一番
-def scrape_mobile_ichiban(driver, config):
+def scrape_mobile_ichiban(config):
     site_name = "モバイル一番"
     results = []
     products_config = config.get("products", [])
@@ -386,11 +345,7 @@ def scrape_mobile_ichiban(driver, config):
             else:
                 url = f"https://www.mobile-ichiban.com/G01_ProdutShow/Index/{page}?kid=3&bid=04"
             
-            driver.get(url)
-            time.sleep(2.5)
-            scroll_down(driver)
-
-            soup = BeautifulSoup(driver.page_source, "html.parser")
+            soup = fetch_soup(url)
             items = soup.find_all("div", class_=re.compile(r"card|item|prod|list", re.I)) or soup.find_all("tr")
 
             if not items:
@@ -408,6 +363,7 @@ def scrape_mobile_ichiban(driver, config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
+            time.sleep(0.5)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -417,7 +373,7 @@ def scrape_mobile_ichiban(driver, config):
         return results
 
 # 6. 買取1丁目
-def scrape_kaitori_itchome(driver, config):
+def scrape_kaitori_itchome(config):
     site_name = "買取１丁目"
     results = []
     products_config = config.get("products", [])
@@ -428,30 +384,21 @@ def scrape_kaitori_itchome(driver, config):
         
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json, text/plain, */*",
             "Referer": "https://www.1-chome.com/tradeCards",
-            "Origin": "https://www.1-chome.com"
         }
 
         max_pages = 2 if TEST_MODE else 10
 
         for page in range(1, max_pages + 1):
             params = {
-                "accCode": "",
-                "page": str(page),
-                "size": "50",
-                "keyword": "",
-                "isImpo": "false",
-                "isCampaign": "false",
-                "cateCode": "IIzyMdayU5wp7T4G",
-                "kbNames": "",
-                "cateName": ""
+                "accCode": "", "page": str(page), "size": "50",
+                "keyword": "", "isImpo": "false", "isCampaign": "false",
+                "cateCode": "IIzyMdayU5wp7T4G", "kbNames": "", "cateName": ""
             }
             url = "https://www.1-chome.com/api/goods/listPage?" + urllib.parse.urlencode(params)
             
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+            resp = requests.get(url, headers=headers, timeout=15)
+            data = resp.json()
             
             content = data.get("data", {}).get("content", [])
             if not content:
@@ -491,7 +438,7 @@ def scrape_kaitori_itchome(driver, config):
         return results
 
 # 7. 買取ルデヤ
-def scrape_rudeya(driver, config):
+def scrape_rudeya(config):
     site_name = "買取ルデヤ"
     results = []
     products_config = config.get("products", [])
@@ -511,11 +458,7 @@ def scrape_rudeya(driver, config):
                 url = f"https://kaitori-rudeya.com/search/index/{search_word}/-/-/-"
 
             try:
-                driver.get(url)
-                time.sleep(1.0)
-                scroll_down(driver)
-
-                soup = BeautifulSoup(driver.page_source, "html.parser")
+                soup = fetch_soup(url)
                 cards = soup.find_all("article", class_=re.compile(r"card", re.I)) or soup.find_all("div", class_=re.compile(r"item|product|box", re.I))
 
                 for card in cards:
@@ -529,6 +472,7 @@ def scrape_rudeya(driver, config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, jan_codes[0] if jan_codes else None)
                                     break
+                time.sleep(0.3)
             except Exception:
                 pass
 
@@ -540,7 +484,7 @@ def scrape_rudeya(driver, config):
         return results
 
 # 8. トレカラウンジ
-def scrape_toreca_lounge(driver, config):
+def scrape_toreca_lounge(config):
     site_name = "トレカラウンジ"
     base_url = "https://kaitori.toreca-lounge.com/products?keyword="
     results = []
@@ -556,11 +500,7 @@ def scrape_toreca_lounge(driver, config):
             url = f"{base_url}{search_word}"
             
             try:
-                driver.get(url)
-                time.sleep(1.0)
-                scroll_down(driver)
-
-                soup = BeautifulSoup(driver.page_source, "html.parser")
+                soup = fetch_soup(url)
                 items = soup.find_all("div", class_=re.compile(r"product|card|item_box", re.I)) or soup.find_all("tr")
 
                 for item in items:
@@ -583,6 +523,7 @@ def scrape_toreca_lounge(driver, config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, p_display, price, product.get("jan_codes", [None])[0])
                                     break
+                time.sleep(0.3)
             except Exception:
                 pass
 
@@ -649,7 +590,6 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
         f.write(html)
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
-
 def send_discord_notification(config, changed_items):
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or config.get("discord_webhook_url")
     if not webhook_url:
@@ -663,7 +603,7 @@ def send_discord_notification(config, changed_items):
 
     if changed_items:
         content += "🔔 **価格が変わった商品**\n"
-        max_display = 30  # 表示数の上限（2000文字制限対策）
+        max_display = 30
         
         for i, item in enumerate(changed_items):
             if i >= max_display:
@@ -678,7 +618,6 @@ def send_discord_notification(config, changed_items):
 
     content += f"\n📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}"
 
-    # 万が一2000文字を超える場合のセーフティ
     if len(content) > 1900:
         content = content[:1900] + f"...\n\n📋 **続き・詳細一覧はこちら**\n{report_url}"
 
@@ -697,29 +636,21 @@ def run_all(config):
     print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
 
-    driver = None
     all_results = []
 
     try:
-        driver = init_driver()
-
-        all_results.extend(scrape_base(driver, config))
-        all_results.extend(scrape_runto(driver, config))
-        all_results.extend(scrape_newenoking(driver, config))
-        all_results.extend(scrape_homura(driver, config))
-        all_results.extend(scrape_mobile_ichiban(driver, config))
-        all_results.extend(scrape_kaitori_itchome(driver, config))
-        all_results.extend(scrape_rudeya(driver, config))
-        all_results.extend(scrape_toreca_lounge(driver, config))
+        # ブラウザ(Selenium)を廃止し、引数もスッキリ！
+        all_results.extend(scrape_base(config))
+        all_results.extend(scrape_runto(config))
+        all_results.extend(scrape_newenoking(config))
+        all_results.extend(scrape_homura(config))
+        all_results.extend(scrape_mobile_ichiban(config))
+        all_results.extend(scrape_kaitori_itchome(config))
+        all_results.extend(scrape_rudeya(config))
+        all_results.extend(scrape_toreca_lounge(config))
 
     except Exception as e:
         print(f"\n ❌ エラー: {e}")
-    finally:
-        if driver:
-            try:
-                driver.quit()
-            except Exception:
-                pass
 
     print(f"\n{'='*60}")
     print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
@@ -731,7 +662,7 @@ def run_all(config):
 
     history = load_history()
     grouped = {}
-    changed_items = []  # Discord通知用の変動リスト
+    changed_items = []
 
     for result in all_results:
         product_name = result["product_name"]
@@ -742,7 +673,6 @@ def run_all(config):
         result["prev_price"] = prev_price
         history[hist_key] = result["price"]
 
-        # 変動があった場合リストに追加（初回取得は除外）
         if prev_price is not None and prev_price != result["price"]:
             diff = result["price"] - prev_price
             changed_items.append({
@@ -767,8 +697,6 @@ def run_all(config):
         print()
 
     generate_html_report(all_results)
-    
-    # Discord通知に変数の changed_items を渡して実行
     send_discord_notification(config, changed_items)
 
 if __name__ == "__main__":
