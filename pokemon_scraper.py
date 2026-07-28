@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全サイト完全網羅・API・個別検索・Discord通知 最終形態）
+ポケモンカード買取価格チェッカー（Discord通知詳細化バージョン）
 """
 
 import os
@@ -12,7 +12,7 @@ import unicodedata
 import logging
 import urllib.request
 import urllib.parse
-import requests  # Discord通知用に追加
+import requests
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
@@ -649,24 +649,39 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
         f.write(html)
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
-# ★ココにDiscord通知用の処理を追加
-def send_discord_notification(config):
-    # GitHubのSecrets(環境変数)を最優先で取得、なければconfig.jsonから取得
+
+def send_discord_notification(config, changed_items):
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or config.get("discord_webhook_url")
-    
     if not webhook_url:
         print(" ⚠️ DiscordのWebhook URLが設定されていないため、通知をスキップします。")
         return
 
     report_url = config.get("report_url", "https://gaux2lion-jp.github.io/pokemon-tool/")
     now_str = now_jst().strftime('%Y-%m-%d %H:%M')
-    
-    content = (
-        f"✅ **ポケモンカード買取価格の自動チェックが完了しました！** ({now_str})\n"
-        f"全8サイトの最新最高値データを更新しました。\n\n"
-        f"📊 **詳細レポートはこちら**\n{report_url}"
-    )
-    
+
+    content = f"📦 **買取価格チェック（{now_str}）**\n\n"
+
+    if changed_items:
+        content += "🔔 **価格が変わった商品**\n"
+        max_display = 30  # 表示数の上限（2000文字制限対策）
+        
+        for i, item in enumerate(changed_items):
+            if i >= max_display:
+                content += f"など、他 {len(changed_items) - max_display} 件の変動あり\n"
+                break
+            
+            icon = "📈" if item['diff'] > 0 else "📉"
+            sign = "+" if item['diff'] > 0 else ""
+            content += f"{icon} {item['product']}：{item['price']:,}円 （{item['site']}） {sign}{item['diff']:,}円\n"
+    else:
+        content += "🔔 **価格が変わった商品**\n前回からの価格変動はありませんでした。\n"
+
+    content += f"\n📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}"
+
+    # 万が一2000文字を超える場合のセーフティ
+    if len(content) > 1900:
+        content = content[:1900] + f"...\n\n📋 **続き・詳細一覧はこちら**\n{report_url}"
+
     payload = {"content": content}
     try:
         response = requests.post(webhook_url, json=payload)
@@ -716,6 +731,8 @@ def run_all(config):
 
     history = load_history()
     grouped = {}
+    changed_items = []  # Discord通知用の変動リスト
+
     for result in all_results:
         product_name = result["product_name"]
         grouped.setdefault(product_name, []).append(result)
@@ -724,6 +741,16 @@ def run_all(config):
         prev_price = history.get(hist_key)
         result["prev_price"] = prev_price
         history[hist_key] = result["price"]
+
+        # 変動があった場合リストに追加（初回取得は除外）
+        if prev_price is not None and prev_price != result["price"]:
+            diff = result["price"] - prev_price
+            changed_items.append({
+                "product": product_name,
+                "site": result["site"],
+                "price": result["price"],
+                "diff": diff
+            })
 
     save_history(history)
 
@@ -741,8 +768,8 @@ def run_all(config):
 
     generate_html_report(all_results)
     
-    # ★ココでDiscordへの通知処理を呼び出す
-    send_discord_notification(config)
+    # Discord通知に変数の changed_items を渡して実行
+    send_discord_notification(config, changed_items)
 
 if __name__ == "__main__":
     sys.stdout = AutoLogger(LOG_FILE_PATH)
