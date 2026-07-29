@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知詳細化 ＆ HTML差額表示 最終形態）
+ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知詳細化 ＆ HTML差額表示 ＆ 通知スキップ機能 最終形態）
 """
 
 import os
@@ -534,7 +534,7 @@ def scrape_toreca_lounge(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# ★ HTMLレポートの生成処理（差額カラー表示＆ソート機能を追加）
+# HTMLレポートの生成処理（差額カラー表示＆ソート機能）
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
     grouped = {}
@@ -609,6 +609,11 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
 def send_discord_notification(config, changed_items):
+    # 変更がない場合はここで処理を終了（スキップ）する
+    if not changed_items:
+        print("\n ℹ️ 前回実行時から価格の変化がなかったため、Discord通知はスキップしました。")
+        return
+
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or config.get("discord_webhook_url")
     if not webhook_url:
         print(" ⚠️ DiscordのWebhook URLが設定されていないため、通知をスキップします。")
@@ -618,24 +623,21 @@ def send_discord_notification(config, changed_items):
     now_str = now_jst().strftime('%Y-%m-%d %H:%M')
 
     content = f"📦 **買取価格チェック（{now_str}）**\n\n"
-
-    if changed_items:
-        content += "🔔 **価格が変わった商品**\n"
-        max_display = 30
+    content += "🔔 **価格が変わった商品**\n"
+    
+    max_display = 30
+    for i, item in enumerate(changed_items):
+        if i >= max_display:
+            content += f"など、他 {len(changed_items) - max_display} 件の変動あり\n"
+            break
         
-        for i, item in enumerate(changed_items):
-            if i >= max_display:
-                content += f"など、他 {len(changed_items) - max_display} 件の変動あり\n"
-                break
-            
-            icon = "📈" if item['diff'] > 0 else "📉"
-            sign = "+" if item['diff'] > 0 else ""
-            content += f"{icon} {item['product']}：{item['price']:,}円 （{item['site']}） {sign}{item['diff']:,}円\n"
-    else:
-        content += "🔔 **価格が変わった商品**\n前回からの価格変動はありませんでした。\n"
+        icon = "📈" if item['diff'] > 0 else "📉"
+        sign = "+" if item['diff'] > 0 else ""
+        content += f"{icon} {item['product']}：{item['price']:,}円 （{item['site']}） {sign}{item['diff']:,}円\n"
 
     content += f"\n📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}"
 
+    # 2000文字制限の回避
     if len(content) > 1900:
         content = content[:1900] + f"...\n\n📋 **続き・詳細一覧はこちら**\n{report_url}"
 
