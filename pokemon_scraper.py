@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知詳細化 ＆ HTML差額表示 ＆ 通知スキップ機能 最終形態）
+ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知 ＆ HTML差額表示 ＆ トレカマサイ追加）
 """
 
 import os
@@ -73,8 +73,9 @@ def fetch_soup(url):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
     }
-    resp = requests.get(url, headers=headers, timeout=15)
+    resp = requests.get(url, headers=headers, timeout=20)
     resp.raise_for_status()
+    resp.encoding = resp.apparent_encoding or "utf-8"
     return BeautifulSoup(resp.text, "html.parser")
 
 def normalize_str(s):
@@ -534,6 +535,83 @@ def scrape_toreca_lounge(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
+# 9. トレカマサイ
+def scrape_toreca_masai(config):
+    site_name = "トレカマサイ"
+    # Claudeの解析通り、検索パラメータを使わず全商品一覧を1回取得する
+    url = "https://www.masai-tcg.com/products"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    # 価格表記（例: シュリンク付き ￥15,000 / 買取価格 ￥15,000）を抽出する正規表現
+    TOP_PRICE_RE = re.compile(r"買取価格\s*[¥￥]\s*([0-9,]+)")
+    CONDITION_PRICE_RE = re.compile(
+        r"(シュリンク付き|シュリンク有り|シュリンク有|シュリンク無し|シュリンクなし|"
+        r"ペリペリ無し|ぺりぺり無し|ペリペリ無|ぺりぺり無|統一パック|"
+        r"テープ付き|テープカット|カートン|未開封|通常)"
+        r"\s*[¥￥]\s*([0-9,]+)"
+    )
+
+    try:
+        print(f" ⏳ [{site_name:15}] 全商品一覧を取得中...")
+        soup = fetch_soup(url)
+        
+        # aタグのうち href が /products/ から始まるものを商品カードとみなす
+        cards = soup.select('a[href^="/products/"]')
+        seen_slugs = set()
+
+        for card in cards:
+            href = card.get("href", "")
+            if not href or href in seen_slugs:
+                continue
+            seen_slugs.add(href)
+
+            # 商品名を取り出す（imgのaltが最も確実）
+            name = ""
+            img = card.find("img")
+            if img and img.get("alt") and "ロゴ" not in img.get("alt"):
+                name = img["alt"].strip()
+            
+            if not name:
+                # imgがない場合は見出しから取得
+                heading = card.find(["h2", "h3", "h4"])
+                if heading:
+                    name = heading.get_text(" ", strip=True)
+            
+            if not name:
+                continue
+
+            card_text = card.get_text(" ", strip=True)
+
+            # --- config.json に登録された商品とマッチするか判定 ---
+            for product in products_config:
+                if matches_product(name, product, global_exclude) or matches_product(card_text, product, global_exclude):
+                    
+                    price = None
+                    # 1. 「買取価格 ￥xxxx」があればそれを優先
+                    m_top = TOP_PRICE_RE.search(card_text)
+                    if m_top:
+                        price = int(m_top.group(1).replace(",", ""))
+                    else:
+                        # 2. 無ければ状態別価格を全て抽出し、最も高い金額（シュリンク付き等）を採用
+                        prices = []
+                        for _, p_str in CONDITION_PRICE_RE.findall(card_text):
+                            prices.append(int(p_str.replace(",", "")))
+                        if prices:
+                            price = max(prices)
+                    
+                    if price and 3000 <= price <= 5000000:
+                        add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                        break # 見つかったら次のカードへ
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
 # HTMLレポートの生成処理（差額カラー表示＆ソート機能）
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -667,6 +745,7 @@ def run_all(config):
         all_results.extend(scrape_kaitori_itchome(config))
         all_results.extend(scrape_rudeya(config))
         all_results.extend(scrape_toreca_lounge(config))
+        all_results.extend(scrape_toreca_masai(config))
 
     except Exception as e:
         print(f"\n ❌ エラー: {e}")
