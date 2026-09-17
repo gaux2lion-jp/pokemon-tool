@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（Web・X取得ロジック完全強化版）
+ポケモンカード買取価格チェッカー（全14店舗完全対応版）
 """
 
 import os
@@ -230,7 +230,7 @@ def scrape_runto(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 3. 買取エノキング (Playwright描画待機版)
+# 3. 買取エノキング (Playwrightタイムアウト回避版)
 def scrape_newenoking(config):
     site_name = "買取エノキング"
     url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
@@ -243,7 +243,8 @@ def scrape_newenoking(config):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, timeout=30000)
             page = browser.new_page()
-            page.goto(url, timeout=30000, wait_until="networkidle")
+            page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            page.wait_for_timeout(3000)
             html = page.content()
             browser.close()
 
@@ -656,7 +657,8 @@ def scrape_shinsoku(config):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, timeout=30000)
             page = browser.new_page()
-            page.goto(url, timeout=30000, wait_until="networkidle")
+            page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            page.wait_for_timeout(3000)
             html = page.content()
             browser.close()
 
@@ -686,7 +688,7 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)共通スクレイピング（プロフィールタイムライン巡回型）
+# X(旧Twitter)共通スクレイピング
 def scrape_x_shop(config, site_name, x_profile_url):
     results = []
     products_config = config.get("products", [])
@@ -714,7 +716,6 @@ def scrape_x_shop(config, site_name, x_profile_url):
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
                 
-                # プロフィール直アクセス
                 page.goto(x_profile_url, timeout=30000, wait_until="domcontentloaded")
                 
                 try:
