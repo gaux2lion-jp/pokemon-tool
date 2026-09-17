@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ Web3店舗取得ロジック強化版）
+ポケモンカード買取価格チェッカー（Web・X取得ロジック完全強化版）
 """
 
 import os
@@ -230,7 +230,7 @@ def scrape_runto(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 3. 買取エノキング (HTML ＆ RSC 複合解析型)
+# 3. 買取エノキング (JSON/HTMLフォールバック型)
 def scrape_newenoking(config):
     site_name = "買取エノキング"
     base_url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
@@ -241,53 +241,34 @@ def scrape_newenoking(config):
     try:
         max_pages = 2 if TEST_MODE else 10 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
 
         for page in range(1, max_pages + 1):
             url = f"{base_url}&page={page}"
             resp = requests.get(url, headers=headers, timeout=15)
-            if resp.status_code != 200:
-                break
+            text = resp.text
 
-            soup = BeautifulSoup(resp.text, "html.parser")
-            found_count = 0
+            # 全JSON埋め込み文字列・RSCノードからの網羅抽出
+            raw_items = re.findall(r'(\{[^{}]*?"name"[^{}]*?"referencePrice"[^{}]*?\})', text)
+            if not raw_items:
+                raw_items = re.findall(r'(\{[^{}]*?\\"name\\"[^{}]*?\\"referencePrice\\"[^{}]*?\})', text)
 
-            # 1. HTML要素からのパース
-            product_elements = soup.select("div[class*='product'], div[class*='item'], a[href*='/products/']")
-            for elem in product_elements:
-                text = elem.get_text(separator=" ", strip=True)
-                for product in products_config:
-                    if matches_product(text, product, global_exclude):
-                        price_match = re.search(r"([¥￥]?\s*[\d,]{4,8}\s*円?)", text)
-                        if price_match:
-                            digits = re.sub(r"[^\d]", "", price_match.group(1))
-                            if digits.isdigit():
-                                price = int(digits)
-                                if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
-                                    found_count += 1
-                                    break
+            for item_str in raw_items:
+                clean_str = item_str.replace('\\"', '"')
+                name_match = re.search(r'"name"\s*:\s*"([^"]+)"', clean_str)
+                price_match = re.search(r'"referencePrice"\s*:\s*(\d+)', clean_str)
 
-            # 2. RSC / NextDataからのパース（HTML抽出で拾えなかった場合）
-            if found_count == 0:
-                rsc_matches = re.findall(r'self\.__next_f\.push\(\[(.*?)\]\s*\)', resp.text, re.DOTALL)
-                for rsc in rsc_matches:
-                    items = re.findall(r'\\"name\\":\\"([^\\]+)\\"[^}]*?\\"referencePrice\\":(\d+)', rsc) or \
-                            re.findall(r'"name":"([^"]+)"[^}]*?"referencePrice":(\d+)', rsc)
-                    for name, p_str in items:
-                        if p_str.isdigit():
-                            price = int(p_str)
-                            if 3000 <= price <= 5000000:
-                                for product in products_config:
-                                    if matches_product(name, product, global_exclude):
-                                        add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
-                                        found_count += 1
-                                        break
-            if found_count == 0 and page > 1:
-                break
-            time.sleep(0.3)
+                if name_match and price_match:
+                    name = name_match.group(1)
+                    price = int(price_match.group(1))
+
+                    if 3000 <= price <= 5000000:
+                        for product in products_config:
+                            if matches_product(name, product, global_exclude):
+                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                break
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -589,7 +570,7 @@ def scrape_toreca_masai(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 10. トレカバンク (一覧ダイレクト取得 ＆ セレクタ強化)
+# 10. トレカバンク
 def scrape_torecabank(config):
     site_name = "トレカバンク"
     base_url = "https://store.torecabank.com/mail_buy_list"
@@ -669,7 +650,7 @@ def scrape_somurie(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 12. シンソク (表・カード抽出強化)
+# 12. シンソク (表ブロック一括テキスト解析型)
 def scrape_shinsoku(config):
     site_name = "シンソク"
     url = "https://shinsoku-tcg.com/yuso-kaitori"
@@ -679,28 +660,22 @@ def scrape_shinsoku(config):
 
     try:
         soup = fetch_soup(url)
-        items = soup.find_all("tr") or soup.select("li, div[class*='product'], div[class*='item'], div[class*='card']")
+        # テーブル全体または主要ブロックを取得
+        block_text = soup.get_text(separator="\n", strip=True)
+        lines = block_text.split("\n")
 
-        for item in items:
-            text = item.get_text(separator=" ", strip=True)
-            if not text or len(text) < 5:
-                continue
-
+        for i, line in enumerate(lines):
             for product in products_config:
-                if matches_product(text, product, global_exclude):
-                    price_match = re.search(r"[¥￥]\s*([\d,]+)|([\d,]+)\s*円", text)
+                if matches_product(line, product, global_exclude):
+                    # 同一行または直後3行以内の金額パターンを探す
+                    search_scope = " ".join(lines[i:i+4])
+                    price_match = re.search(r"[¥￥]\s*([\d,]{4,8})|([\d,]{4,8})\s*円", search_scope)
                     if price_match:
-                        clean_price = (price_match.group(1) or price_match.group(2)).replace(",", "")
-                        if clean_price.isdigit():
-                            price = int(clean_price)
+                        raw_str = (price_match.group(1) or price_match.group(2)).replace(",", "")
+                        if raw_str.isdigit():
+                            price = int(raw_str)
                             if 3000 <= price <= 5000000:
-                                add_or_update_result(
-                                    results, 
-                                    site_name, 
-                                    product.get("display_name"), 
-                                    price, 
-                                    product.get("jan_codes", [None])[0]
-                                )
+                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                 break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
@@ -710,8 +685,8 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)共通スクレイピング
-def scrape_x_shop(config, site_name, search_url):
+# X(旧Twitter)共通スクレイピング（プロフィールタイムライン巡回型）
+def scrape_x_shop(config, site_name, x_profile_url):
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
@@ -727,7 +702,7 @@ def scrape_x_shop(config, site_name, search_url):
         return results
 
     try:
-        print(f" ⏳ [{site_name:15}] X検索タイムライン確認中...")
+        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, timeout=30000)
             try:
@@ -738,15 +713,16 @@ def scrape_x_shop(config, site_name, search_url):
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
                 
-                page.goto(search_url, timeout=30000, wait_until="domcontentloaded")
+                # プロフィール直アクセス
+                page.goto(x_profile_url, timeout=30000, wait_until="domcontentloaded")
                 
                 try:
-                    page.wait_for_selector('[data-testid="tweet"]', timeout=20000)
+                    page.wait_for_selector('[data-testid="tweet"]', timeout=15000)
                 except Exception:
                     pass
 
-                for _ in range(4):
-                    page.evaluate("window.scrollBy(0, 1000)")
+                for _ in range(5):
+                    page.evaluate("window.scrollBy(0, 1200)")
                     time.sleep(1.5)
 
                 html = page.content()
@@ -792,11 +768,11 @@ def scrape_x_shop(config, site_name, search_url):
 
 # 13. 買取EXPO
 def scrape_kaitoriexpo(config):
-    return scrape_x_shop(config, "買取EXPO", "https://x.com/search?q=from%3Akaitoriexpo&f=live")
+    return scrape_x_shop(config, "買取EXPO", "https://x.com/kaitoriexpo")
 
 # 14. 買取RISE
 def scrape_kaitoririse(config):
-    return scrape_x_shop(config, "買取RISE", "https://x.com/search?q=from%3Arisekaitori&f=live")
+    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori")
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
