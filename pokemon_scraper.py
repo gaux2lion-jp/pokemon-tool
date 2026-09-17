@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（爆速化 ＆ Discord通知 ＆ HTML差額表示 ＆ トレカマサイ追加）
+ポケモンカード買取価格チェッカー（全14店舗完全対応版）
 """
 
 import os
@@ -29,6 +29,7 @@ CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 HISTORY_PATH = os.path.join(BASE_DIR, "price_history.json")
 REPORT_DIR = os.path.join(BASE_DIR, "docs")
 LOG_FILE_PATH = os.path.join(BASE_DIR, "latest_run.log")
+X_STATE_PATH = os.path.join(BASE_DIR, "x_state.json")
 
 JST = timezone(timedelta(hours=9))
 
@@ -538,13 +539,11 @@ def scrape_toreca_lounge(config):
 # 9. トレカマサイ
 def scrape_toreca_masai(config):
     site_name = "トレカマサイ"
-    # Claudeの解析通り、検索パラメータを使わず全商品一覧を1回取得する
     url = "https://www.masai-tcg.com/products"
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
 
-    # 価格表記（例: シュリンク付き ￥15,000 / 買取価格 ￥15,000）を抽出する正規表現
     TOP_PRICE_RE = re.compile(r"買取価格\s*[¥￥]\s*([0-9,]+)")
     CONDITION_PRICE_RE = re.compile(
         r"(シュリンク付き|シュリンク有り|シュリンク有|シュリンク無し|シュリンクなし|"
@@ -556,8 +555,6 @@ def scrape_toreca_masai(config):
     try:
         print(f" ⏳ [{site_name:15}] 全商品一覧を取得中...")
         soup = fetch_soup(url)
-        
-        # aタグのうち href が /products/ から始まるものを商品カードとみなす
         cards = soup.select('a[href^="/products/"]')
         seen_slugs = set()
 
@@ -567,14 +564,12 @@ def scrape_toreca_masai(config):
                 continue
             seen_slugs.add(href)
 
-            # 商品名を取り出す（imgのaltが最も確実）
             name = ""
             img = card.find("img")
             if img and img.get("alt") and "ロゴ" not in img.get("alt"):
                 name = img["alt"].strip()
             
             if not name:
-                # imgがない場合は見出しから取得
                 heading = card.find(["h2", "h3", "h4"])
                 if heading:
                     name = heading.get_text(" ", strip=True)
@@ -584,26 +579,20 @@ def scrape_toreca_masai(config):
 
             card_text = card.get_text(" ", strip=True)
 
-            # --- config.json に登録された商品とマッチするか判定 ---
             for product in products_config:
                 if matches_product(name, product, global_exclude) or matches_product(card_text, product, global_exclude):
-                    
                     price = None
-                    # 1. 「買取価格 ￥xxxx」があればそれを優先
                     m_top = TOP_PRICE_RE.search(card_text)
                     if m_top:
                         price = int(m_top.group(1).replace(",", ""))
                     else:
-                        # 2. 無ければ状態別価格を全て抽出し、最も高い金額（シュリンク付き等）を採用
-                        prices = []
-                        for _, p_str in CONDITION_PRICE_RE.findall(card_text):
-                            prices.append(int(p_str.replace(",", "")))
+                        prices = [int(p_str.replace(",", "")) for _, p_str in CONDITION_PRICE_RE.findall(card_text)]
                         if prices:
                             price = max(prices)
                     
                     if price and 3000 <= price <= 5000000:
                         add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
-                        break # 見つかったら次のカードへ
+                        break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -611,6 +600,195 @@ def scrape_toreca_masai(config):
     except Exception as e:
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
+
+# 10. トレカバンク
+def scrape_torecabank(config):
+    site_name = "トレカバンク"
+    base_url = "https://store.torecabank.com/mail_buy_list"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 個別検索中...")
+        target_products = products_config[:5] if TEST_MODE else products_config
+
+        for product in target_products:
+            search_word = product.get("display_name", "")
+            params = {"keyword": search_word, "types[]": "5", "sort": "price_desc", "recruiting_only": "1"}
+            try:
+                headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+                resp = requests.get(base_url, params=params, headers=headers, timeout=15)
+                soup = BeautifulSoup(resp.text, "html.parser")
+                cards = soup.select("div.product-card, div.buy-item") or soup.find_all("tr")
+
+                for card in cards:
+                    text = card.get_text(strip=True)
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"([\d,]+)\s*円", text) or re.search(r"¥\s*([\d,]+)", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    break
+                time.sleep(0.3)
+            except Exception:
+                pass
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 11. 買取ソムリエ
+def scrape_somurie(config):
+    site_name = "買取ソムリエ"
+    base_url = "https://somurie-kaitori.com/products?q="
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] 個別検索中...")
+        target_products = products_config[:5] if TEST_MODE else products_config
+
+        for product in target_products:
+            search_word = urllib.parse.quote(product.get("display_name", ""))
+            url = f"{base_url}{search_word}"
+            try:
+                soup = fetch_soup(url)
+                cards = soup.select("div.product-card, li.product-item") or soup.find_all("div", class_=re.compile(r"product|card", re.I))
+
+                for card in cards:
+                    text = card.get_text(strip=True)
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"買取価格\s*:\s*¥?\s*([\d,]+)", text) or re.search(r"¥\s*([\d,]+)", text) or re.search(r"([\d,]+)\s*円", text)
+                        if price_match:
+                            clean_price = price_match.group(1).replace(",", "")
+                            if clean_price.isdigit():
+                                price = int(clean_price)
+                                if 3000 <= price <= 5000000:
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    break
+                time.sleep(0.3)
+            except Exception:
+                pass
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 12. シンソク
+def scrape_shinsoku(config):
+    site_name = "シンソク"
+    url = "https://shinsoku-tcg.com/yuso-kaitori"
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    try:
+        print(f" ⏳ [{site_name:15}] ページ取得中...")
+        soup = fetch_soup(url)
+        items = soup.find_all("tr") or soup.select("li.product, div.product-card")
+
+        for item in items:
+            text = item.get_text(strip=True)
+            if not text:
+                continue
+
+            for product in products_config:
+                if matches_product(text, product, global_exclude):
+                    price_match = re.search(r"¥\s*([\d,]+)", text) or re.search(r"([\d,]+)\s*円", text)
+                    if price_match:
+                        clean_price = price_match.group(1).replace(",", "")
+                        if clean_price.isdigit():
+                            price = int(clean_price)
+                            if 3000 <= price <= 5000000:
+                                add_or_update_result(
+                                    results, 
+                                    site_name, 
+                                    product.get("display_name"), 
+                                    price, 
+                                    product.get("jan_codes", [None])[0]
+                                )
+                                break
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# X(旧Twitter)スクレイピング共通処理 (買取EXPO / 買取RISE用)
+def scrape_x_shop(config, site_name, x_url):
+    results = []
+    products_config = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+
+    if not os.path.exists(X_STATE_PATH) or os.path.getsize(X_STATE_PATH) == 0:
+        print(f" ⚠️ [{site_name:15}] x_state.json が存在しないためスキップします。")
+        return results
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print(f" ⚠️ [{site_name:15}] Playwright がインストールされていないためスキップします。")
+        return results
+
+    try:
+        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, timeout=15000)
+            try:
+                context = browser.new_context(
+                    storage_state=X_STATE_PATH,
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                )
+                page = context.new_page()
+                page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("image", "media", "font", "stylesheet") else route.continue_())
+                page.goto(x_url, timeout=15000, wait_until="domcontentloaded")
+                page.wait_for_selector('[data-testid="tweet"]', timeout=10000)
+                html = page.content()
+            finally:
+                browser.close()
+
+        soup = BeautifulSoup(html, "html.parser")
+        tweets = soup.select("article[data-testid='tweet']")
+
+        for tweet in tweets:
+            text = tweet.get_text(separator=" ", strip=True)
+            for product in products_config:
+                if matches_product(text, product, global_exclude):
+                    price_match = re.search(r"[¥￥]\s*([\d,]+)|([\d,]+)\s*円", text)
+                    if price_match:
+                        raw_price = (price_match.group(1) or price_match.group(2)).replace(",", "")
+                        if raw_price.isdigit():
+                            price = int(raw_price)
+                            if 3000 <= price <= 5000000:
+                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+
+        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
+        return results
+
+    except Exception as e:
+        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
+        return results
+
+# 13. 買取EXPO
+def scrape_kaitoriexpo(config):
+    return scrape_x_shop(config, "買取EXPO", "https://x.com/kaitoriexpo")
+
+# 14. 買取RISE
+def scrape_kaitoririse(config):
+    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori")
 
 # HTMLレポートの生成処理（差額カラー表示＆ソート機能）
 def generate_html_report(results):
@@ -620,8 +798,6 @@ def generate_html_report(results):
         grouped.setdefault(r["product_name"], []).append(r)
 
     rows_html = []
-    
-    # 辞書順（数字 → アルファベット → カナ → 漢字）にソート
     sorted_product_names = sorted(grouped.keys(), key=lambda x: unicodedata.normalize('NFKC', str(x)).lower())
     
     for product_name in sorted_product_names:
@@ -635,7 +811,6 @@ def generate_html_report(results):
         )
 
         for r in rows_sorted:
-            # 差額の計算とカラー装飾
             diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(変動なし)</span>'
             if r.get("prev_price") is not None:
                 diff = r["price"] - r["prev_price"]
@@ -666,7 +841,6 @@ table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8
 td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 .product-row td {{ background:#eef2ff; font-weight:500; }}
 .best {{ color:#2563eb; font-size:12px; margin-left:8px; }}
-/* white-space:nowrap を追加して価格と差額が改行されないように調整 */
 .price {{ text-align:right; font-weight:600; white-space: nowrap; }}
 </style>
 </head>
@@ -687,7 +861,6 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
 def send_discord_notification(config, changed_items):
-    # 変更がない場合はここで処理を終了（スキップ）する
     if not changed_items:
         print("\n ℹ️ 前回実行時から価格の変化がなかったため、Discord通知はスキップしました。")
         return
@@ -715,7 +888,6 @@ def send_discord_notification(config, changed_items):
 
     content += f"\n📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}"
 
-    # 2000文字制限の回避
     if len(content) > 1900:
         content = content[:1900] + f"...\n\n📋 **続き・詳細一覧はこちら**\n{report_url}"
 
@@ -746,6 +918,11 @@ def run_all(config):
         all_results.extend(scrape_rudeya(config))
         all_results.extend(scrape_toreca_lounge(config))
         all_results.extend(scrape_toreca_masai(config))
+        all_results.extend(scrape_torecabank(config))
+        all_results.extend(scrape_somurie(config))
+        all_results.extend(scrape_shinsoku(config))
+        all_results.extend(scrape_kaitoriexpo(config))
+        all_results.extend(scrape_kaitoririse(config))
 
     except Exception as e:
         print(f"\n ❌ エラー: {e}")
@@ -794,7 +971,6 @@ def run_all(config):
             print(f"  [{r['site']:12}] {r['price']:,}円 ({diff_str})")
         print()
 
-    # 変更点を保持した状態でHTMLを生成
     generate_html_report(all_results)
     send_discord_notification(config, changed_items)
 
