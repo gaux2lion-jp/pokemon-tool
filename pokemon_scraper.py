@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ Xタイムアウト対策版）
+ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ X検索ダイレクトアクセス版）
 """
 
 import os
@@ -689,8 +689,8 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)共通スクレイピング（行単位パース ＆ 複数回スクロール対応版）
-def scrape_x_shop(config, site_name, x_url):
+# X(旧Twitter)共通スクレイピング（最新検索画面アクセス版）
+def scrape_x_shop(config, site_name, search_url):
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
@@ -706,7 +706,7 @@ def scrape_x_shop(config, site_name, x_url):
         return results
 
     try:
-        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
+        print(f" ⏳ [{site_name:15}] X検索タイムライン確認中...")
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, timeout=30000)
             try:
@@ -715,20 +715,21 @@ def scrape_x_shop(config, site_name, x_url):
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
                 )
                 page = context.new_page()
-                page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("image", "media", "font") else route.continue_())
+                page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
                 
-                page.goto(x_url, timeout=30000, wait_until="domcontentloaded")
+                # 検索画面（最新タブ）に直接アクセス
+                page.goto(search_url, timeout=30000, wait_until="domcontentloaded")
                 
-                # タイムラインを複数回スクロールしてツイートを読み込む
-                for _ in range(4):
-                    page.evaluate("window.scrollBy(0, 1000)")
-                    time.sleep(1.5)
-                
+                # 最新ツイート群の描画を確実に待機し、スクロール
                 try:
                     page.wait_for_selector('[data-testid="tweet"]', timeout=20000)
                 except Exception:
                     pass
-                
+
+                for _ in range(3):
+                    page.evaluate("window.scrollBy(0, 1000)")
+                    time.sleep(1.5)
+
                 html = page.content()
             finally:
                 browser.close()
@@ -737,11 +738,9 @@ def scrape_x_shop(config, site_name, x_url):
         tweets = soup.select("article[data-testid='tweet']")
 
         for tweet in tweets:
-            # 改行区切りでテキストを抽出
             tweet_text = tweet.get_text(separator="\n", strip=True)
             lines = tweet_text.split("\n")
 
-            # 1行ずつ解析して商品名と価格を正確に紐付ける
             for line in lines:
                 if not line.strip():
                     continue
@@ -768,13 +767,14 @@ def scrape_x_shop(config, site_name, x_url):
     except Exception as e:
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
-# 13. 買取EXPO
-def scrape_kaitoriexpo(config):
-    return scrape_x_shop(config, "買取EXPO", "https://x.com/kaitoriexpo")
 
-# 14. 買取RISE
+# 13. 買取EXPO (最新検索URL)
+def scrape_kaitoriexpo(config):
+    return scrape_x_shop(config, "買取EXPO", "https://x.com/search?q=from%3Akaitoriexpo&f=live")
+
+# 14. 買取RISE (最新検索URL)
 def scrape_kaitoririse(config):
-    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori")
+    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori&f=live")
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
