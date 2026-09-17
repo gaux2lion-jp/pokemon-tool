@@ -230,45 +230,38 @@ def scrape_runto(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 3. 買取エノキング (JSON/HTMLフォールバック型)
+# 3. 買取エノキング (Playwright描画待機版)
 def scrape_newenoking(config):
     site_name = "買取エノキング"
-    base_url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
+    url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        max_pages = 2 if TEST_MODE else 10 
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, timeout=30000)
+            page = browser.new_page()
+            page.goto(url, timeout=30000, wait_until="networkidle")
+            html = page.content()
+            browser.close()
 
-        for page in range(1, max_pages + 1):
-            url = f"{base_url}&page={page}"
-            resp = requests.get(url, headers=headers, timeout=15)
-            text = resp.text
+        soup = BeautifulSoup(html, "html.parser")
+        items = soup.select("div[class*='product'], a[href*='/products/'], tr")
 
-            # 全JSON埋め込み文字列・RSCノードからの網羅抽出
-            raw_items = re.findall(r'(\{[^{}]*?"name"[^{}]*?"referencePrice"[^{}]*?\})', text)
-            if not raw_items:
-                raw_items = re.findall(r'(\{[^{}]*?\\"name\\"[^{}]*?\\"referencePrice\\"[^{}]*?\})', text)
-
-            for item_str in raw_items:
-                clean_str = item_str.replace('\\"', '"')
-                name_match = re.search(r'"name"\s*:\s*"([^"]+)"', clean_str)
-                price_match = re.search(r'"referencePrice"\s*:\s*(\d+)', clean_str)
-
-                if name_match and price_match:
-                    name = name_match.group(1)
-                    price = int(price_match.group(1))
-
-                    if 3000 <= price <= 5000000:
-                        for product in products_config:
-                            if matches_product(name, product, global_exclude):
+        for item in items:
+            text = item.get_text(separator=" ", strip=True)
+            for product in products_config:
+                if matches_product(text, product, global_exclude):
+                    price_match = re.search(r"([¥￥]?\s*[\d,]{4,8}\s*円?)", text)
+                    if price_match:
+                        digits = re.sub(r"[^\d]", "", price_match.group(1))
+                        if digits.isdigit():
+                            price = int(digits)
+                            if 3000 <= price <= 5000000:
                                 add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                 break
-            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -650,7 +643,7 @@ def scrape_somurie(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 12. シンソク (表ブロック一括テキスト解析型)
+# 12. シンソク (Playwright描画待機版)
 def scrape_shinsoku(config):
     site_name = "シンソク"
     url = "https://shinsoku-tcg.com/yuso-kaitori"
@@ -659,17 +652,25 @@ def scrape_shinsoku(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        soup = fetch_soup(url)
-        # テーブル全体または主要ブロックを取得
-        block_text = soup.get_text(separator="\n", strip=True)
-        lines = block_text.split("\n")
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, timeout=30000)
+            page = browser.new_page()
+            page.goto(url, timeout=30000, wait_until="networkidle")
+            html = page.content()
+            browser.close()
 
-        for i, line in enumerate(lines):
+        soup = BeautifulSoup(html, "html.parser")
+        items = soup.find_all("tr") or soup.select("li, div[class*='product'], div[class*='item']")
+
+        for item in items:
+            text = item.get_text(separator=" ", strip=True)
+            if not text or len(text) < 5:
+                continue
+
             for product in products_config:
-                if matches_product(line, product, global_exclude):
-                    # 同一行または直後3行以内の金額パターンを探す
-                    search_scope = " ".join(lines[i:i+4])
-                    price_match = re.search(r"[¥￥]\s*([\d,]{4,8})|([\d,]{4,8})\s*円", search_scope)
+                if matches_product(text, product, global_exclude):
+                    price_match = re.search(r"[¥￥]\s*([\d,]{4,8})|([\d,]{4,8})\s*円", text)
                     if price_match:
                         raw_str = (price_match.group(1) or price_match.group(2)).replace(",", "")
                         if raw_str.isdigit():
