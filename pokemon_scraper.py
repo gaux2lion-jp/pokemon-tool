@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ X検索ダイレクトアクセス版）
+ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ X近接価格抽出・検索修正版）
 """
 
 import os
@@ -689,7 +689,7 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)共通スクレイピング（最新検索画面アクセス版）
+# X(旧Twitter)共通スクレイピング（近接価格抽出ロジック対応）
 def scrape_x_shop(config, site_name, search_url):
     results = []
     products_config = config.get("products", [])
@@ -717,16 +717,14 @@ def scrape_x_shop(config, site_name, search_url):
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
                 
-                # 検索画面（最新タブ）に直接アクセス
                 page.goto(search_url, timeout=30000, wait_until="domcontentloaded")
                 
-                # 最新ツイート群の描画を確実に待機し、スクロール
                 try:
                     page.wait_for_selector('[data-testid="tweet"]', timeout=20000)
                 except Exception:
                     pass
 
-                for _ in range(3):
+                for _ in range(4):
                     page.evaluate("window.scrollBy(0, 1000)")
                     time.sleep(1.5)
 
@@ -738,28 +736,33 @@ def scrape_x_shop(config, site_name, search_url):
         tweets = soup.select("article[data-testid='tweet']")
 
         for tweet in tweets:
-            tweet_text = tweet.get_text(separator="\n", strip=True)
-            lines = tweet_text.split("\n")
+            # ツイート全体の一括テキスト取得（空白区切り）
+            tweet_text = tweet.get_text(separator=" ", strip=True)
 
-            for line in lines:
-                if not line.strip():
-                    continue
-
-                for product in products_config:
-                    if matches_product(line, product, global_exclude):
-                        price_match = re.search(r"[¥￥]\s*([\d,]+)|([\d,]+)\s*円", line)
-                        if price_match:
-                            raw_price = (price_match.group(1) or price_match.group(2)).replace(",", "")
-                            if raw_price.isdigit():
-                                price = int(raw_price)
-                                if 3000 <= price <= 5000000:
-                                    add_or_update_result(
-                                        results, 
-                                        site_name, 
-                                        product.get("display_name"), 
-                                        price, 
-                                        product.get("jan_codes", [None])[0]
-                                    )
+            for product in products_config:
+                if matches_product(tweet_text, product, global_exclude):
+                    keywords = product.get("keywords", [product.get("display_name", "")])
+                    
+                    for kw in keywords:
+                        if kw and normalize_str(kw) in normalize_str(tweet_text):
+                            # 商品名キーワードの直後（30文字以内）にある価格パターンを検索
+                            pattern = re.escape(kw) + r".{0,30}?([¥￥]?\s*[\d,]{4,8}\s*円?)"
+                            price_match = re.search(pattern, tweet_text, re.IGNORECASE)
+                            
+                            if price_match:
+                                raw_price_str = price_match.group(1)
+                                digits = re.sub(r"[^\d]", "", raw_price_str)
+                                if digits and digits.isdigit():
+                                    price = int(digits)
+                                    if 3000 <= price <= 5000000:
+                                        add_or_update_result(
+                                            results, 
+                                            site_name, 
+                                            product.get("display_name"), 
+                                            price, 
+                                            product.get("jan_codes", [None])[0]
+                                        )
+                                        break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -768,13 +771,13 @@ def scrape_x_shop(config, site_name, search_url):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 13. 買取EXPO (最新検索URL)
+# 13. 買取EXPO
 def scrape_kaitoriexpo(config):
     return scrape_x_shop(config, "買取EXPO", "https://x.com/search?q=from%3Akaitoriexpo&f=live")
 
-# 14. 買取RISE (最新検索URL)
+# 14. 買取RISE
 def scrape_kaitoririse(config):
-    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori&f=live")
+    return scrape_x_shop(config, "買取RISE", "https://x.com/search?q=from%3Arisekaitori&f=live")
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
