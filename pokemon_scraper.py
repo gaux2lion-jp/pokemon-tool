@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ 並列処理爆速版）
+ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ Xタイムアウト対策版）
 """
 
 import os
@@ -689,7 +689,7 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)共通スクレイピング
+# X(旧Twitter)共通スクレイピング（タイムアウト強化・スクロール処理付き）
 def scrape_x_shop(config, site_name, x_url):
     results = []
     products_config = config.get("products", [])
@@ -706,17 +706,31 @@ def scrape_x_shop(config, site_name, x_url):
         return results
 
     try:
+        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, timeout=15000)
+            # タイムアウト時間を30秒に拡大
+            browser = p.chromium.launch(headless=True, timeout=30000)
             try:
                 context = browser.new_context(
                     storage_state=X_STATE_PATH,
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
                 )
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("image", "media", "font", "stylesheet") else route.continue_())
-                page.goto(x_url, timeout=15000, wait_until="domcontentloaded")
-                page.wait_for_selector('[data-testid="tweet"]', timeout=10000)
+                
+                # ページ移動と読み込み待機
+                page.goto(x_url, timeout=30000, wait_until="domcontentloaded")
+                
+                # 画面を少しスクロールしてツイートの読み込みを促す
+                page.evaluate("window.scrollTo(0, 500)")
+                time.sleep(2)
+                
+                # ツイート要素の描画を最大25秒待機
+                try:
+                    page.wait_for_selector('[data-testid="tweet"]', timeout=25000)
+                except Exception:
+                    pass
+                
                 html = page.content()
             finally:
                 browser.close()
@@ -875,7 +889,6 @@ def run_all(config):
 
     all_results = []
 
-    # 並列実行処理（マルチスレッド）
     with ThreadPoolExecutor(max_workers=8) as executor:
         future_to_func = {executor.submit(func, config): func for func in scraper_funcs}
         for future in as_completed(future_to_func):
