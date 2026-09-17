@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ポケモンカード買取価格チェッカー（全14店舗完全対応版）
+ポケモンカード買取価格チェッカー（全14店舗完全対応 ＆ 並列処理爆速版）
 """
 
 import os
@@ -11,15 +11,11 @@ import sys
 import unicodedata
 import logging
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
-# ──────────────────────────────────────────────────
-# 🚀 運用設定
-#   False : 全ページ・全件取得（本番用）
-#   True  : ページ巡回数を制限（テスト用）
-# ──────────────────────────────────────────────────
 TEST_MODE = False
 
 logging.basicConfig(level=logging.WARNING)
@@ -69,7 +65,6 @@ def save_history(history):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 def fetch_soup(url):
-    """ブラウザを使わず、HTMLを直接爆速で取得する"""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
@@ -80,7 +75,6 @@ def fetch_soup(url):
     return BeautifulSoup(resp.text, "html.parser")
 
 def normalize_str(s):
-    """全角英数・記号を半角に変換し、小文字化する"""
     if not s:
         return ""
     return unicodedata.normalize('NFKC', str(s)).lower()
@@ -88,7 +82,6 @@ def normalize_str(s):
 def matches_product(text, product, global_exclude_keywords):
     norm_text = normalize_str(text)
 
-    # 1. 全体除外キーワードの判定
     for g_kw in global_exclude_keywords:
         if not g_kw: continue
         kw_norm = normalize_str(g_kw)
@@ -106,12 +99,10 @@ def matches_product(text, product, global_exclude_keywords):
         if kw_norm in norm_text:
             return False
 
-    # 2. 個別除外キーワードの判定
     for ex_kw in product.get("exclude_keywords", []):
         if ex_kw and normalize_str(ex_kw) in norm_text:
             return False
 
-    # 3. マッチキーワードの判定
     keywords = product.get("keywords", [])
     if not keywords:
         keywords = [product.get("display_name", "")]
@@ -123,7 +114,6 @@ def matches_product(text, product, global_exclude_keywords):
     return False
 
 def add_or_update_result(results, site_name, product_name, price, jan_code):
-    """同一商品が見つかった場合、より高い金額で上書きする"""
     for r in results:
         if r["site"] == site_name and r["product_name"] == product_name:
             if price > r["price"]:
@@ -145,7 +135,6 @@ def scrape_base(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] アクセス中...")
         soup = fetch_soup(url)
         tables = soup.find_all("table")
 
@@ -189,7 +178,6 @@ def scrape_runto(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 全ページ巡回中...")
         max_pages = 2 if TEST_MODE else 15
         target_items = []
 
@@ -212,7 +200,7 @@ def scrape_runto(config):
                             if matches_product(name, product, global_exclude):
                                 target_items.append((product_url, product))
                                 break
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 break
 
@@ -231,7 +219,7 @@ def scrape_runto(config):
                         price = max(valid_prices)
                         if 3000 <= price <= 5000000:
                             add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 pass
 
@@ -251,12 +239,8 @@ def scrape_newenoking(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] RSC直接解析中...")
         max_pages = 2 if TEST_MODE else 10 
-        
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
         for page in range(1, max_pages + 1):
             url = f"{base_url}&page={page}"
@@ -280,7 +264,7 @@ def scrape_newenoking(config):
                         if matches_product(name, product, global_exclude):
                             add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                             break
-            time.sleep(0.3)
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -298,7 +282,6 @@ def scrape_homura(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 全カテゴリ巡回中...")
         max_pages = 2 if TEST_MODE else 20
 
         for page in range(1, max_pages + 1):
@@ -321,7 +304,7 @@ def scrape_homura(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
-            time.sleep(0.3)
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -338,15 +321,10 @@ def scrape_mobile_ichiban(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 全ページ巡回中...")
         max_pages = 2 if TEST_MODE else 10
 
         for page in range(1, max_pages + 1):
-            if page == 1:
-                url = "https://www.mobile-ichiban.com/Prod/3/04"
-            else:
-                url = f"https://www.mobile-ichiban.com/G01_ProdutShow/Index/{page}?kid=3&bid=04"
-            
+            url = "https://www.mobile-ichiban.com/Prod/3/04" if page == 1 else f"https://www.mobile-ichiban.com/G01_ProdutShow/Index/{page}?kid=3&bid=04"
             soup = fetch_soup(url)
             items = soup.find_all("div", class_=re.compile(r"card|item|prod|list", re.I)) or soup.find_all("tr")
 
@@ -365,7 +343,7 @@ def scrape_mobile_ichiban(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
-            time.sleep(0.5)
+            time.sleep(0.3)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -382,13 +360,10 @@ def scrape_kaitori_itchome(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] API全ページ巡回中...")
-        
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Referer": "https://www.1-chome.com/tradeCards",
         }
-
         max_pages = 2 if TEST_MODE else 10
 
         for page in range(1, max_pages + 1):
@@ -398,7 +373,6 @@ def scrape_kaitori_itchome(config):
                 "cateCode": "IIzyMdayU5wp7T4G", "kbNames": "", "cateName": ""
             }
             url = "https://www.1-chome.com/api/goods/listPage?" + urllib.parse.urlencode(params)
-            
             resp = requests.get(url, headers=headers, timeout=15)
             data = resp.json()
             
@@ -430,7 +404,7 @@ def scrape_kaitori_itchome(config):
                                 if matches_product(full_text, product, global_exclude):
                                     add_or_update_result(results, site_name, p_name, price, jan_codes[0] if jan_codes else None)
                                     break
-            time.sleep(0.3)
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -447,17 +421,11 @@ def scrape_rudeya(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 個別検索中...")
         target_products = products_config[:5] if TEST_MODE else products_config
 
         for product in target_products:
             jan_codes = product.get("jan_codes", [])
-            
-            if jan_codes:
-                url = f"https://kaitori-rudeya.com/search/index/-/{jan_codes[0]}/-/-"
-            else:
-                search_word = urllib.parse.quote(product.get("display_name", ""))
-                url = f"https://kaitori-rudeya.com/search/index/{search_word}/-/-/-"
+            url = f"https://kaitori-rudeya.com/search/index/-/{jan_codes[0]}/-/-" if jan_codes else f"https://kaitori-rudeya.com/search/index/{urllib.parse.quote(product.get('display_name', ''))}/-/-/-"
 
             try:
                 soup = fetch_soup(url)
@@ -474,7 +442,7 @@ def scrape_rudeya(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, jan_codes[0] if jan_codes else None)
                                     break
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 pass
 
@@ -494,7 +462,6 @@ def scrape_toreca_lounge(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 個別検索中...")
         target_products = products_config[:5] if TEST_MODE else products_config
 
         for product in target_products:
@@ -507,7 +474,6 @@ def scrape_toreca_lounge(config):
 
                 for item in items:
                     text = item.get_text(strip=True)
-                    
                     norm_item = normalize_str(text)
                     if any(ck in norm_item for ck in ["カートン", "carton", "1c/s", "1cs", "ケース"]):
                         continue
@@ -525,7 +491,7 @@ def scrape_toreca_lounge(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, p_display, price, product.get("jan_codes", [None])[0])
                                     break
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 pass
 
@@ -553,7 +519,6 @@ def scrape_toreca_masai(config):
     )
 
     try:
-        print(f" ⏳ [{site_name:15}] 全商品一覧を取得中...")
         soup = fetch_soup(url)
         cards = soup.select('a[href^="/products/"]')
         seen_slugs = set()
@@ -610,7 +575,6 @@ def scrape_torecabank(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 個別検索中...")
         target_products = products_config[:5] if TEST_MODE else products_config
 
         for product in target_products:
@@ -633,7 +597,7 @@ def scrape_torecabank(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 pass
 
@@ -653,7 +617,6 @@ def scrape_somurie(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] 個別検索中...")
         target_products = products_config[:5] if TEST_MODE else products_config
 
         for product in target_products:
@@ -674,7 +637,7 @@ def scrape_somurie(config):
                                 if 3000 <= price <= 5000000:
                                     add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
                                     break
-                time.sleep(0.3)
+                time.sleep(0.2)
             except Exception:
                 pass
 
@@ -694,7 +657,6 @@ def scrape_shinsoku(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        print(f" ⏳ [{site_name:15}] ページ取得中...")
         soup = fetch_soup(url)
         items = soup.find_all("tr") or soup.select("li.product, div.product-card")
 
@@ -727,7 +689,7 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X(旧Twitter)スクレイピング共通処理 (買取EXPO / 買取RISE用)
+# X(旧Twitter)共通スクレイピング
 def scrape_x_shop(config, site_name, x_url):
     results = []
     products_config = config.get("products", [])
@@ -744,13 +706,12 @@ def scrape_x_shop(config, site_name, x_url):
         return results
 
     try:
-        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, timeout=15000)
             try:
                 context = browser.new_context(
                     storage_state=X_STATE_PATH,
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 )
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("image", "media", "font", "stylesheet") else route.continue_())
@@ -790,7 +751,6 @@ def scrape_kaitoriexpo(config):
 def scrape_kaitoririse(config):
     return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori")
 
-# HTMLレポートの生成処理（差額カラー表示＆ソート機能）
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
     grouped = {}
@@ -906,26 +866,25 @@ def run_all(config):
     print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
 
+    scraper_funcs = [
+        scrape_base, scrape_runto, scrape_newenoking, scrape_homura,
+        scrape_mobile_ichiban, scrape_kaitori_itchome, scrape_rudeya,
+        scrape_toreca_lounge, scrape_toreca_masai, scrape_torecabank,
+        scrape_somurie, scrape_shinsoku, scrape_kaitoriexpo, scrape_kaitoririse
+    ]
+
     all_results = []
 
-    try:
-        all_results.extend(scrape_base(config))
-        all_results.extend(scrape_runto(config))
-        all_results.extend(scrape_newenoking(config))
-        all_results.extend(scrape_homura(config))
-        all_results.extend(scrape_mobile_ichiban(config))
-        all_results.extend(scrape_kaitori_itchome(config))
-        all_results.extend(scrape_rudeya(config))
-        all_results.extend(scrape_toreca_lounge(config))
-        all_results.extend(scrape_toreca_masai(config))
-        all_results.extend(scrape_torecabank(config))
-        all_results.extend(scrape_somurie(config))
-        all_results.extend(scrape_shinsoku(config))
-        all_results.extend(scrape_kaitoriexpo(config))
-        all_results.extend(scrape_kaitoririse(config))
-
-    except Exception as e:
-        print(f"\n ❌ エラー: {e}")
+    # 並列実行処理（マルチスレッド）
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_func = {executor.submit(func, config): func for func in scraper_funcs}
+        for future in as_completed(future_to_func):
+            try:
+                res = future.result()
+                if res:
+                    all_results.extend(res)
+            except Exception as e:
+                print(f" ❌ スレッド実行エラー: {e}")
 
     print(f"\n{'='*60}")
     print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
