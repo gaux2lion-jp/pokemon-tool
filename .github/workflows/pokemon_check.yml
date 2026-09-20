@@ -3,6 +3,10 @@ name: ポケモン買取価格チェック
 on:
   workflow_dispatch:
     # 外部サービス(cron-job.org)から、正確な時間にこのトリガーを呼び出してもらう。
+  push:
+    branches: [main]
+    paths:
+      - config.json
 
 permissions:
   contents: write  # price_history.json をコミットし直すために必要
@@ -31,7 +35,14 @@ jobs:
           # GitHubのSecrets（Settings > Secrets and variables > Actions）
           # に登録した値をここで読み込む
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python pokemon_scraper.py
+          X_STATE_JSON: ${{ secrets.X_STATE_JSON }}
+        run: |
+          if [ -n "$X_STATE_JSON" ]; then
+            printf '%s' "$X_STATE_JSON" > x_state.json
+          else
+            echo "::warning::X_STATE_JSON が未設定のためX店舗はスキップされます"
+          fi
+          python pokemon_scraper.py
 
       - name: 価格履歴とレポートページを保存
         run: |
