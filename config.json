@@ -23,6 +23,17 @@
   ],
   "products": [
     {
+      "display_name": "30th CELEBRATION",
+      "keywords": [
+        "30th CELEBRATION",
+        "30thセレブレーション",
+        "30th セレブレーション"
+      ],
+      "jan_codes": [],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
       "display_name": "ストームエメラルダ",
       "keywords": [
         "ストームエメラルダ"
@@ -119,7 +130,8 @@
         "4521329427768"
       ],
       "exclude_keywords": [
-        "DX"
+        "DX",
+        "デラックス"
       ],
       "cost_price": null
     },
@@ -132,7 +144,8 @@
         "4521329427782"
       ],
       "exclude_keywords": [
-        "DX"
+        "DX",
+        "デラックス"
       ],
       "cost_price": null
     },
@@ -297,7 +310,8 @@
     {
       "display_name": "シャイニートレジャーex",
       "keywords": [
-        "シャイニートレジャーex"
+        "シャイニートレジャーex",
+        "シャイニートレジャー"
       ],
       "jan_codes": [
         "4521329394824"
@@ -352,7 +366,8 @@
     {
       "display_name": "ポケモンカード151",
       "keywords": [
-        "ポケモンカード151"
+        "ポケモンカード151",
+        "ポケモン151"
       ],
       "jan_codes": [
         "4521329346038"

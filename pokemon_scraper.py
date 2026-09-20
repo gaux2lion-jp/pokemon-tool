@@ -79,6 +79,65 @@ def normalize_str(s):
         return ""
     return unicodedata.normalize('NFKC', str(s)).lower()
 
+def compact_normalize(s):
+    """表記揺れ比較用。空白と区切り記号を無視する。"""
+    normalized = normalize_str(s)
+    return re.sub(r"[\s/／・:：\-_]+", "", normalized)
+
+def contains_excluded_variant(text, product, global_exclude_keywords):
+    """1商品分の行だけを対象に、対象外バリエーションか判定する。"""
+    norm_text = normalize_str(text)
+    exclude_keywords = list(global_exclude_keywords) + product.get("exclude_keywords", [])
+
+    for keyword in exclude_keywords:
+        if not keyword:
+            continue
+        kw_norm = normalize_str(keyword)
+        if kw_norm == "開封" and "未開封" in norm_text:
+            if "開封済" in norm_text or "開封品" in norm_text:
+                return True
+            continue
+        if kw_norm == "パック" and ("拡張パック" in norm_text or "ハイクラスパック" in norm_text):
+            if "バラパック" in norm_text or "パック販売" in norm_text:
+                return True
+            continue
+        if kw_norm in norm_text:
+            return True
+    return False
+
+def extract_x_prices(tweet_text, product, global_exclude_keywords):
+    """Xの価格表を行単位で解析し、対象商品の価格候補を返す。"""
+    aliases = product.get("keywords", []) or [product.get("display_name", "")]
+    aliases = sorted((a for a in aliases if a), key=lambda a: len(compact_normalize(a)), reverse=True)
+    lines = [line.strip() for line in tweet_text.splitlines() if line.strip()]
+    prices = []
+
+    for index, line in enumerate(lines):
+        # 商品名がある行を起点にする。前の商品の価格を誤って拾わないため、
+        # 無条件に隣接行を結合しない。
+        compact_line = compact_normalize(line)
+        if not any(compact_normalize(alias) in compact_line for alias in aliases):
+            continue
+
+        candidates = [line]
+        if not re.search(r"[0-9０-９][0-9０-９,，]{2,8}\s*円", line) and index + 1 < len(lines):
+            candidates.append(f"{line} {lines[index + 1]}")
+
+        for candidate in candidates:
+            if contains_excluded_variant(candidate, product, global_exclude_keywords):
+                continue
+
+            for match in re.finditer(r"(?<!\d)([0-9０-９][0-9０-９,，]{2,8})\s*円", candidate):
+                digits = unicodedata.normalize("NFKC", match.group(1)).replace(",", "")
+                if digits.isdigit():
+                    price = int(digits)
+                    if 3000 <= price <= 5000000:
+                        prices.append(price)
+            if prices:
+                break
+
+    return prices
+
 def matches_product(text, product, global_exclude_keywords):
     norm_text = normalize_str(text)
 
@@ -719,47 +778,48 @@ def scrape_x_shop(config, site_name, x_profile_url):
                 page.goto(x_profile_url, timeout=30000, wait_until="domcontentloaded")
                 
                 try:
-                    page.wait_for_selector('[data-testid="tweet"]', timeout=15000)
+                    page.wait_for_selector('[data-testid="tweet"]', timeout=20000)
                 except Exception:
-                    pass
+                    current_url = page.url
+                    page_title = page.title()
+                    print(f" ⚠️ [{site_name:15}] 投稿を読み込めませんでした URL={current_url} title={page_title}")
+                    return results
 
                 for _ in range(5):
                     page.evaluate("window.scrollBy(0, 1200)")
                     time.sleep(1.5)
 
-                html = page.content()
+                tweet_nodes = page.locator('article[data-testid="tweet"]')
+                tweet_count = tweet_nodes.count()
+                tweet_texts = []
+                for index in range(tweet_count):
+                    try:
+                        tweet_texts.append(tweet_nodes.nth(index).inner_text())
+                    except Exception:
+                        continue
             finally:
                 browser.close()
 
-        soup = BeautifulSoup(html, "html.parser")
-        tweets = soup.select("article[data-testid='tweet']")
-
-        for tweet in tweets:
-            tweet_text = tweet.get_text(separator=" ", strip=True)
-
+        print(f" 🔎 [{site_name:15}] {len(tweet_texts)}件の投稿を解析")
+        matched_products = 0
+        for tweet_text in tweet_texts:
             for product in products_config:
-                if matches_product(tweet_text, product, global_exclude):
-                    keywords = product.get("keywords", [product.get("display_name", "")])
-                    
-                    for kw in keywords:
-                        if kw and normalize_str(kw) in normalize_str(tweet_text):
-                            pattern = re.escape(kw) + r".{0,30}?([¥￥]?\s*[\d,]{4,8}\s*円?)"
-                            price_match = re.search(pattern, tweet_text, re.IGNORECASE)
-                            
-                            if price_match:
-                                raw_price_str = price_match.group(1)
-                                digits = re.sub(r"[^\d]", "", raw_price_str)
-                                if digits and digits.isdigit():
-                                    price = int(digits)
-                                    if 3000 <= price <= 5000000:
-                                        add_or_update_result(
-                                            results, 
-                                            site_name, 
-                                            product.get("display_name"), 
-                                            price, 
-                                            product.get("jan_codes", [None])[0]
-                                        )
-                                        break
+                prices = extract_x_prices(tweet_text, product, global_exclude)
+                if not prices:
+                    continue
+                matched_products += 1
+                add_or_update_result(
+                    results,
+                    site_name,
+                    product.get("display_name"),
+                    max(prices),
+                    product.get("jan_codes", [None])[0]
+                )
+
+        if not results:
+            print(f" ⚠️ [{site_name:15}] 投稿は取得できましたが、登録商品と価格の組を検出できませんでした")
+        else:
+            print(f" 🔎 [{site_name:15}] 延べ{matched_products}件の商品価格に一致")
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -774,7 +834,7 @@ def scrape_kaitoriexpo(config):
 
 # 14. 買取RISE
 def scrape_kaitoririse(config):
-    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitori")
+    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitorii")
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -822,6 +882,7 @@ body {{ font-family: -apple-system, sans-serif; background:#f5f5f7; margin:0; pa
 .container {{ max-width: 800px; margin: 0 auto; }}
 h1 {{ font-size: 20px; }}
 .updated {{ color:#666; font-size: 13px; margin-bottom: 16px; }}
+.admin-link {{ display:inline-block; margin-bottom:16px; color:#2563eb; text-decoration:none; font-size:13px; }}
 table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8px; overflow:hidden; }}
 td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 .product-row td {{ background:#eef2ff; font-weight:500; }}
@@ -833,6 +894,7 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 <div class="container">
 <h1>📊 買取価格一覧（ポケモンカード）</h1>
 <div class="updated">最終更新: {now_jst().strftime('%Y-%m-%d %H:%M (日本時間)')}</div>
+<a class="admin-link" href="admin.html">⚙️ 商品マスタを編集</a>
 <table>
 {"".join(rows_html)}
 </table>
@@ -843,6 +905,7 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
     filepath = os.path.join(REPORT_DIR, "index.html")
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)
+
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
 def send_discord_notification(config, changed_items):

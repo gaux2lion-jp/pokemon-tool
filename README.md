@@ -51,6 +51,24 @@ python pokemon_scraper.py
 これで、Discordの通知に「詳細はこちら」というリンクが付き、タップすると
 全商品・全サイトの価格一覧がスマホやPCのブラウザで見られるようになります。
 
+## 商品マスタをWeb画面から編集
+
+GitHub Pagesの `admin.html` を開くと、商品名・検索キーワード・JAN・除外語を
+追加、編集、削除できます。保存には、対象リポジトリだけに限定したGitHubの
+Fine-grained personal access tokenが必要です。
+
+- Repository access: `pokemon-tool` のみ
+- Repository permissions: Contentsを `Read and write`
+- トークンは管理画面内に保存されず、タブを閉じると消えます
+- `config.json` が保存されるとGitHub Actionsが自動実行されます
+
+## Xログイン情報の設定
+
+`x_state.json` にはXのログインCookieが含まれるため、リポジトリへコミットしては
+いけません。`docs/save_x_session.py` で生成後、GitHubの
+Settings → Secrets and variables → Actions に `X_STATE_JSON` という名前で
+ファイル内容全体を登録してください。Actions実行時だけ一時ファイルへ復元されます。
+
 ## うまく価格が取れないとき
 
 `python pokemon_scraper.py --debug` を実行すると、`debug_html/` フォルダに

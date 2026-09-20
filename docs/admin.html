@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>商品マスタ管理</title>
+<style>
+:root{color-scheme:light dark}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#f5f5f7;color:#222}.wrap{max-width:1100px;margin:auto;padding:20px}.panel{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px #0001}h1{font-size:22px;margin:0 0 8px}.note{font-size:13px;color:#666;line-height:1.6}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}input,button{font:inherit;border:1px solid #d1d5db;border-radius:7px;padding:8px}input[type=password]{min-width:300px;flex:1}button{cursor:pointer;background:#fff}.primary{background:#2563eb;color:#fff;border-color:#2563eb}.danger{color:#dc2626}.status{font-size:13px;min-height:20px;margin-top:10px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:900px}th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;font-size:13px}td input{box-sizing:border-box;width:100%}.name{min-width:190px}.keywords{min-width:270px}.jan{min-width:150px}.exclude{min-width:180px}@media(prefers-color-scheme:dark){body{background:#111827;color:#e5e7eb}.panel{background:#1f2937}.note{color:#9ca3af}input,button{background:#111827;color:#e5e7eb;border-color:#4b5563}th,td{border-color:#374151}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="panel">
+  <h1>商品マスタ管理</h1>
+  <p class="note">「キーワード」「JAN」「除外語」は半角カンマ区切りです。保存するとGitHubの <code>config.json</code> が更新され、自動で価格チェックが始まります。トークンは保存・送信されず、この画面を閉じると消えます。</p>
+  <div class="toolbar">
+    <input id="token" type="password" autocomplete="off" placeholder="GitHub Fine-grained token（Contents: Read and write）">
+    <button id="reload">再読込</button><button id="add">商品を追加</button><button id="save" class="primary">GitHubへ保存</button>
+  </div>
+  <div id="status" class="status"></div>
+</section>
+<section class="panel table-wrap"><table><thead><tr><th>商品名</th><th>検索キーワード</th><th>JAN</th><th>除外語</th><th></th></tr></thead><tbody id="rows"></tbody></table></section>
+</main>
+<script>
+const owner='gaux2lion-jp', repo='pokemon-tool', path='config.json';
+const api=`https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+let config=null, sha=null;
+const $=id=>document.getElementById(id);
+const split=value=>value.split(',').map(v=>v.trim()).filter(Boolean);
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function status(message,error=false){$('status').textContent=message;$('status').style.color=error?'#dc2626':'#15803d'}
+function row(product={display_name:'',keywords:[],jan_codes:[],exclude_keywords:[],cost_price:null}){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input class="name" value="${escapeHtml(product.display_name)}"></td><td><input class="keywords" value="${escapeHtml((product.keywords||[]).join(', '))}"></td><td><input class="jan" value="${escapeHtml((product.jan_codes||[]).join(', '))}"></td><td><input class="exclude" value="${escapeHtml((product.exclude_keywords||[]).join(', '))}"></td><td><button class="danger">削除</button></td>`;
+  tr.querySelector('button').onclick=()=>tr.remove();$('rows').appendChild(tr);
+}
+async function load(){
+  status('読み込み中…');
+  try{
+    const response=await fetch(`${api}?ref=main&t=${Date.now()}`,{headers:{Accept:'application/vnd.github+json'}});
+    if(!response.ok)throw new Error(`GitHub API ${response.status}`);
+    const data=await response.json();sha=data.sha;
+    const bytes=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
+    config=JSON.parse(new TextDecoder().decode(bytes));$('rows').innerHTML='';config.products.forEach(row);
+    status(`${config.products.length}商品を読み込みました`);
+  }catch(error){status(`読込失敗: ${error.message}`,true)}
+}
+function collect(){
+  const products=[...$('rows').querySelectorAll('tr')].map(tr=>{
+    const name=tr.querySelector('.name').value.trim();
+    return {display_name:name,keywords:split(tr.querySelector('.keywords').value),jan_codes:split(tr.querySelector('.jan').value),exclude_keywords:split(tr.querySelector('.exclude').value),cost_price:null};
+  });
+  if(products.some(p=>!p.display_name))throw new Error('商品名が空の行があります');
+  if(new Set(products.map(p=>p.display_name)).size!==products.length)throw new Error('同じ商品名が重複しています');
+  return {...config,products};
+}
+async function save(){
+  const token=$('token').value.trim();if(!token){status('GitHubトークンを入力してください',true);return}
+  try{
+    const next=collect();status('保存中…');
+    const json=JSON.stringify(next,null,2)+'\n';
+    const bytes=new TextEncoder().encode(json);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));
+    const response=await fetch(api,{method:'PUT',headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'商品マスタを更新',content:btoa(binary),sha,branch:'main'})});
+    if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(body.message||`GitHub API ${response.status}`)}
+    const data=await response.json();sha=data.content.sha;config=next;status('保存しました。価格チェックを開始します。');
+  }catch(error){status(`保存失敗: ${error.message}`,true)}
+}
+$('reload').onclick=load;$('add').onclick=()=>row();$('save').onclick=save;load();
+</script></body></html>
