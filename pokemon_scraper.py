@@ -754,7 +754,7 @@ def scrape_x_api(config):
         print(" ⚠️ [X公式API       ] X_BEARER_TOKEN が未設定のためスキップします。")
         return []
 
-    state = {"newest_id": None, "prices": {}}
+    state = {"newest_ids": {}, "prices": {}}
     if os.path.exists(X_API_STATE_PATH):
         try:
             with open(X_API_STATE_PATH, "r", encoding="utf-8") as f:
@@ -764,38 +764,7 @@ def scrape_x_api(config):
         except Exception:
             pass
 
-    params = {
-        "query": "(from:kaitoriexpo OR from:risekaitorii) -is:retweet",
-        "max_results": "10",
-        "expansions": "author_id",
-        "tweet.fields": "author_id,created_at",
-        "user.fields": "username"
-    }
-    if state.get("newest_id"):
-        params["since_id"] = str(state["newest_id"])
-
     print(" ⏳ [X公式API       ] EXPO・RISEの新着投稿を確認中...")
-    try:
-        response = requests.get(
-            "https://api.x.com/2/tweets/search/recent",
-            headers={"Authorization": f"Bearer {bearer_token}"},
-            params=params,
-            timeout=30
-        )
-        if response.status_code != 200:
-            detail = response.text.replace("\n", " ")[:180]
-            print(f" ✗ [X公式API       ] HTTP {response.status_code}: {detail}")
-            return _x_cached_results(state, config)
-        payload = response.json()
-    except Exception as e:
-        print(f" ✗ [X公式API       ] 通信エラー: {str(e)[:100]}")
-        return _x_cached_results(state, config)
-
-    posts = payload.get("data", [])
-    users = {
-        str(user.get("id")): normalize_str(user.get("username"))
-        for user in payload.get("includes", {}).get("users", [])
-    }
     shop_by_username = {
         "kaitoriexpo": "買取EXPO",
         "risekaitorii": "買取RISE"
@@ -803,34 +772,55 @@ def scrape_x_api(config):
     products = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
     prices_state = state.setdefault("prices", {})
-    seen_this_run = set()
-    matched = 0
+    newest_ids = state.setdefault("newest_ids", {})
 
-    # APIは新しい投稿から返す。同一商品の最初の一致を最新価格として採用する。
-    for post in posts:
-        username = users.get(str(post.get("author_id")), "")
-        site_name = shop_by_username.get(username)
-        if not site_name:
-            continue
-        site_prices = prices_state.setdefault(site_name, {})
-        text = post.get("text", "")
-        for product in products:
-            product_name = product.get("display_name")
-            key = (site_name, product_name)
-            if key in seen_this_run:
+    for username, site_name in shop_by_username.items():
+        params = {
+            "query": f"from:{username} -is:retweet",
+            "max_results": "10",
+            "tweet.fields": "created_at"
+        }
+        if newest_ids.get(username):
+            params["since_id"] = str(newest_ids[username])
+
+        try:
+            response = requests.get(
+                "https://api.x.com/2/tweets/search/recent",
+                headers={"Authorization": f"Bearer {bearer_token}"},
+                params=params,
+                timeout=30
+            )
+            if response.status_code != 200:
+                detail = response.text.replace("\n", " ")[:180]
+                print(f" ✗ [{site_name:15}] API HTTP {response.status_code}: {detail}")
                 continue
-            prices = extract_x_prices(text, product, global_exclude)
-            if prices:
-                site_prices[product_name] = max(prices)
-                seen_this_run.add(key)
-                matched += 1
+            posts = response.json().get("data", [])
+        except Exception as e:
+            print(f" ✗ [{site_name:15}] API通信エラー: {str(e)[:100]}")
+            continue
 
-    if posts:
-        state["newest_id"] = max((str(p.get("id", "0")) for p in posts), key=int)
+        site_prices = prices_state.setdefault(site_name, {})
+        seen_products = set()
+        matched = 0
+        # APIは新しい投稿から返す。同一商品の最初の一致を最新価格として採用する。
+        for post in posts:
+            text = post.get("text", "")
+            for product in products:
+                product_name = product.get("display_name")
+                if product_name in seen_products:
+                    continue
+                prices = extract_x_prices(text, product, global_exclude)
+                if prices:
+                    site_prices[product_name] = max(prices)
+                    seen_products.add(product_name)
+                    matched += 1
+        if posts:
+            newest_ids[username] = max((str(p.get("id", "0")) for p in posts), key=int)
+        print(f" 🔎 [{site_name:15}] 新着{len(posts)}投稿、{matched}件の商品価格に一致")
+
     with open(X_API_STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
-    print(f" 🔎 [X公式API       ] 新着{len(posts)}投稿、{matched}件の商品価格に一致")
     results = _x_cached_results(state, config)
     for site_name in ("買取EXPO", "買取RISE"):
         count = sum(1 for row in results if row["site"] == site_name)
