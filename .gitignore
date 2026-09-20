@@ -7,3 +7,6 @@ results/
 # Python関連
 __pycache__/
 *.pyc
+
+# XのログインCookie
+x_state.json
