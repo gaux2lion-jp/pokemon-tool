@@ -32,14 +32,8 @@ jobs:
       - name: ポケモン買取価格チェックを実行
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          X_STATE_JSON: ${{ secrets.X_STATE_JSON }}
-        run: |
-          if [ -n "$X_STATE_JSON" ]; then
-            printf '%s' "$X_STATE_JSON" > x_state.json
-          else
-            echo "::warning::X_STATE_JSON が未設定のためX店舗はスキップされます"
-          fi
-          python pokemon_scraper.py
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: python pokemon_scraper.py
 
       - name: 価格履歴とレポートページを保存
         run: |
@@ -49,5 +43,6 @@ jobs:
           git pull origin main --rebase
           git stash pop || echo "No stash to pop"
           git add price_history.json docs/index.html
+          git add x_api_state.json 2>/dev/null || true
           git diff --staged --quiet || git commit -m "価格履歴・レポートを更新"
           git push origin main
