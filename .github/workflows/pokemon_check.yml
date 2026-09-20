@@ -1,6 +1,8 @@
 name: ポケモン買取価格チェック
 
 on:
+  schedule:
+    - cron: '0 * * * *'  # 毎時0分（1時間ごと）
   workflow_dispatch:
   push:
     branches: [main]
