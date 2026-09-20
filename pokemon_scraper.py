@@ -747,6 +747,7 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
+# X challenge mitigation enabled
 # X(旧Twitter)共通スクレイピング
 def scrape_x_shop(config, site_name, x_profile_url):
     results = []
