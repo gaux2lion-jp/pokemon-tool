@@ -766,12 +766,24 @@ def scrape_x_shop(config, site_name, x_profile_url):
     try:
         print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, timeout=30000)
+            browser = p.chromium.launch(
+                headless=True,
+                timeout=30000,
+                args=[
+                    "--disable-blink-features=AutomationControlled",
+                    "--disable-dev-shm-usage",
+                    "--no-sandbox"
+                ]
+            )
             try:
                 context = browser.new_context(
                     storage_state=X_STATE_PATH,
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+                    locale="ja-JP",
+                    timezone_id="Asia/Tokyo",
+                    viewport={"width": 1365, "height": 900}
                 )
+                context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
                 page = context.new_page()
                 page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
                 
@@ -954,11 +966,14 @@ def run_all(config):
     print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
 
+    # Xを含むPlaywright処理を同時実行すると、同じCookie/IPから複数の
+    # ブラウザが開かれてXのチャレンジ画面が出やすい。X以外を先に並列実行し、
+    # X店舗は最後に1店舗ずつ確認する。
     scraper_funcs = [
         scrape_base, scrape_runto, scrape_newenoking, scrape_homura,
         scrape_mobile_ichiban, scrape_kaitori_itchome, scrape_rudeya,
         scrape_toreca_lounge, scrape_toreca_masai, scrape_torecabank,
-        scrape_somurie, scrape_shinsoku, scrape_kaitoriexpo, scrape_kaitoririse
+        scrape_somurie, scrape_shinsoku
     ]
 
     all_results = []
@@ -972,6 +987,12 @@ def run_all(config):
                     all_results.extend(res)
             except Exception as e:
                 print(f" ❌ スレッド実行エラー: {e}")
+
+    for x_scraper in (scrape_kaitoriexpo, scrape_kaitoririse):
+        res = x_scraper(config)
+        if res:
+            all_results.extend(res)
+        time.sleep(3)
 
     print(f"\n{'='*60}")
     print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
