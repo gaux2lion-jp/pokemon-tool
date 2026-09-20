@@ -769,6 +769,11 @@ def scrape_x_api(config):
         "kaitoriexpo": "買取EXPO",
         "risekaitorii": "買取RISE"
     }
+    query_by_username = {
+        "kaitoriexpo": "from:kaitoriexpo -is:retweet",
+        # URLで使われていた旧名と、現在表示されるユーザー名の両方に対応。
+        "risekaitorii": "(from:risekaitorii OR from:risekaitori) -is:retweet"
+    }
     products = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
     prices_state = state.setdefault("prices", {})
@@ -776,7 +781,7 @@ def scrape_x_api(config):
 
     for username, site_name in shop_by_username.items():
         params = {
-            "query": f"from:{username} -is:retweet",
+            "query": query_by_username[username],
             "max_results": "10",
             "tweet.fields": "created_at"
         }
