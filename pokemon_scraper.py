@@ -25,7 +25,7 @@ CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 HISTORY_PATH = os.path.join(BASE_DIR, "price_history.json")
 REPORT_DIR = os.path.join(BASE_DIR, "docs")
 LOG_FILE_PATH = os.path.join(BASE_DIR, "latest_run.log")
-X_STATE_PATH = os.path.join(BASE_DIR, "x_state.json")
+X_API_STATE_PATH = os.path.join(BASE_DIR, "x_api_state.json")
 
 JST = timezone(timedelta(hours=9))
 
@@ -747,107 +747,110 @@ def scrape_shinsoku(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# X challenge mitigation enabled
-# X(旧Twitter)共通スクレイピング
-def scrape_x_shop(config, site_name, x_profile_url):
-    results = []
-    products_config = config.get("products", [])
-    global_exclude = config.get("exclude_variant_keywords", [])
+# 13・14. 買取EXPO / 買取RISE（X公式API）
+def scrape_x_api(config):
+    bearer_token = os.environ.get("X_BEARER_TOKEN", "").strip()
+    if not bearer_token:
+        print(" ⚠️ [X公式API       ] X_BEARER_TOKEN が未設定のためスキップします。")
+        return []
 
-    if not os.path.exists(X_STATE_PATH) or os.path.getsize(X_STATE_PATH) == 0:
-        print(f" ⚠️ [{site_name:15}] x_state.json が存在しないためスキップします。")
-        return results
+    state = {"newest_id": None, "prices": {}}
+    if os.path.exists(X_API_STATE_PATH):
+        try:
+            with open(X_API_STATE_PATH, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    state.update(loaded)
+        except Exception:
+            pass
 
+    params = {
+        "query": "(from:kaitoriexpo OR from:risekaitorii) -is:retweet",
+        "max_results": "10",
+        "expansions": "author_id",
+        "tweet.fields": "author_id,created_at",
+        "user.fields": "username"
+    }
+    if state.get("newest_id"):
+        params["since_id"] = str(state["newest_id"])
+
+    print(" ⏳ [X公式API       ] EXPO・RISEの新着投稿を確認中...")
     try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        print(f" ⚠️ [{site_name:15}] Playwright がインストールされていないためスキップします。")
-        return results
-
-    try:
-        print(f" ⏳ [{site_name:15}] Xタイムライン確認中...")
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                timeout=30000,
-                args=[
-                    "--disable-blink-features=AutomationControlled",
-                    "--disable-dev-shm-usage",
-                    "--no-sandbox"
-                ]
-            )
-            try:
-                context = browser.new_context(
-                    storage_state=X_STATE_PATH,
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
-                    locale="ja-JP",
-                    timezone_id="Asia/Tokyo",
-                    viewport={"width": 1365, "height": 900}
-                )
-                context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-                page = context.new_page()
-                page.route("**/*", lambda route, req: route.abort() if req.resource_type in ("media", "font") else route.continue_())
-                
-                page.goto(x_profile_url, timeout=30000, wait_until="domcontentloaded")
-                
-                try:
-                    page.wait_for_selector('[data-testid="tweet"]', timeout=20000)
-                except Exception:
-                    current_url = page.url
-                    page_title = page.title()
-                    print(f" ⚠️ [{site_name:15}] 投稿を読み込めませんでした URL={current_url} title={page_title}")
-                    return results
-
-                for _ in range(5):
-                    page.evaluate("window.scrollBy(0, 1200)")
-                    time.sleep(1.5)
-
-                tweet_nodes = page.locator('article[data-testid="tweet"]')
-                tweet_count = tweet_nodes.count()
-                tweet_texts = []
-                for index in range(tweet_count):
-                    try:
-                        tweet_texts.append(tweet_nodes.nth(index).inner_text())
-                    except Exception:
-                        continue
-            finally:
-                browser.close()
-
-        print(f" 🔎 [{site_name:15}] {len(tweet_texts)}件の投稿を解析")
-        matched_products = 0
-        for tweet_text in tweet_texts:
-            for product in products_config:
-                prices = extract_x_prices(tweet_text, product, global_exclude)
-                if not prices:
-                    continue
-                matched_products += 1
-                add_or_update_result(
-                    results,
-                    site_name,
-                    product.get("display_name"),
-                    max(prices),
-                    product.get("jan_codes", [None])[0]
-                )
-
-        if not results:
-            print(f" ⚠️ [{site_name:15}] 投稿は取得できましたが、登録商品と価格の組を検出できませんでした")
-        else:
-            print(f" 🔎 [{site_name:15}] 延べ{matched_products}件の商品価格に一致")
-
-        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
-        return results
-
+        response = requests.get(
+            "https://api.x.com/2/tweets/search/recent",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+            params=params,
+            timeout=30
+        )
+        if response.status_code != 200:
+            detail = response.text.replace("\n", " ")[:180]
+            print(f" ✗ [X公式API       ] HTTP {response.status_code}: {detail}")
+            return _x_cached_results(state, config)
+        payload = response.json()
     except Exception as e:
-        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
-        return results
+        print(f" ✗ [X公式API       ] 通信エラー: {str(e)[:100]}")
+        return _x_cached_results(state, config)
 
-# 13. 買取EXPO
-def scrape_kaitoriexpo(config):
-    return scrape_x_shop(config, "買取EXPO", "https://x.com/kaitoriexpo")
+    posts = payload.get("data", [])
+    users = {
+        str(user.get("id")): normalize_str(user.get("username"))
+        for user in payload.get("includes", {}).get("users", [])
+    }
+    shop_by_username = {
+        "kaitoriexpo": "買取EXPO",
+        "risekaitorii": "買取RISE"
+    }
+    products = config.get("products", [])
+    global_exclude = config.get("exclude_variant_keywords", [])
+    prices_state = state.setdefault("prices", {})
+    seen_this_run = set()
+    matched = 0
 
-# 14. 買取RISE
-def scrape_kaitoririse(config):
-    return scrape_x_shop(config, "買取RISE", "https://x.com/risekaitorii")
+    # APIは新しい投稿から返す。同一商品の最初の一致を最新価格として採用する。
+    for post in posts:
+        username = users.get(str(post.get("author_id")), "")
+        site_name = shop_by_username.get(username)
+        if not site_name:
+            continue
+        site_prices = prices_state.setdefault(site_name, {})
+        text = post.get("text", "")
+        for product in products:
+            product_name = product.get("display_name")
+            key = (site_name, product_name)
+            if key in seen_this_run:
+                continue
+            prices = extract_x_prices(text, product, global_exclude)
+            if prices:
+                site_prices[product_name] = max(prices)
+                seen_this_run.add(key)
+                matched += 1
+
+    if posts:
+        state["newest_id"] = max((str(p.get("id", "0")) for p in posts), key=int)
+    with open(X_API_STATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+    print(f" 🔎 [X公式API       ] 新着{len(posts)}投稿、{matched}件の商品価格に一致")
+    results = _x_cached_results(state, config)
+    for site_name in ("買取EXPO", "買取RISE"):
+        count = sum(1 for row in results if row["site"] == site_name)
+        print(f" ✓ [{site_name:15}] {count:3}件取得（APIキャッシュ含む）")
+    return results
+
+def _x_cached_results(state, config):
+    product_map = {p.get("display_name"): p for p in config.get("products", [])}
+    results = []
+    for site_name, site_prices in state.get("prices", {}).items():
+        for product_name, price in site_prices.items():
+            product = product_map.get(product_name, {})
+            jan_codes = product.get("jan_codes", [])
+            results.append({
+                "product_name": product_name,
+                "site": site_name,
+                "price": int(price),
+                "jan_code": jan_codes[0] if jan_codes else None
+            })
+    return results
 
 def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
@@ -967,9 +970,6 @@ def run_all(config):
     print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
 
-    # Xを含むPlaywright処理を同時実行すると、同じCookie/IPから複数の
-    # ブラウザが開かれてXのチャレンジ画面が出やすい。X以外を先に並列実行し、
-    # X店舗は最後に1店舗ずつ確認する。
     scraper_funcs = [
         scrape_base, scrape_runto, scrape_newenoking, scrape_homura,
         scrape_mobile_ichiban, scrape_kaitori_itchome, scrape_rudeya,
@@ -989,11 +989,9 @@ def run_all(config):
             except Exception as e:
                 print(f" ❌ スレッド実行エラー: {e}")
 
-    for x_scraper in (scrape_kaitoriexpo, scrape_kaitoririse):
-        res = x_scraper(config)
-        if res:
-            all_results.extend(res)
-        time.sleep(3)
+    x_results = scrape_x_api(config)
+    if x_results:
+        all_results.extend(x_results)
 
     print(f"\n{'='*60}")
     print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
