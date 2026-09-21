@@ -51,6 +51,11 @@ def load_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def first_jan_code(product):
+    """JAN未登録の商品でも安全に先頭のJANを返す。"""
+    jan_codes = product.get("jan_codes") or []
+    return jan_codes[0] if jan_codes else None
+
 def load_history():
     if not os.path.exists(HISTORY_PATH):
         return {}
@@ -214,7 +219,7 @@ def scrape_base(config):
                                     if valid_prices:
                                         price = valid_prices[-1]
                                         if 3000 <= price <= 5000000:
-                                            add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                 except Exception:
                                     pass
                                 break
@@ -277,7 +282,7 @@ def scrape_runto(config):
                     if valid_prices:
                         price = max(valid_prices)
                         if 3000 <= price <= 5000000:
-                            add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                 time.sleep(0.2)
             except Exception:
                 pass
@@ -320,7 +325,7 @@ def scrape_newenoking(config):
                         if digits.isdigit():
                             price = int(digits)
                             if 3000 <= price <= 5000000:
-                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                 break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
@@ -359,7 +364,7 @@ def scrape_homura(config):
                             if clean_price.isdigit():
                                 price = int(clean_price)
                                 if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                     break
             time.sleep(0.2)
 
@@ -398,7 +403,7 @@ def scrape_mobile_ichiban(config):
                             if clean_price.isdigit():
                                 price = int(clean_price)
                                 if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                     break
             time.sleep(0.3)
 
@@ -546,7 +551,7 @@ def scrape_toreca_lounge(config):
                                     continue
                                     
                                 if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, p_display, price, product.get("jan_codes", [None])[0])
+                                    add_or_update_result(results, site_name, p_display, price, first_jan_code(product))
                                     break
                 time.sleep(0.2)
             except Exception:
@@ -613,7 +618,7 @@ def scrape_toreca_masai(config):
                             price = max(prices)
                     
                     if price and 3000 <= price <= 5000000:
-                        add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                        add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                         break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
@@ -653,7 +658,7 @@ def scrape_torecabank(config):
                         if clean_price.isdigit():
                             price = int(clean_price)
                             if 3000 <= price <= 5000000:
-                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                 break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
@@ -690,7 +695,7 @@ def scrape_somurie(config):
                             if clean_price.isdigit():
                                 price = int(clean_price)
                                 if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                     break
                 time.sleep(0.2)
             except Exception:
@@ -737,7 +742,7 @@ def scrape_shinsoku(config):
                         if raw_str.isdigit():
                             price = int(raw_str)
                             if 3000 <= price <= 5000000:
-                                add_or_update_result(results, site_name, product.get("display_name"), price, product.get("jan_codes", [None])[0])
+                                add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                 break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
