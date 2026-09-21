@@ -301,7 +301,7 @@ def scrape_runto(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 3. 買取エノキング (Playwrightタイムアウト回避版)
+# 3. 買取エノキング
 def scrape_newenoking(config):
     site_name = "買取エノキング"
     url = "https://newenoking-kaitori.com/products?q=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3"
@@ -310,30 +310,37 @@ def scrape_newenoking(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, timeout=30000)
-            page = browser.new_page()
-            page.goto(url, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(3000)
-            html = page.content()
-            browser.close()
+        max_pages = 2 if TEST_MODE else 10
+        for page in range(1, max_pages + 1):
+            page_url = f"{url}&page={page}"
+            soup = fetch_soup(page_url)
+            headings = soup.select("h2")
+            if not headings:
+                break
 
-        soup = BeautifulSoup(html, "html.parser")
-        items = soup.select("div[class*='product'], a[href*='/products/'], tr")
-
-        for item in items:
-            text = item.get_text(separator=" ", strip=True)
-            for product in products_config:
-                if matches_product(text, product, global_exclude):
-                    price_match = re.search(r"([¥￥]?\s*[\d,]{4,8}\s*円?)", text)
-                    if price_match:
-                        digits = re.sub(r"[^\d]", "", price_match.group(1))
-                        if digits.isdigit():
-                            price = int(digits)
+            matched_on_page = False
+            for heading in headings:
+                # 商品カードは h2 の2階層上。JANを価格として誤認しないよう
+                # 「参考買取金額」の後ろにある金額だけを採用する。
+                item = heading.parent.parent if heading.parent and heading.parent.parent else heading
+                if "rounded-xl" not in (item.get("class") or []):
+                    continue
+                text = item.get_text(separator=" ", strip=True)
+                for product in products_config:
+                    if matches_product(text, product, global_exclude):
+                        price_match = re.search(r"参考買取金額\s*[¥￥]\s*([\d,]{4,8})", text)
+                        if price_match:
+                            price = int(price_match.group(1).replace(",", ""))
                             if 3000 <= price <= 5000000:
                                 add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
-                                break
+                                matched_on_page = True
+                        break
+
+            # 最終ページには「次へ」の有効リンクがない。
+            next_link = soup.find("a", string=re.compile("次へ"))
+            if not next_link or next_link.get("aria-disabled") == "true":
+                break
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
