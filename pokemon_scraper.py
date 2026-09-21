@@ -13,6 +13,8 @@ import logging
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
@@ -74,7 +76,12 @@ def fetch_soup(url):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
     }
-    resp = requests.get(url, headers=headers, timeout=20)
+    session = requests.Session()
+    retry = Retry(total=3, connect=3, read=3, backoff_factor=1,
+                  status_forcelist=(429, 500, 502, 503, 504),
+                  allowed_methods=frozenset(("GET",)))
+    session.mount("https://", HTTPAdapter(max_retries=retry))
+    resp = session.get(url, headers=headers, timeout=30)
     resp.raise_for_status()
     resp.encoding = resp.apparent_encoding or "utf-8"
     return BeautifulSoup(resp.text, "html.parser")
@@ -383,10 +390,9 @@ def scrape_mobile_ichiban(config):
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        max_pages = 2 if TEST_MODE else 10
-
-        for page in range(1, max_pages + 1):
-            url = "https://www.mobile-ichiban.com/Prod/3/04" if page == 1 else f"https://www.mobile-ichiban.com/G01_ProdutShow/Index/{page}?kid=3&bid=04"
+        # 旧URL /Prod/3/04 は廃止済み。現在のポケモン商品一覧を取得する。
+        for page in range(1, 2):
+            url = "https://www.mobile-ichiban.com/Prod/3"
             soup = fetch_soup(url)
             items = soup.find_all("div", class_=re.compile(r"card|item|prod|list", re.I)) or soup.find_all("tr")
 
@@ -708,42 +714,41 @@ def scrape_somurie(config):
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
-# 12. シンソク (Playwright描画待機版)
+# 12. シンソク（公開API版）
 def scrape_shinsoku(config):
     site_name = "シンソク"
-    url = "https://shinsoku-tcg.com/yuso-kaitori"
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, timeout=30000)
-            page = browser.new_page()
-            page.goto(url, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(3000)
-            html = page.content()
-            browser.close()
+        for page in range(10):
+            response = requests.get(
+                "https://shinsoku-tcg.com/api/items",
+                params={
+                    "postal_only": "true", "sort": "price_desc", "type": "BOX",
+                    "brand": "ポケモン", "page": str(page), "limit": "100"
+                },
+                headers={"User-Agent": "Mozilla/5.0"}, timeout=30
+            )
+            response.raise_for_status()
+            payload = response.json()
+            data = payload.get("data", payload)
 
-        soup = BeautifulSoup(html, "html.parser")
-        items = soup.find_all("tr") or soup.select("li, div[class*='product'], div[class*='item']")
+            for item in data.get("items", []):
+                text = item.get("name_processed") or item.get("name") or ""
+                price = item.get("postal_purchase_price_s")
+                if not isinstance(price, (int, float)):
+                    continue
+                price = int(price)
+                for product in products_config:
+                    if matches_product(text, product, global_exclude):
+                        if 3000 <= price <= 5000000:
+                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
+                        break
 
-        for item in items:
-            text = item.get_text(separator=" ", strip=True)
-            if not text or len(text) < 5:
-                continue
-
-            for product in products_config:
-                if matches_product(text, product, global_exclude):
-                    price_match = re.search(r"[¥￥]\s*([\d,]{4,8})|([\d,]{4,8})\s*円", text)
-                    if price_match:
-                        raw_str = (price_match.group(1) or price_match.group(2)).replace(",", "")
-                        if raw_str.isdigit():
-                            price = int(raw_str)
-                            if 3000 <= price <= 5000000:
-                                add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
-                                break
+            if not data.get("has_more"):
+                break
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
