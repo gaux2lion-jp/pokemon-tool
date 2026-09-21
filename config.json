@@ -29,8 +29,13 @@
         "30thセレブレーション",
         "30th セレブレーション"
       ],
-      "jan_codes": [],
-      "exclude_keywords": [],
+      "jan_codes": [
+        "4521329462424"
+      ],
+      "exclude_keywords": [
+        "FUTURISTIC",
+        "プレミアムデッキセット"
+      ],
       "cost_price": null
     },
     {
