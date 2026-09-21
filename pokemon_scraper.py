@@ -184,17 +184,21 @@ def matches_product(text, product, global_exclude_keywords):
 
     return False
 
-def add_or_update_result(results, site_name, product_name, price, jan_code):
+def add_or_update_result(results, site_name, product_name, price, jan_code, condition_badge=None):
     for r in results:
         if r["site"] == site_name and r["product_name"] == product_name:
             if price > r["price"]:
                 r["price"] = price
+                r["condition_badge"] = condition_badge
+            elif price == r["price"] and condition_badge:
+                r["condition_badge"] = condition_badge
             return
     results.append({
         "product_name": product_name,
         "site": site_name,
         "price": price,
-        "jan_code": jan_code
+        "jan_code": jan_code,
+        "condition_badge": condition_badge
     })
 
 # 1. 買取BASE
@@ -378,7 +382,8 @@ def scrape_homura(config):
                             if clean_price.isdigit():
                                 price = int(clean_price)
                                 if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
+                                    badge = "満額保証" if "満額保証" in text else None
+                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product), badge)
                                     break
             time.sleep(0.2)
 
@@ -751,7 +756,8 @@ def scrape_shinsoku(config):
                 for product in products_config:
                     if matches_product(text, product, global_exclude):
                         if 3000 <= price <= 5000000:
-                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
+                            badge = "減額なし" if item.get("is_full_amount_flag") else None
+                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product), badge)
                         break
 
             if not data.get("has_more"):
@@ -884,6 +890,10 @@ def generate_html_report(results):
         )
 
         for r in rows_sorted:
+            badge_html = ""
+            if r.get("condition_badge"):
+                badge_class = "badge-full" if r["condition_badge"] == "満額保証" else "badge-no-reduction"
+                badge_html = f'<span class="condition-badge {badge_class}">{r["condition_badge"]}</span>'
             diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(変動なし)</span>'
             if r.get("prev_price") is not None:
                 diff = r["price"] - r["prev_price"]
@@ -895,7 +905,7 @@ def generate_html_report(results):
                 diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(初回)</span>'
 
             rows_html.append(
-                f'<tr><td style="padding-left: 20px;">{r["site"]}</td><td>―</td>'
+                f'<tr><td style="padding-left: 20px;">{r["site"]} {badge_html}</td><td>―</td>'
                 f'<td class="price">{r["price"]:,}円{diff_html}</td></tr>'
             )
 
@@ -915,6 +925,9 @@ table {{ width:100%; border-collapse: collapse; background:#fff; border-radius:8
 td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 .product-row td {{ background:#eef2ff; font-weight:500; }}
 .best {{ color:#2563eb; font-size:12px; margin-left:8px; }}
+.condition-badge {{ display:inline-block; margin-left:5px; padding:2px 6px; border-radius:999px; font-size:10px; font-weight:700; vertical-align:middle; }}
+.badge-full {{ color:#b45309; background:#fef3c7; }}
+.badge-no-reduction {{ color:#047857; background:#d1fae5; }}
 .price {{ text-align:right; font-weight:600; white-space: nowrap; }}
 </style>
 </head>
