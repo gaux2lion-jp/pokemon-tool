@@ -39,6 +39,31 @@
       "cost_price": null
     },
     {
+      "display_name": "30th CELEBRATION プレミアムデッキセット",
+      "keywords": [
+        "30th CELEBRATION プレミアムデッキセット",
+        "プレミアムデッキセット エーフィ・ブラッキー",
+        "プレミアムデッキセット エーフィ ブラッキー"
+      ],
+      "jan_codes": [
+        "4521329462189"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "30th CELEBRATION FUTURISTIC BOX",
+      "keywords": [
+        "30th CELEBRATION FUTURISTIC BOX",
+        "FUTURISTIC BOX"
+      ],
+      "jan_codes": [
+        "4521329463872"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
       "display_name": "ストームエメラルダ",
       "keywords": [
         "ストームエメラルダ"
@@ -112,7 +137,9 @@
       "jan_codes": [
         "4521329431154"
       ],
-      "exclude_keywords": [],
+      "exclude_keywords": [
+        "ポケモンセンターセット"
+      ],
       "cost_price": null
     },
     {
@@ -159,7 +186,8 @@
       "keywords": [
         "ブラックボルト DX",
         "ブラックボルトDX",
-        "ブラックボルトデラックス"
+        "ブラックボルトデラックス",
+        "拡張パックデラックス】 ブラックボルト"
       ],
       "jan_codes": [
         "4521329427300"
@@ -172,7 +200,8 @@
       "keywords": [
         "ホワイトフレア DX",
         "ホワイトフレアDX",
-        "ホワイトフレアデラックス"
+        "ホワイトフレアデラックス",
+        "拡張パックデラックス】 ホワイトフレア"
       ],
       "jan_codes": [
         "4521329427324"
@@ -482,7 +511,9 @@
     {
       "display_name": "ポケモンGO",
       "keywords": [
-        "ポケモンGO"
+        "ポケモンGO",
+        "Pokemon GO",
+        "Pokémon GO"
       ],
       "jan_codes": [
         "4521329331270"
@@ -557,15 +588,29 @@
       "cost_price": null
     },
     {
-      "display_name": "25thアニバーサリー",
+      "display_name": "25th ANNIVERSARY COLLECTION",
       "keywords": [
-        "25thアニバーサリー",
-        "25th ANNIVERSARY",
-        "25th アニバーサリー"
+        "25th ANNIVERSARY COLLECTION",
+        "25thアニバーサリーコレクション",
+        "25th アニバーサリー コレクション"
       ],
       "jan_codes": [
         "4521329322319"
       ],
+      "exclude_keywords": [
+        "GOLDEN BOX",
+        "スペシャルセット"
+      ],
+      "cost_price": null
+    },
+    {
+      "display_name": "25th ANNIVERSARY GOLDEN BOX",
+      "keywords": [
+        "25th ANNIVERSARY GOLDEN BOX",
+        "25thアニバーサリー ゴールデンボックス",
+        "25th ゴールデンボックス"
+      ],
+      "jan_codes": [],
       "exclude_keywords": [],
       "cost_price": null
     },
@@ -1175,18 +1220,6 @@
       ],
       "jan_codes": [
         "4521329190697"
-      ],
-      "exclude_keywords": [],
-      "cost_price": null
-    },
-    {
-      "display_name": "20th Anniversary",
-      "keywords": [
-        "20th Anniversary",
-        "20th ANNIVERSARY"
-      ],
-      "jan_codes": [
-        "4521329190222"
       ],
       "exclude_keywords": [],
       "cost_price": null
