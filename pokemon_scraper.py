@@ -96,6 +96,13 @@ def compact_normalize(s):
     normalized = normalize_str(s)
     return re.sub(r"[\s/／・:：\-_]+", "", normalized)
 
+def excluded_keyword_present(norm_text, keyword):
+    """短い英字除外語（ct/cs等）が商品名の一部に誤一致するのを防ぐ。"""
+    kw_norm = normalize_str(keyword)
+    if re.fullmatch(r"[a-z0-9]{1,2}", kw_norm):
+        return re.search(rf"(?<![a-z0-9]){re.escape(kw_norm)}(?![a-z0-9])", norm_text) is not None
+    return kw_norm in norm_text
+
 def contains_excluded_variant(text, product, global_exclude_keywords):
     """1商品分の行だけを対象に、対象外バリエーションか判定する。"""
     norm_text = normalize_str(text)
@@ -113,7 +120,7 @@ def contains_excluded_variant(text, product, global_exclude_keywords):
             if "バラパック" in norm_text or "パック販売" in norm_text:
                 return True
             continue
-        if kw_norm in norm_text:
+        if excluded_keyword_present(norm_text, kw_norm):
             return True
     return False
 
@@ -150,6 +157,20 @@ def extract_x_prices(tweet_text, product, global_exclude_keywords):
 
     return prices
 
+def x_post_closes_product(tweet_text, product):
+    """X投稿の商品行が締切・受付終了を示しているか判定する。"""
+    aliases = product.get("keywords", []) or [product.get("display_name", "")]
+    aliases = [compact_normalize(alias) for alias in aliases if alias]
+    close_words = ("〆切", "締切", "締め切り", "買取終了", "受付終了", "募集終了")
+    lines = [line.strip() for line in tweet_text.splitlines() if line.strip()]
+    for index, line in enumerate(lines):
+        if not any(alias in compact_normalize(line) for alias in aliases):
+            continue
+        nearby = " ".join(lines[max(0, index - 1):min(len(lines), index + 2)])
+        if any(word in nearby for word in close_words):
+            return True
+    return False
+
 def matches_product(text, product, global_exclude_keywords):
     norm_text = normalize_str(text)
 
@@ -167,7 +188,7 @@ def matches_product(text, product, global_exclude_keywords):
                 return False
             continue
 
-        if kw_norm in norm_text:
+        if excluded_keyword_present(norm_text, kw_norm):
             return False
 
     for ex_kw in product.get("exclude_keywords", []):
@@ -200,6 +221,38 @@ def add_or_update_result(results, site_name, product_name, price, jan_code, cond
         "jan_code": jan_code,
         "condition_badge": condition_badge
     })
+
+def extract_runto_price(detail_soup, product):
+    """Runtoの商品詳細から、受付中の対象状態だけの価格を返す。"""
+    summary = detail_soup.find("div", class_="summary entry-summary") or detail_soup
+    form = summary.select_one("form.variations_form")
+
+    if form:
+        try:
+            variations = json.loads(form.get("data-product_variations", "[]"))
+        except (TypeError, ValueError):
+            variations = []
+
+        # BOXはシュリンク有を優先。30thのパック・カートン価格を拾わない。
+        for variation in variations:
+            attributes = variation.get("attributes", {})
+            values = [urllib.parse.unquote(str(value)).lower() for value in attributes.values()]
+            if variation.get("is_in_stock") and any(value in ("ari", "シュリンク有", "シュリンクあり") for value in values):
+                price = variation.get("display_price")
+                if isinstance(price, (int, float)):
+                    return int(price)
+        return None
+
+    stock_text = summary.get_text(" ", strip=True)
+    if summary.select_one(".out-of-stock") or "在庫切れ" in stock_text or "買取受付不可" in stock_text:
+        return None
+
+    price_area = summary.find("p", class_="price")
+    if not price_area:
+        return None
+    prices = re.findall(r"[\d,]+", price_area.get_text(" ", strip=True))
+    valid_prices = [int(value.replace(",", "")) for value in prices if len(value.replace(",", "")) >= 4]
+    return max(valid_prices) if valid_prices else None
 
 # 1. 買取BASE
 def scrape_base(config):
@@ -282,18 +335,9 @@ def scrape_runto(config):
         for product_url, product in target_items:
             try:
                 detail_soup = fetch_soup(product_url)
-                summary = detail_soup.find("div", class_="summary entry-summary")
-                price_area = summary.find("p", class_="price") if summary else detail_soup.find("p", class_="price")
-
-                if price_area:
-                    price_text = price_area.get_text(strip=True)
-                    prices = re.findall(r"[\d,]+", price_text)
-                    valid_prices = [int(p.replace(",", "")) for p in prices if len(p.replace(",", "")) >= 4]
-
-                    if valid_prices:
-                        price = max(valid_prices)
-                        if 3000 <= price <= 5000000:
-                            add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
+                price = extract_runto_price(detail_soup, product)
+                if price and 3000 <= price <= 5000000:
+                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                 time.sleep(0.2)
             except Exception:
                 pass
@@ -536,44 +580,39 @@ def scrape_rudeya(config):
 # 8. トレカラウンジ
 def scrape_toreca_lounge(config):
     site_name = "トレカラウンジ"
-    base_url = "https://kaitori.toreca-lounge.com/products?keyword="
+    base_url = "https://kaitori.toreca-lounge.com/products/pokemon/box"
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
 
     try:
-        target_products = products_config[:5] if TEST_MODE else products_config
+        max_pages = 1 if TEST_MODE else 20
+        for page in range(1, max_pages + 1):
+            soup = fetch_soup(f"{base_url}?page={page}")
+            items = soup.select("div.rounded-xl.border.bg-card")
+            if not items:
+                break
 
-        for product in target_products:
-            search_word = urllib.parse.quote(product.get("display_name", ""))
-            url = f"{base_url}{search_word}"
-            
-            try:
-                soup = fetch_soup(url)
-                items = soup.find_all("div", class_=re.compile(r"product|card|item_box", re.I)) or soup.find_all("tr")
+            for item in items:
+                text = item.get_text(" ", strip=True)
+                norm_item = normalize_str(text)
+                if any(keyword in norm_item for keyword in ["カートン", "carton", "1c/s", "1cs", "ケース"]):
+                    continue
 
-                for item in items:
-                    text = item.get_text(strip=True)
-                    norm_item = normalize_str(text)
-                    if any(ck in norm_item for ck in ["カートン", "carton", "1c/s", "1cs", "ケース"]):
+                for product in products_config:
+                    if not matches_product(text, product, global_exclude):
                         continue
+                    price_match = re.search(r"買取価格\s*:\s*[¥￥]?\s*([\d,]+)", text)
+                    if price_match:
+                        price = int(price_match.group(1).replace(",", ""))
+                        if 3000 <= price <= 5000000:
+                            add_or_update_result(results, site_name, product.get("display_name", ""), price, first_jan_code(product))
+                    break
 
-                    if matches_product(text, product, global_exclude):
-                        price_match = re.search(r"買取価格\s*:\s*¥?\s*([\d,]+)", text) or re.search(r"¥\s*([\d,]+)", text) or re.search(r"([\d,]+)\s*円", text)
-                        if price_match:
-                            clean_price = price_match.group(1).replace(",", "")
-                            if clean_price.isdigit():
-                                price = int(clean_price)
-                                p_display = product.get("display_name", "")
-                                if price > 400000 and "20th" not in p_display and "best of" not in p_display.lower():
-                                    continue
-                                    
-                                if 3000 <= price <= 5000000:
-                                    add_or_update_result(results, site_name, p_display, price, first_jan_code(product))
-                                    break
-                time.sleep(0.2)
-            except Exception:
-                pass
+            next_link = soup.find("a", href=re.compile(rf"/products/pokemon/box\?page={page + 1}$"))
+            if not next_link:
+                break
+            time.sleep(0.2)
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
@@ -830,12 +869,19 @@ def scrape_x_api(config):
         site_prices = prices_state.setdefault(site_name, {})
         seen_products = set()
         matched = 0
+        closed = 0
         # APIは新しい投稿から返す。同一商品の最初の一致を最新価格として採用する。
         for post in posts:
             text = post.get("text", "")
             for product in products:
                 product_name = product.get("display_name")
                 if product_name in seen_products:
+                    continue
+                if x_post_closes_product(text, product):
+                    if product_name in site_prices:
+                        site_prices.pop(product_name, None)
+                        closed += 1
+                    seen_products.add(product_name)
                     continue
                 prices = extract_x_prices(text, product, global_exclude)
                 if prices:
@@ -844,7 +890,7 @@ def scrape_x_api(config):
                     matched += 1
         if posts:
             newest_ids[username] = max((str(p.get("id", "0")) for p in posts), key=int)
-        print(f" 🔎 [{site_name:15}] 新着{len(posts)}投稿、{matched}件の商品価格に一致")
+        print(f" 🔎 [{site_name:15}] 新着{len(posts)}投稿、{matched}件の商品価格に一致、{closed}件受付終了")
 
     with open(X_API_STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
@@ -874,13 +920,18 @@ def generate_html_report(results):
     os.makedirs(REPORT_DIR, exist_ok=True)
     grouped = {}
     for r in results:
-        grouped.setdefault(r["product_name"], []).append(r)
+        product_rows = grouped.setdefault(r["product_name"], {})
+        current = product_rows.get(r["site"])
+        if current is None or r["price"] > current["price"]:
+            product_rows[r["site"]] = r
+        elif r.get("condition_badge") and not current.get("condition_badge"):
+            current["condition_badge"] = r["condition_badge"]
 
     rows_html = []
     sorted_product_names = sorted(grouped.keys(), key=lambda x: unicodedata.normalize('NFKC', str(x)).lower())
     
     for product_name in sorted_product_names:
-        rows = grouped[product_name]
+        rows = list(grouped[product_name].values())
         rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
         best = rows_sorted[0]
 
