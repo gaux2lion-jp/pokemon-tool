@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: pokemon-price-check-main
+  cancel-in-progress: true
+
 jobs:
   check-prices:
     runs-on: ubuntu-latest
