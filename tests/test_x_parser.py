@@ -1,6 +1,6 @@
 import unittest
 
-from pokemon_scraper import extract_x_prices
+from pokemon_scraper import extract_x_prices, matches_product, x_post_closes_product
 
 
 class XPriceParserTests(unittest.TestCase):
@@ -33,6 +33,22 @@ class XPriceParserTests(unittest.TestCase):
         text = "別の商品 シュリンクなし 5000円\nストームエメラルダ 11500円"
         prices = extract_x_prices(text, self.product("ストームエメラルダ"), self.excludes)
         self.assertEqual(prices, [11500])
+
+    def test_closing_post_removes_product(self):
+        text = "リミックスバウト\n買取受付〆切となりました"
+        self.assertTrue(x_post_closes_product(text, self.product("リミックスバウト")))
+
+    def test_unrelated_closing_post_does_not_remove_product(self):
+        text = "別の商品\n買取受付〆切となりました"
+        self.assertFalse(x_post_closes_product(text, self.product("リミックスバウト")))
+
+    def test_short_carton_code_does_not_exclude_collection(self):
+        product = self.product("25th ANNIVERSARY COLLECTION")
+        self.assertTrue(matches_product(
+            "拡張パック 25th ANNIVERSARY COLLECTION",
+            product,
+            ["ct", "cs"],
+        ))
 
 
 if __name__ == "__main__":
