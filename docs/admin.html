@@ -14,7 +14,7 @@
   <p class="note">「キーワード」「JAN」「除外語」は半角カンマ区切りです。保存するとGitHubの <code>config.json</code> が更新され、自動で価格チェックが始まります。トークンは保存・送信されず、この画面を閉じると消えます。</p>
   <div class="toolbar">
     <input id="token" type="password" autocomplete="off" placeholder="GitHub Fine-grained token（Contents: Read and write）">
-    <button id="reload">再読込</button><button id="add">商品を追加</button><button id="save" class="primary">GitHubへ保存</button>
+    <button id="reload">再読込</button><button id="add">商品を追加</button><button id="exportCsv">CSVエクスポート</button><button id="importCsv">CSVインポート</button><input id="csvFile" type="file" accept=".csv,text/csv" hidden><button id="save" class="primary">GitHubへ保存</button>
   </div>
   <div id="status" class="status"></div>
 </section>
@@ -44,14 +44,82 @@ async function load(){
     status(`${config.products.length}商品を読み込みました`);
   }catch(error){status(`読込失敗: ${error.message}`,true)}
 }
+function validateProducts(products){
+  if(!products.length)throw new Error('商品データがありません');
+  if(products.some(p=>!p.display_name))throw new Error('商品名が空の行があります');
+  if(new Set(products.map(p=>p.display_name)).size!==products.length)throw new Error('同じ商品名が重複しています');
+}
 function collect(){
   const products=[...$('rows').querySelectorAll('tr')].map(tr=>{
     const name=tr.querySelector('.name').value.trim();
     return {display_name:name,keywords:split(tr.querySelector('.keywords').value),jan_codes:split(tr.querySelector('.jan').value),exclude_keywords:split(tr.querySelector('.exclude').value),cost_price:null};
   });
-  if(products.some(p=>!p.display_name))throw new Error('商品名が空の行があります');
-  if(new Set(products.map(p=>p.display_name)).size!==products.length)throw new Error('同じ商品名が重複しています');
+  validateProducts(products);
   return {...config,products};
+}
+const csvHeaders=['商品名','検索キーワード','JAN','除外語'];
+const csvEscape=value=>{
+  const text=String(value??'');
+  return /[",\r\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
+};
+function exportCsv(){
+  try{
+    const products=collect().products;
+    const lines=[csvHeaders,...products.map(product=>[
+      product.display_name,
+      product.keywords.join(', '),
+      product.jan_codes.join(', '),
+      product.exclude_keywords.join(', ')
+    ])];
+    const csv='\uFEFF'+lines.map(columns=>columns.map(csvEscape).join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+    link.href=url;link.download=`pokemon-products-${date}.csv`;
+    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+    status(`${products.length}商品をCSVへエクスポートしました`);
+  }catch(error){status(`CSV出力失敗: ${error.message}`,true)}
+}
+function parseCsv(text){
+  const rows=[];let current=[],field='',quoted=false;
+  text=String(text).replace(/^\uFEFF/,'');
+  for(let i=0;i<text.length;i++){
+    const char=text[i];
+    if(quoted){
+      if(char==='"'&&text[i+1]==='"'){field+='"';i++}
+      else if(char==='"')quoted=false;
+      else field+=char;
+    }else if(char==='"')quoted=true;
+    else if(char===','){current.push(field);field=''}
+    else if(char==='\n'){current.push(field.replace(/\r$/,''));rows.push(current);current=[];field=''}
+    else field+=char;
+  }
+  if(quoted)throw new Error('ダブルクォートが閉じられていません');
+  if(field!==''||current.length){current.push(field.replace(/\r$/,''));rows.push(current)}
+  return rows.filter(columns=>columns.some(value=>value.trim()!==''));
+}
+async function importCsv(file){
+  try{
+    if(!file)return;
+    const records=parseCsv(await file.text());
+    if(!records.length)throw new Error('CSVが空です');
+    const headers=records[0].map(value=>value.trim());
+    const indexes=Object.fromEntries(csvHeaders.map(header=>[header,headers.indexOf(header)]));
+    const missing=csvHeaders.filter(header=>indexes[header]===-1);
+    if(missing.length)throw new Error(`必要な列がありません: ${missing.join('、')}`);
+    const products=records.slice(1).map(columns=>({
+      display_name:(columns[indexes['商品名']]||'').trim(),
+      keywords:split(columns[indexes['検索キーワード']]||''),
+      jan_codes:split(columns[indexes['JAN']]||''),
+      exclude_keywords:split(columns[indexes['除外語']]||''),
+      cost_price:null
+    }));
+    validateProducts(products);
+    $('rows').innerHTML='';products.forEach(row);
+    status(`${products.length}商品をCSVから読み込みました。内容を確認して「GitHubへ保存」を押してください。`);
+  }catch(error){status(`CSV読込失敗: ${error.message}`,true)}
+  finally{$('csvFile').value=''}
 }
 async function save(){
   const token=$('token').value.trim();if(!token){status('GitHubトークンを入力してください',true);return}
@@ -64,5 +132,5 @@ async function save(){
     const data=await response.json();sha=data.content.sha;config=next;status('保存しました。価格チェックを開始します。');
   }catch(error){status(`保存失敗: ${error.message}`,true)}
 }
-$('reload').onclick=load;$('add').onclick=()=>row();$('save').onclick=save;load();
+$('reload').onclick=load;$('add').onclick=()=>row();$('exportCsv').onclick=exportCsv;$('importCsv').onclick=()=>$('csvFile').click();$('csvFile').onchange=event=>importCsv(event.target.files[0]);$('save').onclick=save;load();
 </script></body></html>
