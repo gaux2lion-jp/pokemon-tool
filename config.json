@@ -150,7 +150,9 @@
       "jan_codes": [
         "4521329431185"
       ],
-      "exclude_keywords": [],
+      "exclude_keywords": [
+        "ポケモンセンターセット"
+      ],
       "cost_price": null
     },
     {
@@ -613,7 +615,9 @@
         "25thアニバーサリー ゴールデンボックス",
         "25th ゴールデンボックス"
       ],
-      "jan_codes": [],
+      "jan_codes": [
+        "4521329322605"
+      ],
       "exclude_keywords": [],
       "cost_price": null
     },
@@ -658,7 +662,9 @@
       "jan_codes": [
         "4521329306500"
       ],
-      "exclude_keywords": [],
+      "exclude_keywords": [
+        "セット"
+      ],
       "cost_price": null
     },
     {
@@ -1270,6 +1276,28 @@
         "トウホク",
         "ヒロシマ"
       ],
+      "cost_price": null
+    },
+    {
+      "display_name": "メガブレイブポケモンセンターセット",
+      "keywords": [
+        "メガブレイブポケモンセンターセット"
+      ],
+      "jan_codes": [
+        "4521329431703"
+      ],
+      "exclude_keywords": [],
+      "cost_price": null
+    },
+    {
+      "display_name": "メガシンフォニアポケモンセンターセット",
+      "keywords": [
+        "メガシンフォニアポケモンセンターセット"
+      ],
+      "jan_codes": [
+        "4521329431710"
+      ],
+      "exclude_keywords": [],
       "cost_price": null
     }
   ]
