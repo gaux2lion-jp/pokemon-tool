@@ -14,9 +14,9 @@ Template-specific sources are isolated here. Static output is in `docs/discord-t
 4. Put only the publishable key in `src/config.js`, then rebuild.
 5. Verify allowed and denied authenticated access, concurrent document saves, and Google login before release.
 
-## Current limitation — not production complete
+## Price list operation
 
-Public Notion automatic ingestion is not connected. The public data endpoint returned HTTP 403 during implementation. The UI explicitly labels manual prices, requires source URL and a recent confirmation timestamp, and validates against the shared catalog at generation/copy. It does not claim validation against the live Notion original. This does **not** fulfill the final automatic Notion synchronization requirement. Connect an authorized Notion integration or a supported export source before calling the project complete.
+The owner chose visual verification against the two public Notion price lists for the initial release. Operators open the exact source link, register the observed price and English/Japanese mapping, mark it checked, and save the shared catalog. The confirmation expires after 24 hours. Editing the price or source URL clears it. Generation and copying verify the latest shared catalog and discount settings, but cannot verify the live Notion original. A pasted Discord message also cannot change when a price list changes; operators must regenerate and edit or repost it.
 
 The domestic parser uses the existing generated `docs/index.html` without modifying the original scraper. Display prices and guarantee text are preserved; damage deductions are never invented.
 
