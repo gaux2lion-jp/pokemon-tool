@@ -1,0 +1,1 @@
+{"name":"sumdex-discord","private":true,"type":"module","scripts":{"build":"esbuild src/app.js --bundle --minify --format=esm --outfile=../docs/discord-template/app.js","test":"node --test test/*.test.js"},"dependencies":{"@supabase/supabase-js":"2.57.4"},"devDependencies":{"esbuild":"0.25.10"}}
