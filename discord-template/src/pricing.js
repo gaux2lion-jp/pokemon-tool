@@ -9,6 +9,14 @@ export const CONDITIONS = {
 };
 export const DEFAULTS={clean:100,shrinkSmall:300,shrinkLarge:500,dentSmall:500,dentLarge:1000,stainSmall:300,stainLarge:700};
 export const yen=n=>`¥${Math.round(n).toLocaleString('en-US')}`;
+export const nameKey=name=>String(name??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
+export const productNames=product=>[product.ja,product.en,...String(product.domesticNames||'').split('|')].map(s=>s.trim()).filter(Boolean);
+export function domesticForProduct(domestic,product){
+ if(!product)return null;
+ const names=new Set([product.ja,...String(product.domesticNames||'').split('|')].map(nameKey).filter(Boolean));
+ const matched=Object.entries(domestic||{}).filter(([name])=>names.has(nameKey(name)));
+ return matched.length?{shops:matched.flatMap(([,entry])=>entry.shops||[])}:null;
+}
 export function toggleCondition(current,key,checked){
  if(!checked){const next=current.filter(k=>k!==key);return next.length?next:['clean'];}
  if(key==='clean')return ['clean'];
@@ -39,7 +47,7 @@ const safe=s=>String(s??'').replace(/[\\`*_~|<>@]/g,'').replace(/[\r\n]+/g,' ').
 export function generate(rows,catalog,settings,domestic){
  const groups=new Map(); const errors=[];
  for(const row of rows.filter(r=>r.include)){
-  const product=catalog.find(p=>p.id===row.productId); const c=calculate(row,product,settings,domestic[product?.ja]);
+  const product=catalog.find(p=>p.id===row.productId); const c=calculate(row,product,settings,domesticForProduct(domestic,product));
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
   const key=`${product.id}:${Number(row.cost)}`;
   if(!groups.has(key))groups.set(key,{product,lines:[]});
