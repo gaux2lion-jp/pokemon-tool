@@ -94,6 +94,7 @@ $('discounts').onchange=e=>{const n=Number(e.target.value);if(!Number.isFinite(n
 $('saveSettings').onclick=run(async()=>{await saveDoc('settings','settings',settings);settingsDirty=false;});
 async function verifyPrices(){
  if(catalogDirty||settingsDirty)throw Error('商品表・割引設定の変更を共有保存してから生成してください');
+ const latestSettings=await getDoc('settings');if((latestSettings?.version||0)!==(versions.settings||0)){settings={...DEFAULTS,...latestSettings?.data};versions.settings=latestSettings?.version||0;renderSettings();renderRows();clearOutput();throw Error('共有の割引設定が更新されました。新しい割引と価格を確認し、もう一度生成してください');}
  const latest=await getDoc('catalog');if(JSON.stringify(latest?.data.products||[])!==savedCatalog){catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);renderCatalog();renderRows();clearOutput();throw Error('共有の商品表が更新されました。新しい価格を確認し、もう一度生成してください');}
  for(const row of rows.filter(r=>r.include)){const p=catalog.find(p=>p.id===row.productId);if(!p?.checkedAt||Date.now()-Date.parse(p.checkedAt)>86400000||Date.parse(p.checkedAt)>Date.now()+60000)throw Error('掲載商品の価格表を24時間以内に確認し、商品表を保存してください。Notion自動連携は未接続です。');}
 }
