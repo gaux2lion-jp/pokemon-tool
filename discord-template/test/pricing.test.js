@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {calculate,generate,toggleCondition,DEFAULTS,parseCSV} from '../src/pricing.js';
+const p={id:'a',ja:'商品',en:'Mega Dream ex',code:'M2a',price:11800};
+const row={id:'1',productId:'a',cost:11000,expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',include:true,notes:''};
+test('refund and clean price',()=>{const c=calculate(row,p,DEFAULTS,{});assert.equal(c.refund,1000);assert.equal(c.sale,11700);assert.equal(c.profit,1700);});
+test('domestic floor cannot silently exceed SUMdex',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,{shops:[{price:12200}]});assert.equal(c.sale,12200);assert.ok(c.errors.some(e=>e.includes('SUMdex価格を超過')));});
+test('negative blocked, zero allowed',()=>{assert.ok(calculate({...row,manualPrice:9999},p,DEFAULTS,{}).errors.some(e=>e.includes('赤字')));assert.equal(calculate({...row,manualPrice:10000},p,DEFAULTS,{}).errors.length,0);});
+test('damage discounts stack with basic and override',()=>{assert.equal(calculate({...row,conditions:['shrinkSmall','dentSmall'],discounts:{dentSmall:200}},p,DEFAULTS,{}).sale,11200);});
+test('condition exclusions apply only within each row',()=>{assert.deepEqual(toggleCondition(['clean'],'dentSmall',true),['dentSmall']);assert.deepEqual(toggleCondition(['dentSmall','stainSmall'],'dentLarge',true),['stainSmall','dentLarge']);});
+test('same product and cost grouped, excluded and sensitive fields absent',()=>{const out=generate([row,{...row,id:'2',conditions:['dentSmall']},{...row,id:'3',include:false}], [p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.equal(out.text.match(/Mega Dream ex/g).length,1);assert.ok(out.text.includes('Minor dent'));assert.ok(!out.text.includes('11,000'));assert.ok(!out.text.includes('quantity'));});
+test('CSV quoted commas and line breaks',()=>{assert.deepEqual(parseCSV('a,b\r\n"x,y","z\nq"'),[['a','b'],['x,y','z\nq']]);});
