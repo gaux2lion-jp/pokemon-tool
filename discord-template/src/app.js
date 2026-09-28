@@ -2,11 +2,14 @@ import {createClient} from '@supabase/supabase-js';
 import {SUPABASE_URL,SUPABASE_KEY} from './config.js';
 import {CONDITIONS,DEFAULTS,calculate,generate,toggleCondition,yen,nameKey,productNames,domesticForProduct} from './pricing.js';
 import {CSV_KEYS,planCatalogImport,validateCatalog} from './catalog.js';
+import {parsePriceListCSV,planPriceUpdates} from './price-import.js';
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const note=s=>$('notice').textContent=s;
 const uid=()=>crypto.randomUUID();
 let client,user,members=[],catalog=[],settings={...DEFAULTS},rows=[],domestic={},versions={},draftId=uid(),dirty=false,catalogDirty=false,settingsDirty=false,domesticDate='未取得';
 let savedCatalog='';
+let priceImportRows=[];
+const PRICE_SOURCES={pokemon:'https://nifty-lady-7a0.notion.site/SUMdex-Price-List-1fb5128517868045b62ad27795b0f0cd',onepiece:'https://nifty-lady-7a0.notion.site/SUMdex-One-Piece-Card-Price-List-2ff51285178680e4a1b3d0d1f8e308f3'};
 const blank=()=>({id:uid(),productId:'',cost:'',expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',notes:'',include:true});
 const clearOutput=()=>{$('output').value='';$('copy').disabled=true;$('charCount').textContent='';};
 const changed=()=>{dirty=true;clearOutput();};
@@ -65,6 +68,11 @@ function renderCatalog(){
  $('catalogSummary').textContent=`登録 ${catalog.length}件 ／ 価格確認済 ${catalog.filter(p=>p.checkedAt&&p.price&&p.sourceUrl).length}件 ／ 表示 ${visible.length}件${catalogDirty?' ／ 未保存の変更あり':''}`;
  $('products').innerHTML=visible.map(p=>`<article class="product grid" data-product="${esc(p.id)}"><p class="catalog-title">${esc(p.ja)} ／ ${esc(p.en||'英語名未入力')} <span class="muted">[${esc(p.code||'型番未入力')}]</span></p>${[['ja','国内買取の表記（日本語など）'],['en','投稿に使う英語名（他サイトの表記でも可）'],['code','型番（大小文字どちらでも可）'],['domesticNames','国内買取の別表記（複数は | で区切る）'],['price','SUMdex価格（円・後から入力可）'],['sourceUrl','SUMdex価格表URL（後から入力可）']].map(([k,label])=>`<label>${label}<input data-field="${k}" ${k==='price'?'type="number" min="1"':''} value="${esc(p[k])}"></label>`).join('')}<p class="muted">${p.checkedAt&&p.price&&p.sourceUrl?'価格確認済：'+esc(new Date(p.checkedAt).toLocaleString('ja-JP')):'商品名の紐づけを保存できます。販売前にSUMdex価格と価格表URLを確認してください。'}${/^https:\/\//.test(p.sourceUrl)?` ／ <a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">この商品の価格表を開く</a>`:''}</p><div class="toolbar"><button data-check="${esc(p.id)}">価格を確認済みにする</button><button data-delete="${esc(p.id)}">この商品を削除</button></div></article>`).join('');
 }
+function renderPriceImport(){
+ $('priceImportSummary').textContent=priceImportRows.length?`CSV ${priceImportRows.length}行 ／ 照合 ${priceImportRows.filter(r=>r.productId).length}行 ／ 未照合 ${priceImportRows.filter(r=>!r.productId).length}行。除外した行は価格を更新しません。`:'';
+ $('priceImportPreview').innerHTML=priceImportRows.map((row,i)=>`<tr><td>${row.line}</td><td>${esc(row.sourceName||row.sourceCode)}</td><td>${row.price?yen(row.price):'読み取れません'}</td><td><select data-price-row="${i}" aria-label="CSV ${row.line}行目の対応商品"><option value="">除外・未照合</option>${catalog.map(p=>`<option value="${esc(p.id)}" ${p.id===row.productId?'selected':''}>${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</option>`).join('')}</select></td><td>${esc(row.reason)}</td></tr>`).join('');
+ $('applyPriceList').disabled=!priceImportRows.some(r=>r.productId);
+}
 function matchProduct(query){const key=nameKey(query);if(!key)return null;const hits=catalog.filter(p=>[...productNames(p),p.code,...productNames(p).map(n=>`${n} [${p.code}]`)].some(n=>nameKey(n)===key));return hits.length===1?hits[0]:null;}
 function renderSettings(){ $('discounts').innerHTML=Object.entries(CONDITIONS).map(([k,v])=>`<label>${k==='clean'?'綺麗な商品の基本割引':v[0]+'の追加割引'}（円）<input data-setting="${k}" type="number" min="0" value="${settings[k]}"></label>`).join(''); }
 async function loadMembers(){
@@ -97,11 +105,15 @@ $('newDraft').onclick=()=>{if(dirty&&!confirm('未保存の変更を破棄しま
 $('draftTitle').oninput=changed;
 $('refreshPrices').onclick=run(loadDomestic);
 $('catalogSearch').oninput=renderCatalog;
+$('priceSource').onchange=()=>{priceImportRows=[];renderPriceImport();note('参照する価格表を変更しました。その価格表のCSVを選び直してください。');};
+$('priceCSV').onchange=run(async e=>{const file=e.target.files[0];if(!file)return;priceImportRows=[];renderPriceImport();try{priceImportRows=parsePriceListCSV(await file.text(),catalog);renderPriceImport();note('価格表CSVを読み込みました。商品との対応と価格を確認し、問題なければ「価格を商品表に反映」を押してください。');}finally{e.target.value='';}});
+$('priceImportPreview').onchange=e=>{const row=priceImportRows[Number(e.target.dataset.priceRow)];if(!row)return;row.productId=e.target.value;row.reason=row.productId?'手動で対応を指定':'除外・未照合';renderPriceImport();};
+$('applyPriceList').onclick=run(async()=>{const updates=planPriceUpdates(priceImportRows,catalog);if(!updates.size)throw Error('反映できる商品がありません');const sourceUrl=PRICE_SOURCES[$('priceSource').value];if(!sourceUrl)throw Error('価格表を選択してください');if(!confirm(`${updates.size}商品のSUMdex価格と参照先を画面に反映します。CSVが選択したSUMdex価格表の最新の書き出しで、対応商品と金額を確認しましたか？`))return;const checkedAt=new Date().toISOString();catalog=catalog.map(p=>updates.has(p.id)?{...p,price:updates.get(p.id).price,sourceUrl,checkedAt}:p);catalogDirty=true;priceImportRows=[];renderPriceImport();renderCatalog();renderRows();clearOutput();$('catalogSaveStatus').textContent=`${updates.size}商品の価格を反映済み・未保存。「商品表を共有保存」を押してください。`;note(`${updates.size}商品の価格を画面に反映しました。「商品表を共有保存」を押すと別のPCでも使えます。`);});
 $('addProduct').onclick=()=>{$('catalogSearch').value='';catalog.push({id:uid(),ja:'',en:'',code:'',domesticNames:'',price:'',sourceUrl:'',checkedAt:''});catalogDirty=true;clearOutput();renderCatalog();$('products').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'});};
 $('products').onchange=e=>{const p=catalog.find(p=>p.id===e.target.closest('[data-product]')?.dataset.product);if(!p||!e.target.dataset.field)return;const k=e.target.dataset.field;const next=k==='price'?Number(e.target.value):e.target.value.trim();if(p[k]!==next){p[k]=next;if(k==='price'||k==='sourceUrl')p.checkedAt='';catalogDirty=true;clearOutput();renderRows();renderCatalog();}};
 $('products').onclick=e=>{const target=e.target.closest('[data-check],[data-delete]');if(!target)return;const p=catalog.find(p=>p.id===(target.dataset.check||target.dataset.delete));if(!p)return;if(target.dataset.delete){if(!confirm(`「${p.ja||'未入力の商品'}」を商品表から削除しますか？共有保存で確定します。`))return;catalog=catalog.filter(x=>x!==p);catalogDirty=true;clearOutput();renderRows();renderCatalog();return;}if(!p.sourceUrl||!Number.isFinite(Number(p.price))||Number(p.price)<=0){note('SUMdex価格と価格表URLを入力してから確認してください');return;}p.checkedAt=new Date().toISOString();catalogDirty=true;renderCatalog();note('確認日時を記録しました。「商品表を共有保存」で確定してください。');};
 $('saveCatalog').onclick=run(async()=>{validateCatalog(catalog);await saveDoc('catalog','catalog',{products:catalog});catalogDirty=false;savedCatalog=JSON.stringify(catalog);renderCatalog();renderRows();$('catalogSaveStatus').textContent=`共有保存済み：${catalog.length}件（${new Date().toLocaleString('ja-JP')}）`;note(`商品表 ${catalog.length}件を共有保存しました。別のPCで開いても反映されます。`);});
-$('reloadCatalog').onclick=run(async()=>{if(catalogDirty&&!confirm('まだ共有保存していない商品表の変更を破棄して再読込しますか？'))return;const latest=await getDoc('catalog');catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);catalogDirty=false;renderCatalog();renderRows();clearOutput();$('catalogSaveStatus').textContent=`共有商品表を再読込しました：${catalog.length}件`;note('最新の共有商品表を読み込みました。');});
+$('reloadCatalog').onclick=run(async()=>{if(catalogDirty&&!confirm('まだ共有保存していない商品表の変更を破棄して再読込しますか？'))return;const latest=await getDoc('catalog');catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);catalogDirty=false;priceImportRows=[];renderPriceImport();renderCatalog();renderRows();clearOutput();$('catalogSaveStatus').textContent=`共有商品表を再読込しました：${catalog.length}件`;note('最新の共有商品表を読み込みました。');});
 $('discounts').onchange=e=>{const n=Number(e.target.value);if(!Number.isFinite(n)||n<0){renderSettings();return;}settings[e.target.dataset.setting]=n;settingsDirty=true;clearOutput();renderRows();};
 $('saveSettings').onclick=run(async()=>{await saveDoc('settings','settings',settings);settingsDirty=false;});
 async function verifyPrices(){
