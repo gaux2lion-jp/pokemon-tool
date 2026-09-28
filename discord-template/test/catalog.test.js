@@ -10,12 +10,20 @@ test('untouched scraper names are skipped while selected products import',()=>{
  const result=planCatalogImport(input,[],()=>'new-id');
  assert.deepEqual([result.added,result.updated,result.skipped],[1,0,2]);
  assert.deepEqual(result.products.map(p=>[p.id,p.ja,p.en,p.price,p.checkedAt]),[['new-id','MEGAドリームex','Mega Dream ex',11800,'']]);
- assert.throws(()=>validateCatalog(result.products),/確認済みにする/);
+ assert.doesNotThrow(()=>validateCatalog(result.products));
 });
 
-test('a partially filled selected row shows its CSV line number',()=>{
- const input=csv([['','商品A'],['','商品B','English name']]);
+test('a selected row without an English name or code shows its CSV line number',()=>{
+ const input=csv([['','商品A'],['','商品B','','','別名']]);
  assert.throws(()=>planCatalogImport(input,[],()=> 'id'),/CSV 3行目/);
+});
+
+test('name mapping saves before prices and shares set codes regardless of case',()=>{
+ const input=csv([['','ブラックボルト','Black Bolt','sv11B'],['','ブラックボルト DX','Black Bolt Deluxe','SV11b'],['','ホワイトフレア','White Flare','']]);
+ const result=planCatalogImport(input,[],()=>crypto.randomUUID());
+ assert.equal(result.added,3);
+ assert.ok(result.products.every(p=>p.price===''&&p.checkedAt===''));
+ assert.doesNotThrow(()=>validateCatalog(result.products));
 });
 
 test('updating a registered price clears confirmation and preserves old aliases in older CSV',()=>{
