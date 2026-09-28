@@ -1,9 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {calculate,generate,toggleCondition,DEFAULTS,parseCSV,domesticForProduct,nameKey} from '../src/pricing.js';
+import {calculate,recommendPriceBasis,generate,toggleCondition,DEFAULTS,parseCSV,domesticForProduct,nameKey} from '../src/pricing.js';
 const p={id:'a',ja:'商品',en:'Mega Dream ex',code:'M2a',price:11800};
 const row={id:'1',productId:'a',cost:11000,expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',include:true,notes:''};
 test('refund and clean price',()=>{const c=calculate(row,p,DEFAULTS,{});assert.equal(c.refund,1000);assert.equal(c.sale,11700);assert.equal(c.profit,1700);});
 test('domestic floor cannot silently exceed SUMdex',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,{shops:[{price:12200}]});assert.equal(c.sale,12200);assert.ok(c.errors.some(e=>e.includes('SUMdex価格を超過')));});
+test('automatic price recommendation explains the safe choice',()=>{
+ const ideal=recommendPriceBasis({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:11500}]});assert.equal(ideal.basis,'sumdex');assert.equal(ideal.status,'ready');
+ const floor=recommendPriceBasis({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:11750}]});assert.equal(floor.basis,'domestic');assert.equal(calculate({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:11750}]}).sale,11750);
+ const higherDomestic=recommendPriceBasis({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:12200}]});assert.equal(higherDomestic.basis,'sumdex');assert.equal(higherDomestic.status,'caution');
+ const loss=recommendPriceBasis({...row,basis:'auto',cost:14000},p,DEFAULTS,{shops:[{price:11500}]});assert.equal(loss.status,'stop');
+ const waiting=recommendPriceBasis({...row,basis:'auto'},{...p,price:''},DEFAULTS,{shops:[{price:11500}]});assert.equal(waiting.status,'waiting');
+});
 test('negative blocked, zero allowed',()=>{assert.ok(calculate({...row,manualPrice:9999},p,DEFAULTS,{}).errors.some(e=>e.includes('赤字')));assert.equal(calculate({...row,manualPrice:10000},p,DEFAULTS,{}).errors.length,0);});
 test('damage discounts stack with basic and override',()=>{assert.equal(calculate({...row,conditions:['shrinkSmall','dentSmall'],discounts:{dentSmall:200}},p,DEFAULTS,{}).sale,11200);});
 test('condition exclusions apply only within each row',()=>{assert.deepEqual(toggleCondition(['clean'],'dentSmall',true),['dentSmall']);assert.deepEqual(toggleCondition(['dentSmall','stainSmall'],'dentLarge',true),['stainSmall','dentLarge']);});
