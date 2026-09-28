@@ -35,7 +35,7 @@ export function calculate(row,product,settings,domestic){
  const refund=cost/11; const profit=sale==null?null:sale-cost+refund-expenses;
  const errors=[];
  if(!product?.en||!product?.code)errors.push('英語名・型番の対応付けが必要');
- if(!validPrice)errors.push('SUMdex価格が未確認');
+ if(!validPrice)errors.push('SUMdex価格が未入力：商品名・価格表で登録してください');
  if(!row.cost||!Number.isFinite(cost)||cost<=0||!Number.isFinite(expenses)||expenses<0)errors.push('仕入れ値・費用を確認');
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');

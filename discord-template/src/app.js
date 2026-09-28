@@ -40,6 +40,10 @@ async function loadDomestic(){
 function renderRows(){
  $('rows').innerHTML=rows.map((row,i)=>{
   const p=catalog.find(p=>p.id===row.productId),d=domesticForProduct(domestic,p),c=calculate(row,p,settings,d);
+  const priceMissing=Boolean(p)&&(!Number.isFinite(p.price)||p.price<=0);
+  const checkedAt=Date.parse(p?.checkedAt||'');
+  const priceNeedsCheck=p&&!priceMissing&&(!Number.isFinite(checkedAt)||Date.now()-checkedAt>86400000||checkedAt>Date.now()+60000);
+  const priceLabel=priceMissing?'価格未入力':priceNeedsCheck?`${yen(p.price)}（要再確認）`:p?.price?yen(p.price):'商品未選択';
   return `<article class="item ${c.profit<0?'loss':''}" data-row="${row.id}"><div class="item-head"><h3>商品 ${i+1}</h3><div class="toolbar"><button data-action="duplicate">複製</button><button data-action="remove">行を削除</button><label class="include"><input data-field="include" type="checkbox" ${row.include?'checked':''}>掲載する</label></div></div>
   <div class="grid"><label>商品名を日本語・英語で検索<input data-search="product" list="productNames" placeholder="日本語名・英語名・型番"></label><label>商品<select data-field="productId"><option value="">選択してください</option>${catalog.map(p=>`<option value="${esc(p.id)}" ${p.id===row.productId?'selected':''}>${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</option>`).join('')}</select></label>
   <label>税込仕入れ値（円 / BOX）<input data-field="cost" type="number" min="1" value="${esc(row.cost)}"></label><label>送料・決済など負担費用（円 / BOX）<input data-field="expenses" type="number" min="0" value="${esc(row.expenses)}"></label>
@@ -47,7 +51,8 @@ function renderRows(){
   <div class="conditions">${Object.entries(CONDITIONS).map(([k,v])=>`<label><input type="checkbox" data-condition="${k}" ${row.conditions.includes(k)?'checked':''}>${v[0]}</label>`).join('')}</div>
   <details><summary>この行の割引を調整</summary><div class="grid">${['clean',...row.conditions.filter(k=>k!=='clean')].map(k=>`<label>${k==='clean'?'基本割引':CONDITIONS[k][0]+' 追加割引'}<input data-discount="${k}" type="number" min="0" value="${row.discounts[k]??settings[k]}"></label>`).join('')}</div><button data-action="reset">行の調整をリセット</button></details>
   <div class="grid"><label>販売価格を手動調整（空欄なら自動）<input data-field="manualPrice" type="number" min="1" value="${esc(row.manualPrice)}" placeholder="${c.sale??''}"></label><label>状態の補足（英語・投稿に表示）<input data-field="notes" value="${esc(row.notes)}" placeholder="例：Dent on the top right corner."></label></div>
-  <div class="metrics">${[['SUMdex',p?.price?yen(p.price):'未登録'],['Discord',c.sale!=null?yen(c.sale):'―'],['還付見込',yen(c.refund)],['還付込み利益',c.profit!=null?yen(c.profit):'―'],['国内表示最高',c.highest?yen(c.highest):'―']].map(([a,b])=>`<div><span>${a}</span><strong>${b}</strong></div>`).join('')}</div>
+  <div class="metrics">${[['SUMdex',priceLabel],['Discord',c.sale!=null?yen(c.sale):'―'],['還付見込',yen(c.refund)],['還付込み利益',c.profit!=null?yen(c.profit):'―'],['国内表示最高',c.highest?yen(c.highest):'―']].map(([a,b])=>`<div><span>${a}</span><strong>${b}</strong></div>`).join('')}</div>
+  ${p&&(priceMissing||priceNeedsCheck)?`<p class="warning">${priceMissing?'商品名は登録済みですが、SUMdex価格はまだ入力されていません。':'SUMdex価格の確認日時がありません、または24時間以上経過しました。'} <button data-price-product="${esc(p.id)}">この商品の価格を登録・確認</button></p>`:''}
   <p class="muted">還付見込＝税込仕入れ値 ÷ 11。${c.profit===0?'利益なし。':''}国内価格は買取確約ではありません。</p>
   ${c.highest&&c.sale<c.highest?'<p class="warning">国内販売も比較してください。ダメージ減額・保証条件の確認後に判断します。</p>':''}
   ${c.errors.length?`<p class="warning">${c.errors.map(esc).join('<br>')}</p>`:''}
@@ -84,7 +89,7 @@ $('rows').onchange=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row
  else if(t.dataset.discount){const n=Number(t.value);if(!Number.isFinite(n)||n<0){note('割引は0以上の数値にしてください');renderRows();return;}row.discounts[t.dataset.discount]=n;}
  else if(t.dataset.field)row[t.dataset.field]=t.type==='checkbox'?t.checked:t.value;
  changed();renderRows();};
-$('rows').onclick=e=>{const action=e.target.dataset.action,row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row||!action)return;
+$('rows').onclick=e=>{const priceTarget=e.target.closest('[data-price-product]');if(priceTarget){const p=catalog.find(x=>x.id===priceTarget.dataset.priceProduct);if(!p)return;$('catalogSearch').value=p.ja;renderCatalog();document.querySelector('[data-page="catalog"]').click();$('products').firstElementChild?.scrollIntoView({behavior:'smooth',block:'start'});$('products').querySelector('[data-field="price"]')?.focus({preventScroll:true});note(`「${p.ja}」のSUMdex価格と価格表URLを入力し、「価格を確認済みにする」→「商品表を共有保存」を押してください。`);return;}const action=e.target.dataset.action,row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row||!action)return;
  if(action==='duplicate')rows.splice(rows.indexOf(row)+1,0,{...structuredClone(row),id:uid()});if(action==='remove')rows=rows.filter(r=>r!==row);if(action==='reset')row.discounts={};changed();renderRows();};
 $('saveDraft').onclick=run(async()=>{await saveDoc(draftId,'draft',{title:$('draftTitle').value,rows});dirty=false;await listDrafts();});
 $('loadDraft').onclick=run(async()=>{if(!$('draftList').value)return;if(dirty&&!confirm('未保存の変更を破棄して開きますか？'))return;const d=await getDoc($('draftList').value);if(!d)throw Error('下書きが見つかりません');draftId=d.id;versions[d.id]=d.version;rows=d.data.rows;$('draftTitle').value=d.data.title;dirty=false;clearOutput();renderRows();});
@@ -103,7 +108,7 @@ async function verifyPrices(){
  if(catalogDirty||settingsDirty)throw Error('商品表・割引設定の変更を共有保存してから生成してください');
  const latestSettings=await getDoc('settings');if((latestSettings?.version||0)!==(versions.settings||0)){settings={...DEFAULTS,...latestSettings?.data};versions.settings=latestSettings?.version||0;renderSettings();renderRows();clearOutput();throw Error('共有の割引設定が更新されました。新しい割引と価格を確認し、もう一度生成してください');}
  const latest=await getDoc('catalog');if(JSON.stringify(latest?.data.products||[])!==savedCatalog){catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);renderCatalog();renderRows();clearOutput();throw Error('共有の商品表が更新されました。新しい価格を確認し、もう一度生成してください');}
- for(const row of rows.filter(r=>r.include)){const p=catalog.find(p=>p.id===row.productId);if(!p?.checkedAt||Date.now()-Date.parse(p.checkedAt)>86400000||Date.parse(p.checkedAt)>Date.now()+60000)throw Error('掲載商品の価格表を24時間以内に目視確認し、商品表を保存してください。');}
+ for(const row of rows.filter(r=>r.include)){const p=catalog.find(p=>p.id===row.productId);if(!Number.isFinite(p?.price)||p.price<=0)throw Error(`「${p?.ja||'商品未選択'}」のSUMdex価格が未入力です。商品名・価格表で価格を登録してください。`);if(!p.checkedAt||Date.now()-Date.parse(p.checkedAt)>86400000||Date.parse(p.checkedAt)>Date.now()+60000)throw Error(`「${p.ja}」のSUMdex価格を24時間以内に目視確認し、商品表を保存してください。`);}
 }
 $('generate').onclick=run(async()=>{clearOutput();await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);$('outputErrors').textContent=out.errors.join(' ／ ');if(out.errors.length)return;$('output').value=out.text;$('copy').disabled=!out.text;$('charCount').textContent=`${out.text.length.toLocaleString()}文字`;
  note('共有の商品表との一致を確認しました。価格表原本は登録時の目視確認に基づきます。');});
