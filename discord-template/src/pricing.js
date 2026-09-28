@@ -23,13 +23,13 @@ export function toggleCondition(current,key,checked){
  const family=key.replace(/Small|Large/,'');
  return [...current.filter(k=>k!=='clean'&&k.replace(/Small|Large/,'')!==family),key];
 }
-export function calculate(row,product,settings,domestic){
+function calculateWithBasis(row,product,settings,domestic,basis){
  const sumdex=product?.price; const validPrice=Number.isFinite(sumdex)&&sumdex>0;
  const damage=row.conditions.filter(k=>k!=='clean').reduce((n,k)=>n+(row.discounts?.[k]??settings[k]??0),0);
  const discount=(row.discounts?.clean??settings.clean??100)+damage;
  const highest=domestic?.shops?.length?Math.max(...domestic.shops.map(s=>s.price)):null;
  const suggested=validPrice?Math.max(0,sumdex-discount):null;
- const target=row.basis==='domestic'&&highest!==null&&suggested!==null?Math.max(highest,suggested):suggested;
+ const target=basis==='domestic'&&highest!==null&&suggested!==null?Math.max(highest,suggested):suggested;
  const sale=row.manualPrice!==''&&row.manualPrice!=null?Number(row.manualPrice):target;
  const cost=Number(row.cost), expenses=Number(row.expenses||0);
  const refund=cost/11; const profit=sale==null?null:sale-cost+refund-expenses;
@@ -40,8 +40,23 @@ export function calculate(row,product,settings,domestic){
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');
  if(profit!==null&&profit < -0.000001)errors.push('還付込みでも赤字：価格変更または掲載対象外を選択');
- if(row.basis==='domestic'&&highest===null)errors.push('国内買取価格を取得できていません');
- return {sale,profit,refund,discount,damage,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null};
+ if(basis==='domestic'&&highest===null)errors.push('国内買取価格を取得できていません');
+ return {sale,profit,refund,discount,damage,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null,basis};
+}
+export function recommendPriceBasis(row,product,settings,domestic){
+ const candidate={...row,manualPrice:''};
+ const sumdex=calculateWithBasis(candidate,product,settings,domestic,'sumdex');
+ const domesticFloor=calculateWithBasis(candidate,product,settings,domestic,'domestic');
+ const valid=result=>Number.isFinite(result.sale)&&result.sale>0&&result.profit>=0&&(!Number.isFinite(result.sumdex)||result.sale<=result.sumdex);
+ if(!Number.isFinite(sumdex.sumdex)||sumdex.sumdex<=0)return {basis:'sumdex',status:'waiting',title:'SUMdex価格の確認待ち',reason:'商品を選ぶとNotion価格表を確認します。',sumdex,domesticFloor};
+ if(valid(sumdex)&&(sumdex.highest===null||sumdex.sale>=sumdex.highest))return {basis:'sumdex',status:'ready',title:'SUMdexから割引がおすすめ',reason:sumdex.highest===null?'国内価格が未確認のため、SUMdex価格から状態別に値引きします。':'割引後も国内最高表示額以上で、還付込み利益も残ります。',sumdex,domesticFloor};
+ if(valid(domesticFloor)&&domesticFloor.sale<=domesticFloor.sumdex)return {basis:'domestic',status:'ready',title:'国内最高表示額を下回らない設定がおすすめ',reason:'SUMdexの上限内で国内最高表示額を維持できます。国内買取は状態による減額があるため確約ではありません。',sumdex,domesticFloor};
+ if(valid(sumdex))return {basis:'sumdex',status:'caution',title:'SUMdexから割引を使用',reason:'国内最高表示額の方が高いため国内販売も比較してください。ただし、国内買取は状態による減額があり満額保証ではありません。',sumdex,domesticFloor};
+ return {basis:'sumdex',status:'stop',title:'掲載しないのがおすすめ',reason:'SUMdex価格から状態別に値引きすると、還付を含めても赤字になります。販売価格を見直すか掲載対象から外してください。',sumdex,domesticFloor};
+}
+export function calculate(row,product,settings,domestic){
+ const basis=row.basis==='auto'?recommendPriceBasis(row,product,settings,domestic).basis:row.basis;
+ return calculateWithBasis(row,product,settings,domestic,basis);
 }
 const safe=s=>String(s??'').replace(/[\\`*_~|<>@]/g,'').replace(/[\r\n]+/g,' ').trim();
 export function generate(rows,catalog,settings,domestic){
