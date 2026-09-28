@@ -94,6 +94,7 @@ async function start(){
 }
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.page);document.querySelectorAll('[data-page]').forEach(p=>p.classList.toggle('active',p===b));});
 $('addRow').onclick=()=>{rows.push(blank());changed();renderRows();};
+$('rows').oninput=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row),t=e.target;if(!row||t.type==='checkbox')return;if(t.dataset.field){row[t.dataset.field]=t.value;changed();}else if(t.dataset.discount&&t.value!==''&&Number.isFinite(Number(t.value))&&Number(t.value)>=0){row.discounts[t.dataset.discount]=Number(t.value);changed();}};
 $('rows').onchange=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row)return;const t=e.target;
  if(t.dataset.search){const product=matchProduct(t.value);if(!product){note('商品名が未登録、または複数の商品と一致します。商品表で日本語名・英語名・型番を確認してください。');return;}row.productId=product.id;changed();renderRows();return;}
  if(t.dataset.condition)row.conditions=toggleCondition(row.conditions,t.dataset.condition,t.checked);
