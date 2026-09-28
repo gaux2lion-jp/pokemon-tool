@@ -27,11 +27,12 @@ test('name mapping saves before prices and shares set codes regardless of case',
 });
 
 test('updating a registered price clears confirmation and preserves old aliases in older CSV',()=>{
- const saved={id:'a',ja:'商品A',en:'English A',code:'SET-A',domesticNames:'別表記',price:1000,sourceUrl:notion,checkedAt:'2026-09-28T01:00:00Z'};
- const oldHeader=CSV_KEYS.filter(k=>k!=='domesticNames');
+ const saved={id:'a',ja:'商品A',en:'English A',code:'SET-A',domesticNames:'別表記',price:1000,sourceUrl:notion,checkedAt:'2026-09-28T01:00:00Z',notionRowId:'1fb51285-1786-812c-a954-cda6d42c30fc'};
+ const oldHeader=CSV_KEYS.filter(k=>!['domesticNames','notionRowId'].includes(k));
  const input=[oldHeader.join(','),`a,商品A,English A,SET-A,1200,${notion},2026-09-28T01:00:00Z`].join('\n');
  const result=planCatalogImport(input,[saved],()=> 'unused');
  assert.equal(result.updated,1);
  assert.equal(result.products[0].domesticNames,'別表記');
  assert.equal(result.products[0].checkedAt,'');
+ assert.equal(result.products[0].notionRowId,saved.notionRowId);
 });
