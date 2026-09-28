@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {calculate,generate,toggleCondition,DEFAULTS,parseCSV,domesticForProduct} from '../src/pricing.js';
+import {calculate,generate,toggleCondition,DEFAULTS,parseCSV,domesticForProduct,nameKey} from '../src/pricing.js';
 const p={id:'a',ja:'商品',en:'Mega Dream ex',code:'M2a',price:11800};
 const row={id:'1',productId:'a',cost:11000,expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',include:true,notes:''};
 test('refund and clean price',()=>{const c=calculate(row,p,DEFAULTS,{});assert.equal(c.refund,1000);assert.equal(c.sale,11700);assert.equal(c.profit,1700);});
@@ -11,3 +11,4 @@ test('same product and cost grouped, excluded and sensitive fields absent',()=>{
 test('CSV quoted commas and line breaks',()=>{assert.deepEqual(parseCSV('a,b\r\n"x,y","z\nq"'),[['a','b'],['x,y','z\nq']]);});
 test('domestic Japanese aliases connect to English posting and SUMdex price',()=>{const product={...p,ja:'MEGAドリームex',domesticNames:'メガドリームex | ＭＥＧＡ ドリームex'};const domestic={'メガドリームex':{shops:[{site:'店A',price:11500}]},'MEGA ドリームex':{shops:[{site:'店B',price:11600}]}};assert.equal(calculate(row,product,DEFAULTS,domesticForProduct(domestic,product)).highest,11600);const post=generate([{...row,basis:'domestic'}],[product],DEFAULTS,domestic);assert.equal(post.errors.length,0);assert.match(post.text,/Mega Dream ex \[M2a\]/);assert.match(post.text,/¥11,700/);});
 test('unknown Japanese label cannot silently satisfy domestic floor',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,domesticForProduct({'他の商品':{shops:[{price:99999}]}},p));assert.ok(c.errors.some(e=>e.includes('国内買取価格を取得できていません')));});
+test('set code spelling ignores case and width',()=>{assert.equal(nameKey(' SV11Ｂ '),nameKey('sv11b'));});

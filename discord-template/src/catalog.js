@@ -2,20 +2,19 @@ import {nameKey,parseCSV} from './pricing.js';
 
 export const CSV_KEYS=['id','ja','en','code','domesticNames','price','sourceUrl','checkedAt'];
 
-export function validateCatalog(products,{requireConfirmed=true}={}){
- const names=new Map(),codes=new Set();
+export function validateCatalog(products){
+ const names=new Map();
  for(const p of products){
-  if(!p.ja||!p.en||!p.code||!Number.isFinite(p.price)||p.price<=0)throw Error(`「${p.ja||'商品名未入力'}」：日本語名・英語名・型番・正の価格を入力してください`);
-  if(codes.has(nameKey(p.code)))throw Error(`型番が重複しています：${p.code}`);
-  codes.add(nameKey(p.code));
+  if(!p.ja||(!p.en&&!p.code))throw Error(`「${p.ja||'商品名未入力'}」：国内商品名と、英語名または型番を入力してください`);
   for(const name of [p.ja,...String(p.domesticNames||'').split('|')]){
    const key=nameKey(name);if(!key)continue;
    if(names.has(key)&&names.get(key)!==p.id)throw Error(`国内価格表の日本語名が複数の商品と一致します：${name}`);
    names.set(key,p.id);
   }
-  if(!/^https:\/\//.test(p.sourceUrl))throw Error(`「${p.ja}」：価格表URLを入力してください`);
-  if(requireConfirmed&&!Number.isFinite(Date.parse(p.checkedAt)))throw Error(`「${p.ja}」：価格表を目視確認し「確認済みにする」を押してください`);
+  if(p.price!==''&&p.price!=null&&(!Number.isFinite(p.price)||p.price<=0))throw Error(`「${p.ja}」：SUMdex価格は正の数値を入力してください`);
+  if(p.sourceUrl&&!/^https:\/\//.test(p.sourceUrl))throw Error(`「${p.ja}」：価格表URLを確認してください`);
   if(p.checkedAt&&!Number.isFinite(Date.parse(p.checkedAt)))throw Error(`「${p.ja}」：確認日時を確認してください`);
+  if(p.checkedAt&&(!p.price||!p.sourceUrl))throw Error(`「${p.ja}」：確認日時がある商品は価格と価格表URLが必要です`);
  }
 }
 
@@ -28,9 +27,10 @@ export function planCatalogImport(text,catalog,idFactory){
   const selected=['id','en','code','domesticNames','price','sourceUrl','checkedAt'].some(k=>p[k]);
   if(!selected){skipped++;return;}
   const line=index+2;
-  if(!p.ja||!p.en||!p.code||!p.price||!p.sourceUrl)throw Error(`CSV ${line}行目：選んだ商品は日本語名・英語名・型番・SUMdex価格・価格表URLを入力してください`);
-  p.price=Number(p.price);
-  if(!Number.isFinite(p.price)||p.price<=0||!/^https:\/\//.test(p.sourceUrl))throw Error(`CSV ${line}行目：価格と価格表URLを確認してください`);
+  if(!p.ja||(!p.en&&!p.code))throw Error(`CSV ${line}行目：国内商品名と、英語名または型番を入力してください`);
+  p.price=p.price?Number(p.price):'';
+  if(p.price!==''&&(!Number.isFinite(p.price)||p.price<=0))throw Error(`CSV ${line}行目：SUMdex価格を確認してください`);
+  if(p.sourceUrl&&!/^https:\/\//.test(p.sourceUrl))throw Error(`CSV ${line}行目：価格表URLを確認してください`);
   if(p.checkedAt&&!Number.isFinite(Date.parse(p.checkedAt)))throw Error(`CSV ${line}行目：確認日時の形式を確認してください`);
   const identity=p.id||nameKey(p.ja);
   if(seen.has(identity))throw Error(`CSV ${line}行目：同じ商品がCSV内で重複しています`);
@@ -43,6 +43,6 @@ export function planCatalogImport(text,catalog,idFactory){
    p.id=next[i].id;next[i]=p;updated++;
   }else{p.id=p.id||idFactory();next.push(p);added++;}
  });
- if(added+updated)validateCatalog(next,{requireConfirmed:false});
+ if(added+updated)validateCatalog(next);
  return {products:next,added,updated,skipped};
 }
