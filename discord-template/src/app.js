@@ -13,8 +13,8 @@ let priceImportRows=[];
 let liveImport=false;
 const PRICE_SOURCES={pokemon:'https://nifty-lady-7a0.notion.site/SUMdex-Price-List-1fb5128517868045b62ad27795b0f0cd',onepiece:'https://nifty-lady-7a0.notion.site/SUMdex-One-Piece-Card-Price-List-2ff51285178680e4a1b3d0d1f8e308f3'};
 const blank=()=>({id:uid(),productId:'',cost:'',expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',notes:'',include:true});
-const clearOutput=()=>{$('output').value='';$('copy').disabled=true;$('charCount').textContent='';};
-const changed=()=>{dirty=true;clearOutput();};
+const clearOutput=()=>{$('output').value='';$('copy').disabled=true;$('charCount').textContent='';$('outputErrors').textContent='';$('copyHint').textContent='入力を変更したため、本文を作り直してください。';};
+const changed=()=>{dirty=true;clearOutput();updateFlow();};
 const run=fn=>async(...args)=>{try{await fn(...args);}catch(e){note(e.message||String(e));}};
 async function getDoc(id){const {data,error}=await client.from('sumdex_documents').select('*').eq('id',id).maybeSingle();if(error)throw error;return data;}
 async function saveDoc(id,kind,data){
@@ -49,21 +49,33 @@ function renderRows(){
   const checkedAt=Date.parse(p?.checkedAt||'');
   const priceNeedsCheck=p&&!priceMissing&&(!Number.isFinite(checkedAt)||Date.now()-checkedAt>86400000||checkedAt>Date.now()+60000);
   const priceLabel=priceMissing?'価格未入力':priceNeedsCheck?`${yen(p.price)}（要再確認）`:p?.price?yen(p.price):'商品未選択';
-  return `<article class="item ${c.profit<0?'loss':''}" data-row="${row.id}"><div class="item-head"><h3>商品 ${i+1}</h3><div class="toolbar"><button data-action="duplicate">複製</button><button data-action="remove">行を削除</button><label class="include"><input data-field="include" type="checkbox" ${row.include?'checked':''}>掲載する</label></div></div>
-  <div class="grid"><label>商品名を日本語・英語で検索<input data-search="product" list="productNames" placeholder="日本語名・英語名・型番"></label><label>商品<select data-field="productId"><option value="">選択してください</option>${catalog.map(p=>`<option value="${esc(p.id)}" ${p.id===row.productId?'selected':''}>${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</option>`).join('')}</select></label>
-  <label>税込仕入れ値（円 / BOX）<input data-field="cost" type="number" min="1" value="${esc(row.cost)}"></label><label>送料・決済など負担費用（円 / BOX）<input data-field="expenses" type="number" min="0" value="${esc(row.expenses)}"></label>
-  <label>優先する価格<select data-field="basis"><option value="sumdex" ${row.basis==='sumdex'?'selected':''}>SUMdexから割引</option><option value="domestic" ${row.basis==='domestic'?'selected':''}>国内表示最高値を下回らない</option></select></label></div>
-  <div class="conditions">${Object.entries(CONDITIONS).map(([k,v])=>`<label><input type="checkbox" data-condition="${k}" ${row.conditions.includes(k)?'checked':''}>${v[0]}</label>`).join('')}</div>
-  <details><summary>この行の割引を調整</summary><div class="grid">${['clean',...row.conditions.filter(k=>k!=='clean')].map(k=>`<label>${k==='clean'?'基本割引':CONDITIONS[k][0]+' 追加割引'}<input data-discount="${k}" type="number" min="0" value="${row.discounts[k]??settings[k]}"></label>`).join('')}</div><button data-action="reset">行の調整をリセット</button></details>
-  <div class="grid"><label>販売価格を手動調整（空欄なら自動）<input data-field="manualPrice" type="number" min="1" value="${esc(row.manualPrice)}" placeholder="${c.sale??''}"></label><label>状態の補足（英語・投稿に表示）<input data-field="notes" value="${esc(row.notes)}" placeholder="例：Dent on the top right corner."></label></div>
+  return `<article class="item ${c.profit<0?'loss':''}" data-row="${row.id}"><div class="item-head"><h3>商品 ${i+1} <span class="row-state">${row.include?'投稿に含める':'投稿から除外'}</span></h3><div class="toolbar"><label class="include"><input data-field="include" type="checkbox" ${row.include?'checked':''}>投稿に含める</label><button data-action="duplicate">この行を複製</button><button data-action="remove" ${rows.length===1?'disabled title="最初の1行は残します"':''}>削除</button></div></div>
+  <div class="entry-grid"><div class="product-picker"><label>① 商品を検索（日本語・英語・型番）<input data-search="product" type="search" autocomplete="off" placeholder="例：ニンジャスピナー / Ninja Spinner / m4"></label><div class="search-results" data-results hidden></div><p class="selected-product">${p?`選択中：<strong>${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</strong>`:'未選択：検索結果の商品を押してください'}</p><details><summary>一覧から選ぶ・検索しても見つからないとき</summary><label>登録済み商品<select data-field="productId"><option value="">選択してください</option>${catalog.map(p=>`<option value="${esc(p.id)}" ${p.id===row.productId?'selected':''}>${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</option>`).join('')}</select></label><p class="muted">商品がない場合は上の「商品名・価格表」から追加します。</p></details></div>
+  <label>② 税込仕入れ値（円 / BOX）<input data-field="cost" type="number" min="1" inputmode="numeric" value="${esc(row.cost)}" placeholder="例：7000"></label></div>
+  <p class="field-title">③ 状態を選ぶ（複数のダメージを選択できます）</p><div class="conditions">${Object.entries(CONDITIONS).map(([k,v])=>`<label><input type="checkbox" data-condition="${k}" ${row.conditions.includes(k)?'checked':''}>${v[0]}</label>`).join('')}</div>
+  <details class="advanced"><summary>価格や費用を調整したいときだけ開く</summary><div class="grid"><label>送料・決済など負担費用（円 / BOX）<input data-field="expenses" type="number" min="0" value="${esc(row.expenses)}"></label><label>価格の決め方<select data-field="basis"><option value="sumdex" ${row.basis==='sumdex'?'selected':''}>SUMdexから割引（通常）</option><option value="domestic" ${row.basis==='domestic'?'selected':''}>国内表示最高値を下回らない</option></select></label><label>販売価格を手動調整（空欄なら自動）<input data-field="manualPrice" type="number" min="1" value="${esc(row.manualPrice)}" placeholder="${c.sale??''}"></label><label>状態の補足（英語・投稿に表示）<input data-field="notes" value="${esc(row.notes)}" placeholder="例：Dent on the top right corner."></label></div><details><summary>この行の割引額を調整</summary><div class="grid">${['clean',...row.conditions.filter(k=>k!=='clean')].map(k=>`<label>${k==='clean'?'基本割引':CONDITIONS[k][0]+' 追加割引'}<input data-discount="${k}" type="number" min="0" value="${row.discounts[k]??settings[k]}"></label>`).join('')}</div><button data-action="reset">行の調整をリセット</button></details></details>
   <div class="metrics">${[['SUMdex',priceLabel],['Discord',c.sale!=null?yen(c.sale):'―'],['還付見込',yen(c.refund)],['還付込み利益',c.profit!=null?yen(c.profit):'―'],['国内表示最高',c.highest?yen(c.highest):'―']].map(([a,b])=>`<div><span>${a}</span><strong>${b}</strong></div>`).join('')}</div>
-  ${p&&(priceMissing||priceNeedsCheck)?`<p class="warning">${priceMissing?'商品名は登録済みですが、SUMdex価格はまだ入力されていません。':'SUMdex価格の確認日時がありません、または24時間以上経過しました。'} <button data-price-product="${esc(p.id)}">この商品の価格を登録・確認</button></p>`:''}
+  ${p&&(priceMissing||priceNeedsCheck)?`<p class="warning">${priceMissing?'SUMdex価格はまだ未登録です。':'前回の価格確認から24時間以上経過しています。生成時にNotionの価格を再確認します。'} ${priceMissing?`<button data-price-product="${esc(p.id)}">商品情報を確認</button>`:''}</p>`:''}
   <p class="muted">還付見込＝税込仕入れ値 ÷ 11。${c.profit===0?'利益なし。':''}国内価格は買取確約ではありません。</p>
   ${c.highest&&c.sale<c.highest?'<p class="warning">国内販売も比較してください。ダメージ減額・保証条件の確認後に判断します。</p>':''}
-  ${c.errors.length?`<p class="warning">${c.errors.map(esc).join('<br>')}</p>`:''}
+  ${row.include&&p&&row.cost&&c.errors.filter(error=>!(priceMissing&&error.includes('SUMdex価格が未入力'))).length?`<p class="warning">${c.errors.filter(error=>!(priceMissing&&error.includes('SUMdex価格が未入力'))).map(esc).join('<br>')}</p>`:''}
   ${d?`<details><summary>店舗ごとの表示価格・保証表示</summary>${d.shops.map(s=>`<p>${esc(s.site)}：${yen(s.price)} ／ ${esc(s.guarantee)} ／ この状態への適用：要確認</p>`).join('')}</details>`:''}</article>`;
  }).join('');
+ updateFlow();
 }
+function updateFlow(){
+ const included=rows.filter(r=>r.include),missing=included.filter(r=>!r.productId||!Number(r.cost));
+ $('flowStatus').textContent=!included.length?'投稿する商品を1行以上選んでください。':missing.length?`入力待ち：${missing.length}行の商品または仕入れ値を入力してください。`:`${included.length}行が入力済みです。価格を確認して本文を作ってください。`;
+ $('draftState').textContent=dirty?'下書き：未保存の変更あり（このまま本文生成できます）':'下書き：保存済み、または未作成';
+}
+function showSearchResults(input){
+ const box=input.closest('[data-row]'),results=box.querySelector('[data-results]'),key=nameKey(input.value);
+ if(!key){results.hidden=true;results.innerHTML='';return;}
+ const matches=catalog.filter(p=>[...productNames(p),p.code].some(n=>nameKey(n).includes(key)));
+ results.hidden=false;
+ results.innerHTML=matches.length?`<p>${matches.length}件見つかりました。商品名を押して確定してください。</p>${matches.slice(0,8).map(p=>`<button type="button" data-pick="${esc(p.id)}">${esc(p.ja)} / ${esc(p.en)} [${esc(p.code)}]</button>`).join('')}${matches.length>8?'<p>候補が多い場合は、続けて文字を入力してください。</p>':''}`:'<p>該当なし。商品名・価格表から商品を追加できます。</p>';
+}
+function rerenderRow(row){const old=$('rows').querySelector(`[data-row="${row.id}"]`),advanced=old?.querySelector('.advanced')?.open,discounts=old?.querySelector('.advanced details')?.open;renderRows();const current=$('rows').querySelector(`[data-row="${row.id}"]`);if(advanced)current.querySelector('.advanced').open=true;if(discounts)current.querySelector('.advanced details').open=true;}
 function renderCatalog(){
  $('productNames').innerHTML=catalog.flatMap(p=>[...productNames(p),p.code].map(name=>`<option value="${esc(name)} [${esc(p.code)}]"></option>`)).join('');
  const query=nameKey($('catalogSearch').value),visible=catalog.filter(p=>!query||[...productNames(p),p.code].some(n=>nameKey(n).includes(query)));
@@ -90,19 +102,20 @@ async function start(){
  const [c,s]=await Promise.all([getDoc('catalog'),getDoc('settings')]);catalog=c?.data.products||[];settings={...DEFAULTS,...s?.data};versions.catalog=c?.version||0;versions.settings=s?.version||0;savedCatalog=JSON.stringify(catalog);
  rows=[blank()];$('account').textContent=user.email;$('logout').hidden=false;$('login').hidden=true;$('workspace').hidden=false;
  renderCatalog();$('catalogSaveStatus').textContent=`共有商品表を読み込みました：${catalog.length}件`;renderSettings();renderRows();await Promise.all([loadDomestic(),listDrafts()]);
- note('共有ワークスペースに接続しました。変更後は「共有保存」を押してください。');
+ note('準備ができました。商品を検索して選び、仕入れ値と状態を入力してください。');
 }
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.page);document.querySelectorAll('[data-page]').forEach(p=>p.classList.toggle('active',p===b));});
 $('addRow').onclick=()=>{rows.push(blank());changed();renderRows();};
-$('rows').oninput=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row),t=e.target;if(!row||t.type==='checkbox')return;if(t.dataset.field){row[t.dataset.field]=t.value;changed();}else if(t.dataset.discount&&t.value!==''&&Number.isFinite(Number(t.value))&&Number(t.value)>=0){row.discounts[t.dataset.discount]=Number(t.value);changed();}};
+$('rows').oninput=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row),t=e.target;if(!row)return;if(t.dataset.search){showSearchResults(t);return;}if(t.type==='checkbox')return;if(t.dataset.field){row[t.dataset.field]=t.value;changed();}else if(t.dataset.discount&&t.value!==''&&Number.isFinite(Number(t.value))&&Number(t.value)>=0){row.discounts[t.dataset.discount]=Number(t.value);changed();}};
 $('rows').onchange=e=>{const row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row)return;const t=e.target;
- if(t.dataset.search){const product=matchProduct(t.value);if(!product){note('商品名が未登録、または複数の商品と一致します。商品表で日本語名・英語名・型番を確認してください。');return;}row.productId=product.id;changed();renderRows();return;}
+ if(t.dataset.search){const product=matchProduct(t.value);if(product){row.productId=product.id;changed();renderRows();}return;}
  if(t.dataset.condition)row.conditions=toggleCondition(row.conditions,t.dataset.condition,t.checked);
  else if(t.dataset.discount){const n=Number(t.value);if(!Number.isFinite(n)||n<0){note('割引は0以上の数値にしてください');renderRows();return;}row.discounts[t.dataset.discount]=n;}
  else if(t.dataset.field)row[t.dataset.field]=t.type==='checkbox'?t.checked:t.value;
- changed();renderRows();};
-$('rows').onclick=e=>{const priceTarget=e.target.closest('[data-price-product]');if(priceTarget){const p=catalog.find(x=>x.id===priceTarget.dataset.priceProduct);if(!p)return;$('catalogSearch').value=p.ja;renderCatalog();document.querySelector('[data-page="catalog"]').click();$('products').firstElementChild?.scrollIntoView({behavior:'smooth',block:'start'});$('products').querySelector('[data-field="price"]')?.focus({preventScroll:true});note(`「${p.ja}」のSUMdex価格と価格表URLを入力し、「価格を確認済みにする」→「商品表を共有保存」を押してください。`);return;}const action=e.target.dataset.action,row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row||!action)return;
- if(action==='duplicate')rows.splice(rows.indexOf(row)+1,0,{...structuredClone(row),id:uid()});if(action==='remove')rows=rows.filter(r=>r!==row);if(action==='reset')row.discounts={};changed();renderRows();};
+ changed();rerenderRow(row);};
+$('rows').onclick=e=>{const pick=e.target.closest('[data-pick]');if(pick){const row=rows.find(r=>r.id===pick.closest('[data-row]')?.dataset.row);if(row){row.productId=pick.dataset.pick;changed();renderRows();$('rows').querySelector(`[data-row="${row.id}"] [data-field="cost"]`)?.focus();}return;}const priceTarget=e.target.closest('[data-price-product]');if(priceTarget){const p=catalog.find(x=>x.id===priceTarget.dataset.priceProduct);if(!p)return;$('catalogSearch').value=p.ja;renderCatalog();document.querySelector('[data-page="catalog"]').click();$('products').firstElementChild?.scrollIntoView({behavior:'smooth',block:'start'});$('products').querySelector('[data-field="price"]')?.focus({preventScroll:true});note(`「${p.ja}」の商品情報を確認してください。価格が未登録でも、Notionで商品を特定できれば本文生成時に自動取得します。`);return;}const action=e.target.dataset.action,row=rows.find(r=>r.id===e.target.closest('[data-row]')?.dataset.row);if(!row||!action)return;
+ if(action==='duplicate')rows.splice(rows.indexOf(row)+1,0,{...structuredClone(row),id:uid()});if(action==='remove'&&rows.length>1)rows=rows.filter(r=>r!==row);if(action==='reset')row.discounts={};changed();if(action==='remove')renderRows();else rerenderRow(row);};
+$('helpLink').onclick=()=>{$('help').open=true;};
 $('saveDraft').onclick=run(async()=>{await saveDoc(draftId,'draft',{title:$('draftTitle').value,rows});dirty=false;await listDrafts();});
 $('loadDraft').onclick=run(async()=>{if(!$('draftList').value)return;if(dirty&&!confirm('未保存の変更を破棄して開きますか？'))return;const d=await getDoc($('draftList').value);if(!d)throw Error('下書きが見つかりません');draftId=d.id;versions[d.id]=d.version;rows=d.data.rows;$('draftTitle').value=d.data.title;dirty=false;clearOutput();renderRows();});
 $('newDraft').onclick=()=>{if(dirty&&!confirm('未保存の変更を破棄しますか？'))return;draftId=uid();rows=[blank()];$('draftTitle').value='';dirty=false;clearOutput();renderRows();};
@@ -143,8 +156,8 @@ async function verifyPrices({forCopy=false}={}){
  }
  return updates.filter(x=>x.old!==x.price);
 }
-$('generate').onclick=run(async()=>{clearOutput();const changes=await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);$('outputErrors').textContent=out.errors.join(' ／ ');if(out.errors.length)return;$('output').value=out.text;$('copy').disabled=!out.text;$('charCount').textContent=`${out.text.length.toLocaleString()}文字`;
- note(changes.length?`Notionの価格変更を反映しました：${changes.map(x=>`${yen(x.old||0)}→${yen(x.price)}`).join('、')}。本文の価格を確認してください。`:'Notionの最新価格と共有商品表の一致を確認しました。');});
+$('generate').onclick=async()=>{const button=$('generate');button.disabled=true;button.textContent='価格を確認しています…';$('outputErrors').textContent='';clearOutput();$('copyHint').textContent='Notionと国内価格を確認しています。少しお待ちください。';try{const changes=await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);if(out.errors.length){$('outputErrors').textContent=`本文を作れません：${out.errors.join(' ／ ')}`;$('copyHint').textContent='入力や価格を直してから、もう一度生成してください。';$('outputErrors').scrollIntoView({behavior:'smooth',block:'center'});return;}$('output').value=out.text;$('copy').disabled=!out.text;$('charCount').textContent=`${out.text.length.toLocaleString()}文字`;$('copyHint').textContent='本文の金額と状態を確認してからコピーしてください。';
+ note(changes.length?`Notionの価格変更を反映しました：${changes.map(x=>`${yen(x.old||0)}→${yen(x.price)}`).join('、')}。本文の価格を確認してください。`:'Notionの最新価格と共有商品表の一致を確認しました。');}catch(e){$('outputErrors').textContent=`本文を作れません：${e.message||String(e)}`;$('copyHint').textContent='入力や商品情報を確認し、もう一度生成してください。';$('outputErrors').scrollIntoView({behavior:'smooth',block:'center'});}finally{button.disabled=false;button.textContent='価格を確認して本文を作る';}};
 $('copy').onclick=run(async()=>{await verifyPrices({forCopy:true});if(!$('output').value)return;await navigator.clipboard.writeText($('output').value);note('コピーしました。Discordに貼り付けてください。');});
 function downloadCatalogCSV(products,filename){const csv=[CSV_KEYS,...products.map(p=>CSV_KEYS.map(k=>p[k]))].map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('exportCSV').onclick=()=>downloadCatalogCSV(catalog,'sumdex-products.csv');
