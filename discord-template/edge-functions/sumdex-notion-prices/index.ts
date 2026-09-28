@@ -7,7 +7,9 @@ const reply=(status:number,body:unknown)=>new Response(JSON.stringify(body),{sta
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(req.method!=='POST')return reply(405,{error:'POSTのみ対応します'});
- const base=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_ANON_KEY');
+ const base=Deno.env.get('SUPABASE_URL');
+ const publishable=JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')||'{}');
+ const key=publishable.default||Deno.env.get('SUPABASE_ANON_KEY');
  if(!base||!key)return reply(503,{error:'認証設定が不足しています'});
  const authorization=req.headers.get('authorization')||'';
  if(!/^Bearer \S+$/.test(authorization))return reply(401,{error:'ログインしてください'});
