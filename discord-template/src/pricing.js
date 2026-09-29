@@ -1,13 +1,10 @@
 export const CONDITIONS = {
- clean:['問題なく綺麗','Clean packaging; no noticeable damage.'],
- shrinkSmall:['シュリンク穴 小','Small hole in the shrink wrap.'],
- shrinkLarge:['シュリンク穴 大','Large hole or tear in the shrink wrap.'],
- dentSmall:['潰れ 小','Minor dent on the box.'],
- dentLarge:['潰れ 大','Noticeable dent or crushing on the box.'],
- stainSmall:['汚れ 小','Small stain on the packaging.'],
- stainLarge:['汚れ 大','Noticeable stain on the packaging.']
+ sa:['S・A','Condition grade S/A: clean packaging with no holes or dents.'],
+ am:['AM','Condition grade AM: the packaging has a dent or hole.'],
+ b:['B','Condition grade B: the packaging has a major dent or large hole.']
 };
-export const DEFAULTS={clean:100,shrinkSmall:300,shrinkLarge:500,dentSmall:500,dentLarge:1000,stainSmall:300,stainLarge:700};
+export const DEFAULTS={sa:100,am:700,b:1500};
+const LEGACY_DEFAULTS={clean:100,shrinkSmall:300,shrinkLarge:500,dentSmall:500,dentLarge:1000,stainSmall:300,stainLarge:700};
 export const yen=n=>`¥${Math.round(n).toLocaleString('en-US')}`;
 export const nameKey=name=>String(name??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
 export const productNames=product=>[product.ja,product.en,...String(product.domesticNames||'').split('|')].map(s=>s.trim()).filter(Boolean);
@@ -18,15 +15,29 @@ export function domesticForProduct(domestic,product){
  return matched.length?{shops:matched.flatMap(([,entry])=>entry.shops||[])}:null;
 }
 export function toggleCondition(current,key,checked){
- if(!checked){const next=current.filter(k=>k!==key);return next.length?next:['clean'];}
- if(key==='clean')return ['clean'];
- const family=key.replace(/Small|Large/,'');
- return [...current.filter(k=>k!=='clean'&&k.replace(/Small|Large/,'')!==family),key];
+ if(!checked)return current?.length?current:['sa'];
+ return CONDITIONS[key]?[key]:['sa'];
+}
+export function conditionKey(row){
+ const selected=Array.isArray(row?.conditions)?row.conditions:[];
+ const current=selected.find(key=>CONDITIONS[key]);if(current)return current;
+ if(selected.some(key=>/Large$/.test(key)))return 'b';
+ if(selected.some(key=>key!=='clean'))return 'am';
+ return 'sa';
+}
+export function normalizeConditionRow(row,settings={}){
+ const selected=Array.isArray(row?.conditions)?row.conditions:[];
+ const grade=conditionKey(row);
+ if(selected.length===1&&selected[0]===grade)return {...row,conditions:[grade],discounts:{...(row.discounts||{})}};
+ const legacySettings={...LEGACY_DEFAULTS,...settings};
+ const base=row?.discounts?.clean??legacySettings.clean;
+ const extra=selected.filter(key=>key!=='clean').reduce((sum,key)=>sum+(row?.discounts?.[key]??legacySettings[key]??0),0);
+ return {...row,conditions:[grade],discounts:{[grade]:base+extra}};
 }
 function calculateWithBasis(row,product,settings,domestic,basis){
  const sumdex=product?.price; const validPrice=Number.isFinite(sumdex)&&sumdex>0;
- const damage=row.conditions.filter(k=>k!=='clean').reduce((n,k)=>n+(row.discounts?.[k]??settings[k]??0),0);
- const discount=(row.discounts?.clean??settings.clean??100)+damage;
+ const grade=conditionKey(row);
+ const discount=Number(row.discounts?.[grade]??settings[grade]??DEFAULTS[grade]??0);
  const highest=domestic?.shops?.length?Math.max(...domestic.shops.map(s=>s.price)):null;
  const suggested=validPrice?Math.max(0,sumdex-discount):null;
  const target=basis==='domestic'&&highest!==null&&suggested!==null?Math.max(highest,suggested):suggested;
@@ -41,7 +52,7 @@ function calculateWithBasis(row,product,settings,domestic,basis){
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');
  if(profit!==null&&profit < -0.000001)errors.push('還付込みでも赤字：価格変更または掲載対象外を選択');
  if(basis==='domestic'&&highest===null)errors.push('国内買取価格を取得できていません');
- return {sale,profit,refund,discount,damage,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null,basis};
+ return {sale,profit,refund,discount,damage:grade==='sa'?0:discount,grade,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null,basis};
 }
 export function recommendPriceBasis(row,product,settings,domestic){
  const candidate={...row,manualPrice:''};
@@ -66,7 +77,7 @@ export function generate(rows,catalog,settings,domestic){
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
   const key=`${product.id}:${Number(row.cost)}`;
   if(!groups.has(key))groups.set(key,{product,lines:[]});
-  const conditions=row.conditions.map(k=>CONDITIONS[k][1]).join(' ');
+  const conditions=CONDITIONS[conditionKey(row)][1];
   const discount=c.actualDiscount>0?` (${yen(c.actualDiscount)} off listed price)`:'';
   groups.get(key).lines.push(`• ${conditions}${row.notes?` ${safe(row.notes)}`:''}\n  **${yen(c.sale)} / BOX**${discount}`);
  }
