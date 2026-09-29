@@ -1,7 +1,7 @@
 export const CONDITIONS = {
- sa:['S・A','**S:** Excellent condition with no holes, dents, or noticeable damage. **A:** May have extremely minor imperfections, but they are barely noticeable.'],
- am:['AM','The packaging has a dent or hole.'],
- b:['B','The packaging has a major dent or large hole.']
+ sa:['S・A','**S:** Excellent condition with no holes, dents, or noticeable damage.\n**A:** May have extremely minor imperfections, but they are barely noticeable.'],
+ am:['AM','**AM:** Noticeable exterior packaging damage, such as dents or holes. Recommended for customers who plan to open the box.'],
+ b:['B','**B:** Significant exterior packaging damage, such as major dents or large holes. Recommended for customers who plan to open the box and do not mind the packaging condition.']
 };
 export const DEFAULTS={sa:100,am:700,b:1500};
 const CONDITION_ORDER={sa:0,am:1,b:2};
