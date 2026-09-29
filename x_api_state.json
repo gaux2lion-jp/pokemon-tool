@@ -1,23 +1,24 @@
 {
   "newest_ids": {
-    "kaitoriexpo": "2104450701447553444",
-    "risekaitorii": "2103350714399695084"
+    "kaitoriexpo": "2104783813826273284",
+    "risekaitorii": "2104775725844971870"
   },
   "prices": {
     "買取EXPO": {
-      "30th CELEBRATION": 25000,
+      "30th CELEBRATION": 26000,
       "反逆クラッシュ": 38000,
       "vmaxライジング": 84000,
-      "ストームエメラルダ": 10200
+      "ストームエメラルダ": 9500
     },
     "買取RISE": {
-      "30th CELEBRATION": 24500,
-      "ストームエメラルダ": 11300,
-      "アビスアイ": 8000,
-      "ニンジャスピナー": 7500,
+      "30th CELEBRATION": 24000,
+      "ストームエメラルダ": 9800,
+      "アビスアイ": 7800,
+      "ニンジャスピナー": 7000,
       "メガブレイブ": 7300,
       "30th CELEBRATION プレミアムデッキセット": 16000,
-      "30th CELEBRATION FUTURISTIC BOX": 60000
+      "30th CELEBRATION FUTURISTIC BOX": 60000,
+      "メガシンフォニア": 7000
     }
   },
   "newest_id": "2101542518345339339"
