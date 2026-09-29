@@ -1,5 +1,5 @@
 export const CONDITIONS = {
- sa:['S・A','Clean packaging with no holes or dents.'],
+ sa:['S・A','**S:** Excellent condition with no holes, dents, or noticeable damage. **A:** May have extremely minor imperfections, but they are barely noticeable.'],
  am:['AM','The packaging has a dent or hole.'],
  b:['B','The packaging has a major dent or large hole.']
 };
@@ -81,11 +81,33 @@ export function generate(rows,catalog,settings,domestic){
   const key=`${product.id}:${Number(row.cost)}`;
   if(!groups.has(key))groups.set(key,{product,lines:[]});
   const grade=conditionKey(row),conditions=CONDITIONS[grade][1];
-  const discount=c.actualDiscount>0?` (${yen(c.actualDiscount)} off listed price)`:'';
-  groups.get(key).lines.push({grade,text:`• ${CONDITION_MARKS[grade]} **${grade==='sa'?'S/A':CONDITIONS[grade][0]}** — ${conditions}${row.notes?` ${safe(row.notes)}`:''}\n  **${yen(c.sale)} / BOX**${discount}`});
+  const discount=c.actualDiscount>0?`💸 **${yen(c.actualDiscount)} OFF**\n`:'';
+  const label=grade==='sa'?'S/A':CONDITIONS[grade][0];
+  groups.get(key).lines.push({grade,text:`${CONDITION_MARKS[grade]} **${label} — ${yen(c.sale)} / BOX**\n${discount}${conditions}${row.notes?` ${safe(row.notes)}`:''}`});
  }
- const blocks=[...groups.values()].map(({product,lines})=>{const ordered=[...new Map(lines.map(line=>[line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);return `**${safe(product.en)} [${safe(product.code)}]**\nListed price: ${yen(product.price)} / BOX\n${ordered.map(line=>line.text).join('\n')}`;});
- const text=blocks.length?`🇯🇵 **SUMdex · Discord Offers**\n\n${blocks.join('\n\n')}\n\n📸 Photos and videos of the actual condition are available before purchase.\n🎫 Please open a ticket to order, ask about other products, or discuss preorders.\nShipping and payment fees will be confirmed in your ticket.`:'';
+ const blocks=[...groups.values()].map(({product,lines})=>{
+  const ordered=[...new Map(lines.map(line=>[line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);
+  return `✨ **${safe(product.en)} [${safe(product.code)}]**\n\n🏷️ **SUMdex List Price: ${yen(product.price)} / BOX**\n\n${ordered.map(line=>line.text).join('\n\n')}`;
+ });
+ const text=blocks.length?`🔥 **DISCORD-EXCLUSIVE BOX DEALS** 🔥
+
+Special prices available only for our Discord community!
+Choose the condition and price that work best for you 👇
+
+━━━━━━━━━━━━━━━━━━
+
+${blocks.join('\n\n━━━━━━━━━━━━━━━━━━\n\n')}
+
+━━━━━━━━━━━━━━━━━━
+
+📸 Photos and videos of the actual condition are available before purchase.
+
+🎫 **Ready to order or looking for another product?**
+[Open a ticket here](https://discord.com/channels/1540333224570519655/1540439626647609344/1540468517579657359)
+
+Preorder requests and product inquiries are also welcome!
+
+🚚 Shipping and payment fees will be confirmed separately in your ticket.`:'';
  return {text,errors};
 }
 export function parseCSV(text){
