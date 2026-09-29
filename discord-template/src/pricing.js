@@ -50,7 +50,7 @@ function calculateWithBasis(row,product,settings,domestic,basis){
  if(!row.cost||!Number.isFinite(cost)||cost<=0||!Number.isFinite(expenses)||expenses<0)errors.push('仕入れ値・費用を確認');
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');
- if(profit!==null&&profit < -0.000001)errors.push('還付込みでも赤字：価格変更または掲載対象外を選択');
+ if(profit!==null&&profit < -0.000001&&!row.allowLoss)errors.push('還付込みでも赤字：赤字で掲載する場合は確認チェックを入れてください');
  if(basis==='domestic'&&highest===null)errors.push('国内買取価格を取得できていません');
  return {sale,profit,refund,discount,damage:grade==='sa'?0:discount,grade,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null,basis};
 }
@@ -63,7 +63,8 @@ export function recommendPriceBasis(row,product,settings,domestic){
  if(valid(sumdex)&&(sumdex.highest===null||sumdex.sale>=sumdex.highest))return {basis:'sumdex',status:'ready',title:'SUMdexから割引がおすすめ',reason:sumdex.highest===null?'国内価格が未確認のため、SUMdex価格から状態別に値引きします。':'割引後も国内最高表示額以上で、還付込み利益も残ります。',sumdex,domesticFloor};
  if(valid(domesticFloor)&&domesticFloor.sale<=domesticFloor.sumdex)return {basis:'domestic',status:'ready',title:'国内最高表示額を下回らない設定がおすすめ',reason:'SUMdexの上限内で国内最高表示額を維持できます。国内買取は状態による減額があるため確約ではありません。',sumdex,domesticFloor};
  if(valid(sumdex))return {basis:'sumdex',status:'caution',title:'SUMdexから割引を使用',reason:'国内最高表示額の方が高いため国内販売も比較してください。ただし、国内買取は状態による減額があり満額保証ではありません。',sumdex,domesticFloor};
- return {basis:'sumdex',status:'stop',title:'掲載しないのがおすすめ',reason:'SUMdex価格から状態別に値引きすると、還付を含めても赤字になります。販売価格を見直すか掲載対象から外してください。',sumdex,domesticFloor};
+ if(row.allowLoss&&sumdex.profit<0)return {basis:'sumdex',status:'caution',title:'赤字で掲載する設定',reason:`還付を含めても${yen(Math.abs(sumdex.profit))}の赤字です。確認チェックが入っているため投稿文を作成できます。`,sumdex,domesticFloor};
+ return {basis:'sumdex',status:'stop',title:'掲載しないのがおすすめ',reason:'SUMdex価格から状態別に値引きすると、還付を含めても赤字になります。販売価格を見直すか、赤字を確認して掲載を許可してください。',sumdex,domesticFloor};
 }
 export function calculate(row,product,settings,domestic){
  const basis=row.basis==='auto'?recommendPriceBasis(row,product,settings,domestic).basis:row.basis;
