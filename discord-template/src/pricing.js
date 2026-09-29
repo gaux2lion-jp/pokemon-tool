@@ -1,9 +1,11 @@
 export const CONDITIONS = {
- sa:['S・A','Condition grade S/A: clean packaging with no holes or dents.'],
- am:['AM','Condition grade AM: the packaging has a dent or hole.'],
- b:['B','Condition grade B: the packaging has a major dent or large hole.']
+ sa:['S・A','Clean packaging with no holes or dents.'],
+ am:['AM','The packaging has a dent or hole.'],
+ b:['B','The packaging has a major dent or large hole.']
 };
 export const DEFAULTS={sa:100,am:700,b:1500};
+const CONDITION_ORDER={sa:0,am:1,b:2};
+const CONDITION_MARKS={sa:'🟢',am:'🟡',b:'🔴'};
 const LEGACY_DEFAULTS={clean:100,shrinkSmall:300,shrinkLarge:500,dentSmall:500,dentLarge:1000,stainSmall:300,stainLarge:700};
 export const yen=n=>`¥${Math.round(n).toLocaleString('en-US')}`;
 export const nameKey=name=>String(name??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
@@ -78,11 +80,11 @@ export function generate(rows,catalog,settings,domestic){
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
   const key=`${product.id}:${Number(row.cost)}`;
   if(!groups.has(key))groups.set(key,{product,lines:[]});
-  const conditions=CONDITIONS[conditionKey(row)][1];
+  const grade=conditionKey(row),conditions=CONDITIONS[grade][1];
   const discount=c.actualDiscount>0?` (${yen(c.actualDiscount)} off listed price)`:'';
-  groups.get(key).lines.push(`• ${conditions}${row.notes?` ${safe(row.notes)}`:''}\n  **${yen(c.sale)} / BOX**${discount}`);
+  groups.get(key).lines.push({grade,text:`• ${CONDITION_MARKS[grade]} **${grade==='sa'?'S/A':CONDITIONS[grade][0]}** — ${conditions}${row.notes?` ${safe(row.notes)}`:''}\n  **${yen(c.sale)} / BOX**${discount}`});
  }
- const blocks=[...groups.values()].map(({product,lines})=>`**${safe(product.en)} [${safe(product.code)}]**\nListed price: ${yen(product.price)} / BOX\n${[...new Set(lines)].join('\n')}`);
+ const blocks=[...groups.values()].map(({product,lines})=>{const ordered=[...new Map(lines.map(line=>[line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);return `**${safe(product.en)} [${safe(product.code)}]**\nListed price: ${yen(product.price)} / BOX\n${ordered.map(line=>line.text).join('\n')}`;});
  const text=blocks.length?`🇯🇵 **SUMdex · Discord Offers**\n\n${blocks.join('\n\n')}\n\n📸 Photos and videos of the actual condition are available before purchase.\n🎫 Please open a ticket to order, ask about other products, or discuss preorders.\nShipping and payment fees will be confirmed in your ticket.`:'';
  return {text,errors};
 }
