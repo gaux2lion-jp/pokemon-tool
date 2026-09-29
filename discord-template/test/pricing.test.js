@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {calculate,recommendPriceBasis,generate,toggleCondition,DEFAULTS,parseCSV,domesticForProduct,nameKey} from '../src/pricing.js';
+import {calculate,recommendPriceBasis,generate,toggleCondition,conditionKey,normalizeConditionRow,DEFAULTS,parseCSV,domesticForProduct,nameKey} from '../src/pricing.js';
 const p={id:'a',ja:'商品',en:'Mega Dream ex',code:'M2a',price:11800};
-const row={id:'1',productId:'a',cost:11000,expenses:0,conditions:['clean'],discounts:{},basis:'sumdex',manualPrice:'',include:true,notes:''};
+const row={id:'1',productId:'a',cost:11000,expenses:0,conditions:['sa'],discounts:{},basis:'sumdex',manualPrice:'',include:true,notes:''};
 test('refund and clean price',()=>{const c=calculate(row,p,DEFAULTS,{});assert.equal(c.refund,1000);assert.equal(c.sale,11700);assert.equal(c.profit,1700);});
 test('domestic floor cannot silently exceed SUMdex',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,{shops:[{price:12200}]});assert.equal(c.sale,12200);assert.ok(c.errors.some(e=>e.includes('SUMdex価格を超過')));});
 test('automatic price recommendation explains the safe choice',()=>{
@@ -12,9 +12,10 @@ test('automatic price recommendation explains the safe choice',()=>{
  const waiting=recommendPriceBasis({...row,basis:'auto'},{...p,price:''},DEFAULTS,{shops:[{price:11500}]});assert.equal(waiting.status,'waiting');
 });
 test('negative blocked, zero allowed',()=>{assert.ok(calculate({...row,manualPrice:9999},p,DEFAULTS,{}).errors.some(e=>e.includes('赤字')));assert.equal(calculate({...row,manualPrice:10000},p,DEFAULTS,{}).errors.length,0);});
-test('damage discounts stack with basic and override',()=>{assert.equal(calculate({...row,conditions:['shrinkSmall','dentSmall'],discounts:{dentSmall:200}},p,DEFAULTS,{}).sale,11200);});
-test('condition exclusions apply only within each row',()=>{assert.deepEqual(toggleCondition(['clean'],'dentSmall',true),['dentSmall']);assert.deepEqual(toggleCondition(['dentSmall','stainSmall'],'dentLarge',true),['stainSmall','dentLarge']);});
-test('same product and cost grouped, excluded and sensitive fields absent',()=>{const out=generate([row,{...row,id:'2',conditions:['dentSmall']},{...row,id:'3',include:false}], [p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.equal(out.text.match(/Mega Dream ex/g).length,1);assert.ok(out.text.includes('Minor dent'));assert.ok(!out.text.includes('11,000'));assert.ok(!out.text.includes('quantity'));});
+test('grade discount uses shared default and allows a product override',()=>{assert.equal(calculate({...row,conditions:['am']},p,DEFAULTS,{}).sale,11100);assert.equal(calculate({...row,conditions:['am'],discounts:{am:250}},p,DEFAULTS,{}).sale,11550);});
+test('one condition grade is selected at a time',()=>{assert.deepEqual(toggleCondition(['sa'],'am',true),['am']);assert.deepEqual(toggleCondition(['am'],'b',true),['b']);});
+test('old damage rows migrate to the three grade system without changing their discount',()=>{const migrated=normalizeConditionRow({...row,conditions:['shrinkSmall','dentSmall'],discounts:{dentSmall:200}},{clean:100,shrinkSmall:300,dentSmall:500});assert.equal(conditionKey(migrated),'am');assert.equal(migrated.discounts.am,600);assert.equal(calculate(migrated,p,DEFAULTS,{}).sale,11200);assert.equal(conditionKey({...row,conditions:['dentLarge']}),'b');});
+test('same product and cost grouped, excluded and sensitive fields absent',()=>{const out=generate([row,{...row,id:'2',conditions:['am']},{...row,id:'3',include:false}], [p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.equal(out.text.match(/Mega Dream ex/g).length,1);assert.ok(out.text.includes('grade AM'));assert.ok(!out.text.includes('11,000'));assert.ok(!out.text.includes('quantity'));});
 test('CSV quoted commas and line breaks',()=>{assert.deepEqual(parseCSV('a,b\r\n"x,y","z\nq"'),[['a','b'],['x,y','z\nq']]);});
 test('domestic Japanese aliases connect to English posting and SUMdex price',()=>{const product={...p,ja:'MEGAドリームex',domesticNames:'メガドリームex | ＭＥＧＡ ドリームex'};const domestic={'メガドリームex':{shops:[{site:'店A',price:11500}]},'MEGA ドリームex':{shops:[{site:'店B',price:11600}]}};assert.equal(calculate(row,product,DEFAULTS,domesticForProduct(domestic,product)).highest,11600);const post=generate([{...row,basis:'domestic'}],[product],DEFAULTS,domestic);assert.equal(post.errors.length,0);assert.match(post.text,/Mega Dream ex \[M2a\]/);assert.match(post.text,/¥11,700/);});
 test('unknown Japanese label cannot silently satisfy domestic floor',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,domesticForProduct({'他の商品':{shops:[{price:99999}]}},p));assert.ok(c.errors.some(e=>e.includes('国内買取価格を取得できていません')));});
