@@ -16,13 +16,31 @@ test('explicitly approved loss can be generated',()=>{const out=generate([{...ro
 test('grade discount uses shared default and allows a product override',()=>{assert.equal(calculate({...row,conditions:['am']},p,DEFAULTS,{}).sale,11100);assert.equal(calculate({...row,conditions:['am'],discounts:{am:250}},p,DEFAULTS,{}).sale,11550);});
 test('one condition grade is selected at a time',()=>{assert.deepEqual(toggleCondition(['sa'],'am',true),['am']);assert.deepEqual(toggleCondition(['am'],'b',true),['b']);});
 test('old damage rows migrate to the three grade system without changing their discount',()=>{const migrated=normalizeConditionRow({...row,conditions:['shrinkSmall','dentSmall'],discounts:{dentSmall:200}},{clean:100,shrinkSmall:300,dentSmall:500});assert.equal(conditionKey(migrated),'am');assert.equal(migrated.discounts.am,600);assert.equal(calculate(migrated,p,DEFAULTS,{}).sale,11200);assert.equal(conditionKey({...row,conditions:['dentLarge']}),'b');});
-test('same product and cost grouped, excluded and sensitive fields absent',()=>{const out=generate([row,{...row,id:'2',conditions:['am']},{...row,id:'3',include:false}], [p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.equal(out.text.match(/Mega Dream ex/g).length,1);assert.ok(out.text.includes('🟡 **AM —'));assert.ok(!out.text.includes('11,000'));assert.ok(!out.text.includes('quantity'));});
-test('condition lines are always ordered S/A, AM, B with color markers',()=>{const out=generate([{...row,id:'b',conditions:['b']},{...row,id:'am',conditions:['am']},{...row,id:'sa',conditions:['sa']}],[p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.ok(out.text.indexOf('🟢 **S/A —')<out.text.indexOf('🟡 **AM —'));assert.ok(out.text.indexOf('🟡 **AM —')<out.text.indexOf('🔴 **B —'));});
+test('same product and cost grouped, excluded and sensitive fields absent',()=>{const out=generate([row,{...row,id:'2',conditions:['am']},{...row,id:'3',include:false}], [p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.equal(out.text.match(/Mega Dream ex/g).length,1);assert.ok(out.text.includes('🟡 **AM**'));assert.ok(!out.text.includes('11,000'));assert.ok(!out.text.includes('quantity'));});
+test('condition lines are always ordered S/A, AM, B with color markers',()=>{const out=generate([{...row,id:'b',conditions:['b']},{...row,id:'am',conditions:['am']},{...row,id:'sa',conditions:['sa']}],[p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.ok(out.text.indexOf('🟢 **S/A**')<out.text.indexOf('🟡 **AM**'));assert.ok(out.text.indexOf('🟡 **AM**')<out.text.indexOf('🔴 **B**'));});
 test('CSV quoted commas and line breaks',()=>{assert.deepEqual(parseCSV('a,b\r\n"x,y","z\nq"'),[['a','b'],['x,y','z\nq']]);});
 test('domestic Japanese aliases connect to English posting and SUMdex price',()=>{const product={...p,ja:'MEGAドリームex',domesticNames:'メガドリームex | ＭＥＧＡ ドリームex'};const domestic={'メガドリームex':{shops:[{site:'店A',price:11500}]},'MEGA ドリームex':{shops:[{site:'店B',price:11600}]}};assert.equal(calculate(row,product,DEFAULTS,domesticForProduct(domestic,product)).highest,11600);const post=generate([{...row,basis:'domestic'}],[product],DEFAULTS,domestic);assert.equal(post.errors.length,0);assert.match(post.text,/Mega Dream ex \[M2a\]/);assert.match(post.text,/¥11,700/);});
 test('unknown Japanese label cannot silently satisfy domestic floor',()=>{const c=calculate({...row,basis:'domestic'},p,DEFAULTS,domesticForProduct({'他の商品':{shops:[{price:99999}]}},p));assert.ok(c.errors.some(e=>e.includes('国内買取価格を取得できていません')));});
 test('set code spelling ignores case and width',()=>{assert.equal(nameKey(' SV11Ｂ '),nameKey('sv11b'));});
 
-test('promotional template includes compact sales copy, ticket link, and condition guide',()=>{const out=generate([row],[p],DEFAULTS,{});assert.match(out.text,/DISCORD-EXCLUSIVE BOX DEALS/);assert.match(out.text,/SUMdex List Price: ¥11,800 \/ BOX/);assert.match(out.text,/📋 \*\*Condition Guide\*\*/);assert.match(out.text,/\*\*S:\*\* No holes, dents, or visible damage/);assert.match(out.text,/\*\*A:\*\* Only very minor, barely noticeable imperfections/);assert.match(out.text,/Open a ticket/);});
-
-test('condition explanations appear once in a shared guide, not below every product',()=>{const out=generate([{...row,id:'sa',conditions:['sa']},{...row,id:'am',conditions:['am']},{...row,id:'b',conditions:['b']}],[p],DEFAULTS,{});assert.match(out.text,/🟢 \*\*S\/A\*\* — \*\*S:\*\* No holes/);assert.match(out.text,/🟡 \*\*AM\*\* — Visible dents or holes; best for opening/);assert.match(out.text,/🔴 \*\*B\*\* — Major dents or large holes; best for opening/);assert.equal(out.text.match(/No holes, dents, or visible damage/g).length,1);assert.match(out.text,/🟢 \*\*S\/A — ¥11,700 \/ BOX\*\* · 💸 ¥100 OFF/);});
+test('single grade uses a shared header, arrow prices and separate discounts',()=>{
+ const out=generate([row],[p],DEFAULTS,{});
+ assert.equal(out.errors.length,0);
+ assert.ok(out.text.includes('🟢 **All boxes: Condition S/A**'));
+ assert.ok(out.text.includes('¥11,800 → **¥11,700**\n💸 **¥100 OFF**'));
+ assert.ok(out.text.includes('1540468517579657359'));
+ assert.equal(out.text.split('No holes, dents, or visible damage').length-1,1);
+});
+test('mixed grades stay labeled and sorted while notes remain attached',()=>{
+ const out=generate([{...row,conditions:['b'],notes:'Corner crushed'},{...row,conditions:['sa']},{...row,conditions:['am']}],[p],DEFAULTS,{});
+ assert.ok(!out.text.includes('All boxes:'));
+ assert.ok(out.text.indexOf('🟢 **S/A**')<out.text.indexOf('🟡 **AM**'));
+ assert.ok(out.text.indexOf('🟡 **AM**')<out.text.indexOf('🔴 **B**'));
+ assert.ok(out.text.includes('¥11,800 → **¥10,300**\n💸 **¥1,500 OFF**\n↳ Corner crushed'));
+});
+test('zero discount and excluded rows do not create misleading copy',()=>{
+ const out=generate([{...row,manualPrice:11800},{...row,conditions:['b'],include:false}],[p],DEFAULTS,{});
+ assert.ok(!out.text.includes('OFF'));
+ assert.ok(!out.text.includes('Condition B'));
+ assert.equal(generate([],[p],DEFAULTS,{}).text,'');
+});
