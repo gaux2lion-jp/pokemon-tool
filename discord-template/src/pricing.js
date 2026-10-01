@@ -1,7 +1,7 @@
 export const CONDITIONS = {
  sa:['S・A','**S:** No holes, dents, or visible damage. **A:** Only very minor, barely noticeable imperfections.'],
  am:['AM','Visible dents or holes; best for opening.'],
- b:['B','Major dents or large holes; best for opening.']
+ b:['B','Major dents, crushing, or holes/tears in the shrink wrap. Best for opening.']
 };
 export const DEFAULTS={sa:100,am:700,b:1500};
 const CONDITION_ORDER={sa:0,am:1,b:2};
@@ -74,45 +74,42 @@ export function calculate(row,product,settings,domestic){
 }
 const safe=s=>String(s??'').replace(/[\\`*_~|<>@]/g,'').replace(/[\r\n]+/g,' ').trim();
 export function generate(rows,catalog,settings,domestic){
- const groups=new Map(); const errors=[]; const usedGrades=new Set();
+ const groups=new Map(),usedGrades=new Set(),errors=[];
+ const label=grade=>grade==='sa'?'S/A':CONDITIONS[grade][0];
  for(const row of rows.filter(r=>r.include)){
-  const product=catalog.find(p=>p.id===row.productId); const c=calculate(row,product,settings,domesticForProduct(domestic,product));
+  const product=catalog.find(p=>p.id===row.productId),c=calculate(row,product,settings,domesticForProduct(domestic,product));
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
-  const key=`${product.id}:${Number(row.cost)}`;
+  const key=`${product.id}:${Number(row.cost)}`,grade=conditionKey(row);
+  usedGrades.add(grade);
   if(!groups.has(key))groups.set(key,{product,lines:[]});
-  const grade=conditionKey(row); usedGrades.add(grade);
-  const discount=c.actualDiscount>0?` · 💸 ${yen(c.actualDiscount)} OFF`:'';
-  const label=grade==='sa'?'S/A':CONDITIONS[grade][0];
-  groups.get(key).lines.push({grade,text:`${CONDITION_MARKS[grade]} **${label} — ${yen(c.sale)} / BOX**${discount}${row.notes?`\n↳ ${safe(row.notes)}`:''}`});
+  const discount=c.actualDiscount>0?`\n💸 **${yen(c.actualDiscount)} OFF**`:'';
+  groups.get(key).lines.push({grade,text:`${yen(product.price)} → **${yen(c.sale)}**${discount}${row.notes?`\n↳ ${safe(row.notes)}`:''}`});
  }
+ const singleGrade=usedGrades.size===1;
+ const grades=[...usedGrades].sort((a,b)=>CONDITION_ORDER[a]-CONDITION_ORDER[b]);
  const blocks=[...groups.values()].map(({product,lines})=>{
-  const ordered=[...new Map(lines.map(line=>[line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);
-  return `✨ **${safe(product.en)} [${safe(product.code)}]**\n\n🏷️ **SUMdex List Price: ${yen(product.price)} / BOX**\n\n${ordered.map(line=>line.text).join('\n\n')}`;
+  const ordered=[...new Map(lines.map(line=>[line.grade+':'+line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);
+  return `✨ **${safe(product.en)} [${safe(product.code)}]**\n${ordered.map(line=>`${singleGrade?'':`${CONDITION_MARKS[line.grade]} **${label(line.grade)}**\n`}${line.text}`).join('\n\n')}`;
  });
- const guide=[...usedGrades].sort((a,b)=>CONDITION_ORDER[a]-CONDITION_ORDER[b]).map(grade=>{
-  const label=grade==='sa'?'S/A':CONDITIONS[grade][0];
-  return `${CONDITION_MARKS[grade]} **${label}** — ${CONDITIONS[grade][1]}`;
- }).join('\n');
- const text=blocks.length?`🔥 **DISCORD-EXCLUSIVE BOX DEALS** 🔥
+ const guide=grades.map(grade=>`${CONDITION_MARKS[grade]} **Condition ${label(grade)}**\n${CONDITIONS[grade][1]}`).join('\n\n');
+ const header=singleGrade?`${CONDITION_MARKS[grades[0]]} **All boxes: Condition ${label(grades[0])}**`:'Choose your condition below 👇';
+ const text=blocks.length?`🔥 **DISCORD-EXCLUSIVE BOX DEALS**
+${header}
+🇯🇵 **JPY / BOX**
 
-Special prices available only for our Discord community!
-Choose the condition and price that work best for you 👇
+${blocks.join('\n\n')}
 
-━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━
+🏷️ SUMdex list price → **Discord price**
 
-${blocks.join('\n\n━━━━━━━━━━━━━━━━━━\n\n')}
-
-━━━━━━━━━━━━━━━━━━
-
-📋 **Condition Guide**
 ${guide}
 
-📸 Actual-condition photos and videos are available before purchase.
+📸 Request actual-box photos or videos before purchasing.
 
-🎫 **Ready to order or looking for another product?** [Open a ticket](https://discord.com/channels/1540333224570519655/1540439626647609344/1540468517579657359)
+🎫 **[Order / Ask us here](https://discord.com/channels/1540333224570519655/1540439626647609344/1540468517579657359)**
+Preorders & other product requests welcome!
 
-Preorders and product requests are welcome.
-🚚 Shipping and payment fees are confirmed in the ticket.`:'';
+🚚 Shipping & payment fees quoted separately.`:'';
  return {text,errors};
 }
 export function parseCSV(text){
