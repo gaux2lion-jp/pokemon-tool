@@ -1,7 +1,7 @@
 export const CONDITIONS = {
- sa:['S・A','**S:** Excellent condition with no holes, dents, or noticeable damage.\n**A:** May have extremely minor imperfections, but they are barely noticeable.'],
- am:['AM','**AM:** Noticeable exterior packaging damage, such as dents or holes. Recommended for customers who plan to open the box.'],
- b:['B','**B:** Significant exterior packaging damage, such as major dents or large holes. Recommended for customers who plan to open the box and do not mind the packaging condition.']
+ sa:['S・A','**S:** No holes, dents, or visible damage. **A:** Only very minor, barely noticeable imperfections.'],
+ am:['AM','Visible dents or holes; best for opening.'],
+ b:['B','Major dents or large holes; best for opening.']
 };
 export const DEFAULTS={sa:100,am:700,b:1500};
 const CONDITION_ORDER={sa:0,am:1,b:2};
@@ -74,21 +74,25 @@ export function calculate(row,product,settings,domestic){
 }
 const safe=s=>String(s??'').replace(/[\\`*_~|<>@]/g,'').replace(/[\r\n]+/g,' ').trim();
 export function generate(rows,catalog,settings,domestic){
- const groups=new Map(); const errors=[];
+ const groups=new Map(); const errors=[]; const usedGrades=new Set();
  for(const row of rows.filter(r=>r.include)){
   const product=catalog.find(p=>p.id===row.productId); const c=calculate(row,product,settings,domesticForProduct(domestic,product));
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
   const key=`${product.id}:${Number(row.cost)}`;
   if(!groups.has(key))groups.set(key,{product,lines:[]});
-  const grade=conditionKey(row),conditions=CONDITIONS[grade][1];
-  const discount=c.actualDiscount>0?`💸 **${yen(c.actualDiscount)} OFF**\n`:'';
+  const grade=conditionKey(row); usedGrades.add(grade);
+  const discount=c.actualDiscount>0?` · 💸 ${yen(c.actualDiscount)} OFF`:'';
   const label=grade==='sa'?'S/A':CONDITIONS[grade][0];
-  groups.get(key).lines.push({grade,text:`${CONDITION_MARKS[grade]} **${label} — ${yen(c.sale)} / BOX**\n${discount}${conditions}${row.notes?` ${safe(row.notes)}`:''}`});
+  groups.get(key).lines.push({grade,text:`${CONDITION_MARKS[grade]} **${label} — ${yen(c.sale)} / BOX**${discount}${row.notes?`\n↳ ${safe(row.notes)}`:''}`});
  }
  const blocks=[...groups.values()].map(({product,lines})=>{
   const ordered=[...new Map(lines.map(line=>[line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);
   return `✨ **${safe(product.en)} [${safe(product.code)}]**\n\n🏷️ **SUMdex List Price: ${yen(product.price)} / BOX**\n\n${ordered.map(line=>line.text).join('\n\n')}`;
  });
+ const guide=[...usedGrades].sort((a,b)=>CONDITION_ORDER[a]-CONDITION_ORDER[b]).map(grade=>{
+  const label=grade==='sa'?'S/A':CONDITIONS[grade][0];
+  return `${CONDITION_MARKS[grade]} **${label}** — ${CONDITIONS[grade][1]}`;
+ }).join('\n');
  const text=blocks.length?`🔥 **DISCORD-EXCLUSIVE BOX DEALS** 🔥
 
 Special prices available only for our Discord community!
@@ -100,14 +104,15 @@ ${blocks.join('\n\n━━━━━━━━━━━━━━━━━━\n\n')}
 
 ━━━━━━━━━━━━━━━━━━
 
-📸 Photos and videos of the actual condition are available before purchase.
+📋 **Condition Guide**
+${guide}
 
-🎫 **Ready to order or looking for another product?**
-[Open a ticket here](https://discord.com/channels/1540333224570519655/1540439626647609344/1540468517579657359)
+📸 Actual-condition photos and videos are available before purchase.
 
-Preorder requests and product inquiries are also welcome!
+🎫 **Ready to order or looking for another product?** [Open a ticket](https://discord.com/channels/1540333224570519655/1540439626647609344/1540468517579657359)
 
-🚚 Shipping and payment fees will be confirmed separately in your ticket.`:'';
+Preorders and product requests are welcome.
+🚚 Shipping and payment fees are confirmed in the ticket.`:'';
  return {text,errors};
 }
 export function parseCSV(text){
