@@ -56,3 +56,32 @@ test('products without a code generate by name with no empty brackets',()=>{
  assert.ok(generate([row],[{...p,price:0,code:''}],DEFAULTS,{}).errors.length);
  assert.ok(generate([row],[p],DEFAULTS,{}).text.includes('Mega Dream ex [M2a]'));
 });
+
+test('interleaved products with different costs group by product and sort every grade',()=>{
+ const other={...p,id:'other',en:'Other Box'};
+ const rows=[
+  {...row,cost:9000,conditions:['b']},
+  {...row,productId:'other',cost:8000,conditions:['am']},
+  {...row,cost:8000,conditions:['am']},
+  {...row,productId:'other',cost:9000,conditions:['b']},
+  {...row,cost:10000,conditions:['sa']},
+  {...row,productId:'other',cost:10000,conditions:['sa']}
+ ];
+ const out=generate(rows,[p,other],DEFAULTS,{});
+ assert.deepEqual(out.errors,[]);
+ assert.equal(out.text.split('Mega Dream ex').length-1,1);
+ assert.equal(out.text.split('Other Box').length-1,1);
+ const blocks=out.text.split('✨ **').slice(1);
+ for(const block of blocks){
+  assert.ok(block.indexOf('🟢 **S/A**')<block.indexOf('🟡 **AM**'));
+  assert.ok(block.indexOf('🟡 **AM**')<block.indexOf('🔴 **B**'));
+  for(const price of ['¥11,700','¥11,100','¥10,300'])assert.ok(block.includes(price));
+ }
+});
+test('different sale prices and notes survive grouping across costs',()=>{
+ const out=generate([{...row,cost:8000,manualPrice:11000,notes:'Dent left'},
+ {...row,cost:9000,manualPrice:11200,notes:'Dent right'}],[p],DEFAULTS,{});
+ assert.deepEqual(out.errors,[]);
+ for(const value of ['¥11,000','¥11,200','Dent left','Dent right'])assert.ok(out.text.includes(value));
+ assert.equal(out.text.split('Mega Dream ex').length-1,1);
+});
