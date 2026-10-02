@@ -29,3 +29,10 @@ test('duplicate and shipment-specific prices must be reviewed manually',()=>{
  list.rows=[{id:'one',name:'Deluxe Box (M4)',price:1000},{id:'two',name:'Deluxe Box (M4)',price:2000}];
  assert.throws(()=>matchLiveProduct(product,[list]),/候補が複数/);
 });
+
+test('code-free products match by name while ambiguous names need review',()=>{
+ const product={id:'p',ja:'商品',en:'Special Box',code:''};
+ const list={source:'pokemon',rows:[{id:'one',name:'Special Box',price:10000}]};
+ assert.equal(matchLiveProduct(product,[list]).row.id,'one');
+ assert.throws(()=>matchLiveProduct(product,[{...list,rows:[...list.rows,{id:'two',name:'Special Box',price:12000}]}]),/候補が複数/);
+});

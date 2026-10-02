@@ -47,7 +47,7 @@ function calculateWithBasis(row,product,settings,domestic,basis){
  const cost=Number(row.cost), expenses=Number(row.expenses||0);
  const refund=cost/11; const profit=sale==null?null:sale-cost+refund-expenses;
  const errors=[];
- if(!product?.en||!product?.code)errors.push('英語名・型番の対応付けが必要');
+ if(!String(product?.en??'').trim())errors.push('投稿に使う英語の商品名を入力してください');
  if(!validPrice)errors.push('SUMdex価格が未入力：商品名・価格表で登録してください');
  if(!row.cost||!Number.isFinite(cost)||cost<=0||!Number.isFinite(expenses)||expenses<0)errors.push('仕入れ値・費用を確認');
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
@@ -89,7 +89,7 @@ export function generate(rows,catalog,settings,domestic){
  const grades=[...usedGrades].sort((a,b)=>CONDITION_ORDER[a]-CONDITION_ORDER[b]);
  const blocks=[...groups.values()].map(({product,lines})=>{
   const ordered=[...new Map(lines.map(line=>[line.grade+':'+line.text,line])).values()].sort((a,b)=>CONDITION_ORDER[a.grade]-CONDITION_ORDER[b.grade]);
-  return `✨ **${safe(product.en)} [${safe(product.code)}]**\n${ordered.map(line=>`${singleGrade?'':`${CONDITION_MARKS[line.grade]} **${label(line.grade)}**\n`}${line.text}`).join('\n\n')}`;
+  return `✨ **${safe(product.en)}${safe(product.code)?` [${safe(product.code)}]`:""}**\n${ordered.map(line=>`${singleGrade?'':`${CONDITION_MARKS[line.grade]} **${label(line.grade)}**\n`}${line.text}`).join('\n\n')}`;
  });
  const guide=grades.map(grade=>`${CONDITION_MARKS[grade]} **Condition ${label(grade)}**\n${CONDITIONS[grade][1]}`).join('\n\n');
  const header=singleGrade?`${CONDITION_MARKS[grades[0]]} **All boxes: Condition ${label(grades[0])}**`:'Choose your condition below 👇';
