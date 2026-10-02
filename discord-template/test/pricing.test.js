@@ -44,3 +44,15 @@ test('zero discount and excluded rows do not create misleading copy',()=>{
  assert.ok(!out.text.includes('Condition B'));
  assert.equal(generate([],[p],DEFAULTS,{}).text,'');
 });
+
+test('products without a code generate by name with no empty brackets',()=>{
+ for(const code of ['',null,undefined,'   ']){
+  const out=generate([row],[{...p,code}],DEFAULTS,{});
+  assert.deepEqual(out.errors,[]);
+  assert.ok(out.text.includes('✨ **Mega Dream ex**'));
+  assert.ok(!out.text.includes('[]'));
+ }
+ assert.ok(generate([row],[{...p,en:' ',code:''}],DEFAULTS,{}).errors.length);
+ assert.ok(generate([row],[{...p,price:0,code:''}],DEFAULTS,{}).errors.length);
+ assert.ok(generate([row],[p],DEFAULTS,{}).text.includes('Mega Dream ex [M2a]'));
+});
