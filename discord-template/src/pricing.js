@@ -79,7 +79,7 @@ export function generate(rows,catalog,settings,domestic){
  for(const row of rows.filter(r=>r.include)){
   const product=catalog.find(p=>p.id===row.productId),c=calculate(row,product,settings,domesticForProduct(domestic,product));
   if(c.errors.length){errors.push(...c.errors.map(e=>`${product?.ja||'商品未選択'}：${e}`));continue;}
-  const key=`${product.id}:${Number(row.cost)}`,grade=conditionKey(row);
+  const key=product.id,grade=conditionKey(row);
   usedGrades.add(grade);
   if(!groups.has(key))groups.set(key,{product,lines:[]});
   const discount=c.actualDiscount>0?`\n💸 **${yen(c.actualDiscount)} OFF**`:'';
