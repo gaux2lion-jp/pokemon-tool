@@ -15,11 +15,12 @@ permissions:
 
 concurrency:
   group: pokemon-price-check-main
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   check-prices:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
@@ -35,20 +36,26 @@ jobs:
           pip install requests beautifulsoup4 playwright
           playwright install chromium
 
+      - name: X価格の有効期限と取得失敗時のテスト
+        run: python -m unittest -v test_x_freshness
+
       - name: ポケモン買取価格チェックを実行
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-        run: python pokemon_scraper.py
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            python pokemon_scraper.py --no-notify
+          else
+            python pokemon_scraper.py
+          fi
 
       - name: 価格履歴とレポートページを保存
         run: |
           git config user.name "pokemon-bot"
           git config user.email "pokemon-bot@users.noreply.github.com"
-          git stash
-          git pull origin main --rebase
-          git stash pop || echo "No stash to pop"
           git add price_history.json docs/index.html
           git add x_api_state.json 2>/dev/null || true
           git diff --staged --quiet || git commit -m "価格履歴・レポートを更新"
-          git push origin main
+          git pull --rebase origin main
+          git push origin HEAD:main
