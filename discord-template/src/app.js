@@ -1,3 +1,4 @@
+import {ONEPIECE_FEED,parseOnepieceFeed,planOnepieceProducts} from './domestic.js';
 import {createClient} from '@supabase/supabase-js';
 import {SUPABASE_URL,SUPABASE_KEY} from './config.js';
 import {CONDITIONS,DEFAULTS,calculate,recommendPriceBasis,generate,toggleCondition,conditionKey,normalizeConditionRow,yen,nameKey,productNames,domesticForProduct} from './pricing.js';
@@ -28,20 +29,27 @@ async function saveDoc(id,kind,data){
  versions[id]=result.data[0].version;note('共有保存しました。');
 }
 async function loadDomestic(){
+ const combined={}, statuses=[];
  try{
   const res=await fetch('../index.html',{cache:'no-store'});if(!res.ok)throw Error('取得失敗');
   const doc=new DOMParser().parseFromString(await res.text(),'text/html');const result={};let current;
   for(const tr of doc.querySelectorAll('table tr')){
-   if(tr.classList.contains('product-row')){const name=tr.querySelector('strong')?.textContent.trim();current=name?result[name]={shops:[]}:null;}
+   if(tr.classList.contains('product-row')){const name=tr.querySelector('strong')?.textContent.trim();current=name?result[name]={name,category:'pokemon',shops:[]}:null;}
    else if(current){const cells=tr.querySelectorAll('td');if(cells.length<3)continue;
     const price=Number((cells[2].querySelector('.price')?.textContent||cells[2].textContent).match(/[\d,]+/)?.[0].replaceAll(',',''));
     if(price>0)current.shops.push({site:(cells[0].childNodes[0]?.textContent||cells[0].textContent).trim(),price,guarantee:cells[0].querySelector('.condition-badge')?.textContent.trim()||'保証表示なし'});
    }
   }
   if(!Object.keys(result).length)throw Error('商品データがありません');
-  domestic=result;domesticDate=doc.querySelector('.updated')?.textContent.trim()||'更新日時不明';
-  $('sourceStatus').textContent=`国内価格 ${Object.keys(result).length}商品｜${domesticDate}｜保証の状態適用は別途確認`;
- }catch(e){domestic={};$('sourceStatus').textContent='国内価格の取得に失敗。国内価格優先の行は掲載できません。';}
+  Object.assign(combined,result);domesticDate=doc.querySelector('.updated')?.textContent.trim()||'更新日時不明';
+  statuses.push(`ポケモン ${Object.keys(result).length}商品・${domesticDate}`);
+ }catch(e){statuses.push('ポケモン国内価格：取得失敗');}
+ try{
+  const res=await fetch(ONEPIECE_FEED,{cache:'no-store'});if(!res.ok)throw Error('取得失敗');
+  const data=await res.json(), parsed=parseOnepieceFeed(data);Object.assign(combined,parsed);
+  statuses.push(`ワンピース ${Object.keys(parsed).length}商品・更新 ${new Date(data.updated_at).toLocaleString('ja-JP')}`);
+ }catch(e){statuses.push(`ワンピース国内価格：${e.message}`);}
+ domestic=combined;$('sourceStatus').textContent=statuses.join(' ／ ')+'｜表示価格の状態適用は別途確認';
  clearOutput();renderRows();
 }
 function renderRows(){
@@ -161,6 +169,15 @@ $('fetchNotion').onclick=run(async()=>{priceImportRows=[];renderPriceImport();co
 $('priceCSV').onchange=run(async e=>{const file=e.target.files[0];if(!file)return;priceImportRows=[];liveImport=false;renderPriceImport();try{priceImportRows=parsePriceListCSV(await file.text(),catalog);renderPriceImport();note('価格表CSVを読み込みました。商品との対応と価格を確認し、問題なければ「価格を商品表に反映」を押してください。');}finally{e.target.value='';}});
 $('priceImportPreview').onchange=e=>{const row=priceImportRows[Number(e.target.dataset.priceRow)];if(!row)return;row.productId=e.target.value;row.reason=row.productId?'手動で対応を指定':'除外・未照合';renderPriceImport();};
 $('applyPriceList').onclick=run(async()=>{const updates=planPriceUpdates(priceImportRows,catalog);if(!updates.size)throw Error('反映できる商品がありません');if(liveImport){for(const id of updates.keys())if(priceImportRows.filter(row=>row.productId===id).length>1)throw Error('同じ商品にNotionの複数行が選ばれています。1行だけ残してください。');}const sourceUrl=PRICE_SOURCES[$('priceSource').value];if(!sourceUrl)throw Error('価格表を選択してください');if(!confirm(`${updates.size}商品のSUMdex価格と参照先を画面に反映します。商品との対応と金額を確認しましたか？`))return;const checkedAt=new Date().toISOString();catalog=catalog.map(p=>updates.has(p.id)?{...p,price:updates.get(p.id).price,sourceUrl,checkedAt,notionRowId:liveImport?priceImportRows.find(row=>row.productId===p.id)?.notionRowId||'':p.sourceUrl===sourceUrl?p.notionRowId||'':''}:p);catalogDirty=true;priceImportRows=[];liveImport=false;renderPriceImport();renderCatalog();renderRows();clearOutput();$('catalogSaveStatus').textContent=`${updates.size}商品の価格を反映済み・未保存。「商品表を共有保存」を押してください。`;note(`${updates.size}商品の価格を画面に反映しました。「商品表を共有保存」を押すと別のPCでも使えます。`);});
+$('addOnepiece').onclick=run(async()=>{
+ const button=$('addOnepiece');button.disabled=true;
+ try{await loadDomestic();if(!Object.values(domestic).some(e=>e.category==='onepiece'))throw Error('ワンピース国内価格を取得できません。取得状況を確認してください');
+ const [list]=await getLiveLists(['onepiece']);const plan=planOnepieceProducts(list,domestic,catalog,uid);
+ if(!plan.products.length){note(`追加対象がありません。登録済み、またはNotionで一意に照合できません（要確認 ${plan.skipped.length}商品）。`);return;}
+ catalog.push(...plan.products);catalogDirty=true;$('catalogSearch').value='';renderCatalog();renderRows();clearOutput();
+ note(`ワンピース${plan.products.length}商品を追加しました。英語名・型番・価格を確認し「商品表を共有保存」を押してください。要確認 ${plan.skipped.length}商品：${plan.skipped.join('、')}`);
+ }finally{button.disabled=false;}
+});
 $('addProduct').onclick=()=>{$('catalogSearch').value='';catalog.push({id:uid(),ja:'',en:'',code:'',domesticNames:'',price:'',sourceUrl:'',checkedAt:''});catalogDirty=true;clearOutput();renderCatalog();$('products').lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'});};
 $('products').onchange=e=>{const p=catalog.find(p=>p.id===e.target.closest('[data-product]')?.dataset.product);if(!p||!e.target.dataset.field)return;const k=e.target.dataset.field;const next=k==='price'?Number(e.target.value):e.target.value.trim();if(p[k]!==next){p[k]=next;if(k==='price'||k==='sourceUrl')p.checkedAt='';if(k==='sourceUrl'||k==='en'||k==='code')p.notionRowId='';catalogDirty=true;clearOutput();renderRows();renderCatalog();}};
 $('products').onclick=e=>{const target=e.target.closest('[data-check],[data-delete]');if(!target)return;const p=catalog.find(p=>p.id===(target.dataset.check||target.dataset.delete));if(!p)return;if(target.dataset.delete){if(!confirm(`「${p.ja||'未入力の商品'}」を商品表から削除しますか？共有保存で確定します。`))return;catalog=catalog.filter(x=>x!==p);catalogDirty=true;clearOutput();renderRows();renderCatalog();return;}if(!p.sourceUrl||!Number.isFinite(Number(p.price))||Number(p.price)<=0){note('SUMdex価格と価格表URLを入力してから確認してください');return;}p.checkedAt=new Date().toISOString();catalogDirty=true;renderCatalog();note('確認日時を記録しました。「商品表を共有保存」で確定してください。');};
@@ -195,7 +212,7 @@ $('generate').onclick=async()=>{const button=$('generate');button.disabled=true;
 $('copy').onclick=run(async()=>{await verifyPrices({forCopy:true});if(!$('output').value)return;await navigator.clipboard.writeText($('output').value);note('コピーしました。Discordに貼り付けてください。');});
 function downloadCatalogCSV(products,filename){const csv=[CSV_KEYS,...products.map(p=>CSV_KEYS.map(k=>p[k]))].map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('exportCSV').onclick=()=>downloadCatalogCSV(catalog,'sumdex-products.csv');
-$('exportDomesticCSV').onclick=()=>{const unmapped=Object.keys(domestic).filter(name=>!catalog.some(p=>[p.ja,...String(p.domesticNames||'').split('|')].some(s=>nameKey(s)===nameKey(name))));if(!unmapped.length){note('国内価格データに未登録の商品名がありません。国内価格の取得状況を確認してください。');return;}downloadCatalogCSV(unmapped.map(ja=>({ja})),'sumdex-domestic-unmapped.csv');note(`${unmapped.length}件の国内商品名をCSVに書き出しました。販売する商品の英語名・型番・価格を確認して入力してください。`);};
+$('exportDomesticCSV').onclick=()=>{const unmapped=Object.entries(domestic).filter(([key,entry])=>!catalog.some(p=>domesticForProduct({[key]:entry},p))).map(([key,entry])=>({ja:entry.name||key,code:entry.code||'',sourceUrl:entry.category==='onepiece'?PRICE_SOURCES.onepiece:''}));if(!unmapped.length){note('未登録の商品はありません。');return;}downloadCatalogCSV(unmapped,'sumdex-domestic-unmapped.csv');note(`${unmapped.length}件を書き出しました。ワンピースは型番と価格表URLも入力済みです。`);};
 $('importCSV').onchange=run(async e=>{const file=e.target.files[0];if(!file)return;const {products,added,updated,skipped}=planCatalogImport(await file.text(),catalog,uid);if(!added&&!updated){note(`登録対象は0件です。未入力の${skipped}行は取り込みません。`);e.target.value='';return;}if(!confirm(`新規 ${added}件・更新 ${updated}件を画面に取り込みます。未入力の${skipped}行は飛ばします。この後「商品表を共有保存」を押すと別のPCにも反映されます。続けますか？`))return;catalog=products;catalogDirty=true;$('catalogSaveStatus').textContent=`取り込み済み：新規 ${added}件・更新 ${updated}件。まだ共有保存されていません。`;clearOutput();renderCatalog();renderRows();note('商品名を確認し、「商品表を共有保存」を押してください。価格は販売する商品から後で登録できます。');e.target.value='';});
 $('addMember').onclick=run(async()=>{const email=$('memberEmail').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))throw Error('メールアドレスを確認してください');const {error}=await client.from('sumdex_members').insert({email,role:'editor',active:true});if(error)throw error;await loadMembers();note('利用者を登録しました。Google側がテスト中の場合はテストユーザーにも追加してください。');});
 $('members').onclick=run(async e=>{if(!e.target.dataset.member)return;const {error}=await client.from('sumdex_members').update({active:e.target.dataset.active==='true'}).eq('email',e.target.dataset.member);if(error)throw error;await loadMembers();});
@@ -208,3 +225,4 @@ else{
  client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('workspace').hidden=true;$('login').hidden=false;rows=[];catalog=[];clearOutput();}});
  run(start)();
 }
+

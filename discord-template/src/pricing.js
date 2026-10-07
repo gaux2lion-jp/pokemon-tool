@@ -1,3 +1,4 @@
+import {opCode,categoryOf} from './domestic.js';
 export const CONDITIONS = {
  sa:['S・A','**S:** No holes, dents, or visible damage. **A:** Only very minor, barely noticeable imperfections.'],
  am:['AM','Visible dents or holes; best for opening.'],
@@ -12,8 +13,12 @@ export const nameKey=name=>String(name??'').normalize('NFKC').trim().replace(/\s
 export const productNames=product=>[product.ja,product.en,...String(product.domesticNames||'').split('|')].map(s=>s.trim()).filter(Boolean);
 export function domesticForProduct(domestic,product){
  if(!product)return null;
- const names=new Set([product.ja,...String(product.domesticNames||'').split('|')].map(nameKey).filter(Boolean));
- const matched=Object.entries(domestic||{}).filter(([name])=>names.has(nameKey(name)));
+ const names=new Set([product.ja,product.en,...String(product.domesticNames||'').split('|')].map(nameKey).filter(Boolean));
+ const category=categoryOf(product),code=opCode(product.code);
+ const entries=Object.entries(domestic||{}).filter(([,entry])=>!category||!entry.category||entry.category===category);
+ let matched=entries.filter(([name,entry])=>names.has(nameKey(entry.name||name))&&!(code&&entry.code&&code!==entry.code));
+ if(!matched.length&&category==='onepiece'&&code)matched=entries.filter(([,entry])=>entry.category==='onepiece'&&entry.code===code);
+ if(matched.length>1&&matched.some(([,e])=>e.category==='onepiece'))return null;
  return matched.length?{shops:matched.flatMap(([,entry])=>entry.shops||[])}:null;
 }
 export function toggleCondition(current,key,checked){
@@ -117,3 +122,4 @@ export function parseCSV(text){
  for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++;}else quoted=!quoted;}else if(c===','&&!quoted){row.push(field);field='';}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(Boolean))rows.push(row);row=[];field='';}else field+=c;}
  if(quoted)throw Error('CSVの引用符が閉じていません');row.push(field);if(row.some(Boolean))rows.push(row);return rows;
 }
+
