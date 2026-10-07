@@ -1,7 +1,8 @@
 import {nameKey,productNames} from './pricing.js';
+import {opCode} from './domestic.js';
 
 const escapeRegExp=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-const hasCode=(title,code)=>Boolean(code)&&new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(code)}($|[^\\p{L}\\p{N}])`,'iu').test(title);
+const hasCode=(title,code)=>Boolean(code)&&(opCode(code)?opCode(title)===opCode(code):new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(code)}($|[^\\p{L}\\p{N}])`,'iu').test(title));
 const withoutCode=(title,code)=>code?title.replace(new RegExp(`(?:\\s*[([（]\\s*${escapeRegExp(code)}\\s*[)\\]）]|\\s+${escapeRegExp(code)}\\s*$)`,'iu'),'').trim():title;
 export const sourceKey=url=>url?.includes('One-Piece-Card-Price-List')?'onepiece':url?.includes('SUMdex-Price-List')?'pokemon':null;
 
@@ -32,3 +33,4 @@ export function matchLiveRowsForPreview(list,catalog){
  }
  return list.rows.map((row,index)=>({line:index+1,sourceName:row.name,sourceCode:'',price:row.price,productId:assignments.get(row.id)||'',reason:assignments.get(row.id)?'自動照合':'未照合・確認',notionRowId:row.id}));
 }
+
