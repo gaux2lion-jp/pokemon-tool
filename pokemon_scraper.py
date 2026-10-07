@@ -826,6 +826,10 @@ def scrape_x_api(config):
         except Exception:
             pass
 
+    # 日時を持たない旧キャッシュは採用せず、直近24時間から取り直す。
+    if state.get("version") != 2:
+        state = {"version": 2, "newest_ids": {}, "prices": {}}
+    successful_sites = set()
     print(" ⏳ [X公式API       ] EXPO・RISEの新着投稿を確認中...")
     shop_by_username = {
         "kaitoriexpo": "買取EXPO",
@@ -844,8 +848,9 @@ def scrape_x_api(config):
     for username, site_name in shop_by_username.items():
         params = {
             "query": query_by_username[username],
-            "max_results": "10",
-            "tweet.fields": "created_at"
+            "max_results": "100",
+            "tweet.fields": "created_at,attachments",
+            "start_time": (datetime.now(timezone.utc) - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ")
         }
         if newest_ids.get(username):
             params["since_id"] = str(newest_ids[username])
@@ -858,10 +863,14 @@ def scrape_x_api(config):
                 timeout=30
             )
             if response.status_code != 200:
-                detail = response.text.replace("\n", " ")[:180]
-                print(f" ✗ [{site_name:15}] API HTTP {response.status_code}: {detail}")
+                print(f" ✗ [{site_name:15}] API HTTP {response.status_code}・今回の価格掲載を保留")
                 continue
-            posts = response.json().get("data", [])
+            payload = response.json()
+            if payload.get("errors") or payload.get("meta", {}).get("next_token"):
+                print(f" ⚠️ [{site_name:15}] 投稿をすべて確認できないため今回の価格掲載を保留")
+                continue
+            posts = payload.get("data", [])
+            successful_sites.add(site_name)
         except Exception as e:
             print(f" ✗ [{site_name:15}] API通信エラー: {str(e)[:100]}")
             continue
@@ -873,6 +882,13 @@ def scrape_x_api(config):
         # APIは新しい投稿から返す。同一商品の最初の一致を最新価格として採用する。
         for post in posts:
             text = post.get("text", "")
+            if not _x_timestamp_fresh(post.get("created_at")):
+                continue
+            # 画像で価格が更新された可能性がある場合、旧価格を引き継がない。
+            if post.get("attachments", {}).get("media_keys"):
+                for name in list(site_prices):
+                    if name not in seen_products:
+                        site_prices.pop(name, None)
             for product in products:
                 product_name = product.get("display_name")
                 if product_name in seen_products:
@@ -884,10 +900,16 @@ def scrape_x_api(config):
                     seen_products.add(product_name)
                     continue
                 prices = extract_x_prices(text, product, global_exclude)
-                if prices:
-                    site_prices[product_name] = max(prices)
+                if len(set(prices)) == 1:
+                    site_prices[product_name] = {"price": prices[0], "published_at": post["created_at"]}
                     seen_products.add(product_name)
                     matched += 1
+                elif prices or any(normalize_str(k) in normalize_str(text) for k in product.get("keywords", []) if k):
+                    site_prices.pop(product_name, None)
+                    seen_products.add(product_name)
+            if post.get("attachments", {}).get("media_keys"):
+                # 古い投稿からの再採用も止め、画像の目視確認を優先する。
+                seen_products.update(p.get("display_name") for p in products)
         if posts:
             newest_ids[username] = max((str(p.get("id", "0")) for p in posts), key=int)
         print(f" 🔎 [{site_name:15}] 新着{len(posts)}投稿、{matched}件の商品価格に一致、{closed}件受付終了")
@@ -895,23 +917,40 @@ def scrape_x_api(config):
     with open(X_API_STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
-    results = _x_cached_results(state, config)
+    results = [r for r in _x_cached_results(state, config) if r["site"] in successful_sites]
     for site_name in ("買取EXPO", "買取RISE"):
         count = sum(1 for row in results if row["site"] == site_name)
-        print(f" ✓ [{site_name:15}] {count:3}件取得（APIキャッシュ含む）")
+        print(f" ✓ [{site_name:15}] {count:3}件採用（投稿から24時間以内のみ）")
     return results
+
+def _x_timestamp_fresh(value):
+    try:
+        published = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        age = datetime.now(timezone.utc) - published
+        return timedelta(0) <= age <= timedelta(hours=24)
+    except (AttributeError, ValueError, TypeError):
+        return False
 
 def _x_cached_results(state, config):
     product_map = {p.get("display_name"): p for p in config.get("products", [])}
     results = []
     for site_name, site_prices in state.get("prices", {}).items():
         for product_name, price in site_prices.items():
+            if not isinstance(price, dict) or not _x_timestamp_fresh(price.get("published_at")):
+                continue
+            if product_name not in product_map:
+                continue
+            published_at = price["published_at"]
+            price = price.get("price")
+            if not isinstance(price, (int, float)) or isinstance(price, bool) or price <= 0:
+                continue
             product = product_map.get(product_name, {})
             jan_codes = product.get("jan_codes", [])
             results.append({
                 "product_name": product_name,
                 "site": site_name,
                 "price": int(price),
+                "published_at": published_at,
                 "jan_code": jan_codes[0] if jan_codes else None
             })
     return results
@@ -1114,7 +1153,8 @@ def run_all(config):
         print()
 
     generate_html_report(all_results)
-    send_discord_notification(config, changed_items)
+    if "--no-notify" not in sys.argv:
+        send_discord_notification(config, changed_items)
 
 if __name__ == "__main__":
     sys.stdout = AutoLogger(LOG_FILE_PATH)
