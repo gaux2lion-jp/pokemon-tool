@@ -28,3 +28,10 @@ The domestic parser uses the existing generated `docs/index.html` without modify
 Documents use optimistic concurrency: updates include the prior version, and a database trigger requires exactly one version increment. Conflicts do not overwrite other users' changes. Membership is checked live against verified Google-linked users, not user-editable metadata. Public frontend contains no membership email allowlist and no private purchase data.
 
 Refund is a user-selected estimate (`purchase / 11`), not a tax eligibility determination. Zero profit is allowed; negative profit and sale above the SUMdex reference price block generation until adjusted or excluded.
+
+# ワンピース国内価格の連携
+
+商品表の「ワンピース商品をまとめて追加」で、公開Notion価格表と国内買取データを型番で照合して画面へ追加できます。英語名・型番・価格を確認して「商品表を共有保存」を押してください。複数候補や未照合の商品は自動追加しません。
+
+国内価格はポケモンの一覧とワンピースの prices.json を取得します。ワンピースの取得・照合は src/domestic.js に分離しています。OP-09 / op09 の違いを吸収し、カテゴリを跨ぐ照合を避けます。24時間を超えたワンピースデータとX投稿価格は採用しません。一方の取得失敗でも他方は利用できます。
+
