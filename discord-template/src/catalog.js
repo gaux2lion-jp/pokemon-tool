@@ -1,6 +1,6 @@
 import {nameKey,parseCSV} from './pricing.js';
 
-export const CSV_KEYS=['id','ja','en','code','domesticNames','price','sourceUrl','checkedAt','notionRowId'];
+export const CSV_KEYS=['id','ja','en','code','domesticNames','price','sourceUrl','checkedAt','notionRowId','imagePath'];
 
 export function validateCatalog(products){
  const names=new Map();
@@ -15,13 +15,14 @@ export function validateCatalog(products){
   if(p.sourceUrl&&!/^https:\/\//.test(p.sourceUrl))throw Error(`「${p.ja}」：価格表URLを確認してください`);
   if(p.checkedAt&&!Number.isFinite(Date.parse(p.checkedAt)))throw Error(`「${p.ja}」：確認日時を確認してください`);
   if(p.checkedAt&&(!p.price||!p.sourceUrl))throw Error(`「${p.ja}」：確認日時がある商品は価格と価格表URLが必要です`);
+  if(p.imagePath&&!/^[a-zA-Z0-9_/-]+\.webp$/.test(p.imagePath))throw Error('商品画像の登録情報が不正です');
   if(p.notionRowId&&!/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(p.notionRowId))throw Error(`「${p.ja}」：Notion商品IDを確認してください`);
  }
 }
 
 export function planCatalogImport(text,catalog,idFactory){
  const [header,...data]=parseCSV(text.replace(/^\ufeff/,''));
- if(!header||CSV_KEYS.filter(k=>!['domesticNames','notionRowId'].includes(k)).some(k=>!header.includes(k)))throw Error('CSVの列が不足しています。書き出したCSVを使ってください');
+ if(!header||CSV_KEYS.filter(k=>!['domesticNames','notionRowId','imagePath'].includes(k)).some(k=>!header.includes(k)))throw Error('CSVの列が不足しています。書き出したCSVを使ってください');
  const next=structuredClone(catalog),seen=new Set();let added=0,updated=0,skipped=0;
  data.forEach((row,index)=>{
   const p=Object.fromEntries(CSV_KEYS.map(k=>[k,header.includes(k)?(row[header.indexOf(k)]||'').trim():'']));
@@ -38,6 +39,7 @@ export function planCatalogImport(text,catalog,idFactory){
   seen.add(identity);
   const i=next.findIndex(x=>p.id?x.id===p.id:nameKey(x.ja)===nameKey(p.ja));
   if(i>=0){
+   if(!header.includes('imagePath'))p.imagePath=next[i].imagePath||'';
    if(!header.includes('domesticNames'))p.domesticNames=next[i].domesticNames||'';
    if(!header.includes('notionRowId'))p.notionRowId=next[i].notionRowId||'';
    if(next[i].sourceUrl!==p.sourceUrl)p.notionRowId='';
@@ -49,3 +51,4 @@ export function planCatalogImport(text,catalog,idFactory){
  if(added+updated)validateCatalog(next);
  return {products:next,added,updated,skipped};
 }
+

@@ -1,3 +1,4 @@
+import {normalizeImage, imageEditor, renderPostPreview} from './images.js';
 import {ONEPIECE_FEED,parseOnepieceFeed,planOnepieceProducts} from './domestic.js';
 import {createClient} from '@supabase/supabase-js';
 import {SUPABASE_URL,SUPABASE_KEY} from './config.js';
@@ -10,14 +11,17 @@ const note=s=>$('notice').textContent=s;
 const uid=()=>crypto.randomUUID();
 let client,user,members=[],catalog=[],settings={...DEFAULTS},rows=[],domestic={},versions={},draftId=uid(),dirty=false,catalogDirty=false,settingsDirty=false,domesticDate='未取得';
 let savedCatalog='';
+let prepared=null,posting=false,previewRevision=0;
+async function postApi(body){const {data,error}=await client.functions.invoke('sumdex-discord-post',{body});if(error){let msg='通信に失敗しました。';try{msg=(await error.context.json()).error||msg;}catch{}throw Error(msg);}if(data?.error&&!data?.state)throw Error(data.error);return data;}
+
 let priceImportRows=[];
 let liveImport=false;
 let rowPriceStatus={};
 let priceRefreshQueue=Promise.resolve();
 const PRICE_SOURCES={pokemon:'https://nifty-lady-7a0.notion.site/SUMdex-Price-List-1fb5128517868045b62ad27795b0f0cd',onepiece:'https://nifty-lady-7a0.notion.site/SUMdex-One-Piece-Card-Price-List-2ff51285178680e4a1b3d0d1f8e308f3'};
 const blank=()=>({id:uid(),productId:'',cost:'',expenses:0,conditions:['sa'],discounts:{},basis:'auto',manualPrice:'',notes:'',allowLoss:false,include:true});
-const clearOutput=()=>{$('output').value='';$('copy').disabled=true;$('charCount').textContent='';$('outputErrors').textContent='';$('copyHint').textContent='まず価格を確認して本文を作ってください。';};
-const changed=()=>{dirty=true;clearOutput();$('copyHint').textContent='入力を変更したため、本文を作り直してください。';updateFlow();};
+const clearOutput=()=>{previewRevision++;prepared=null;$('postPreview').innerHTML='';$('post').disabled=true;$('approvePost').checked=false;$('charCount').textContent='';$('outputErrors').textContent='';$('copyHint').textContent='価格を確認して投稿内容を表示してください。';};
+const changed=()=>{dirty=true;clearOutput();$('copyHint').textContent='入力を変更したため、確認画面を作り直してください。';updateFlow();};
 const run=fn=>async(...args)=>{try{await fn(...args);}catch(e){note(e.message||String(e));}};
 async function getDoc(id){const {data,error}=await client.from('sumdex_documents').select('*').eq('id',id).maybeSingle();if(error)throw error;return data;}
 async function saveDoc(id,kind,data){
@@ -98,7 +102,7 @@ function renderCatalog(){
  $('productNames').innerHTML=catalog.flatMap(p=>[...productNames(p),p.code].map(name=>`<option value="${esc(name)}${String(p.code??" ").trim()?` [${esc(p.code)}]`:""}"></option>`)).join('');
  const query=nameKey($('catalogSearch').value),visible=catalog.filter(p=>!query||[...productNames(p),p.code].some(n=>nameKey(n).includes(query)));
  $('catalogSummary').textContent=`登録 ${catalog.length}件 ／ 価格確認済 ${catalog.filter(p=>p.checkedAt&&p.price&&p.sourceUrl).length}件 ／ 表示 ${visible.length}件${catalogDirty?' ／ 未保存の変更あり':''}`;
- $('products').innerHTML=visible.map(p=>`<article class="product grid" data-product="${esc(p.id)}"><p class="catalog-title">${esc(p.ja)} ／ ${esc(p.en||'英語名未入力')} <span class="muted">${String(p.code??'').trim()?`[${esc(p.code)}]`:'型番なし'}</span></p>${[['ja','国内買取の表記（日本語など）'],['en','投稿に使う英語名（他サイトの表記でも可）'],['code','型番（任意・ない商品は空欄）'],['domesticNames','国内買取の別表記（複数は | で区切る）'],['price','SUMdex価格（円・後から入力可）'],['sourceUrl','SUMdex価格表URL（後から入力可）']].map(([k,label])=>`<label>${label}<input data-field="${k}" ${k==='price'?'type="number" min="1"':''} value="${esc(p[k])}"></label>`).join('')}<p class="muted">${p.checkedAt&&p.price&&p.sourceUrl?'価格確認済：'+esc(new Date(p.checkedAt).toLocaleString('ja-JP')):'商品名の紐づけを保存できます。販売前にSUMdex価格と価格表URLを確認してください。'}${p.notionRowId?' ／ Notion商品と紐づけ済み':''}${/^https:\/\//.test(p.sourceUrl)?` ／ <a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">この商品の価格表を開く</a>`:''}</p><div class="toolbar"><button data-check="${esc(p.id)}">価格を確認済みにする</button><button data-delete="${esc(p.id)}">この商品を削除</button></div></article>`).join('');
+ $('products').innerHTML=visible.map(p=>`<article class="product grid" data-product="${esc(p.id)}"><p class="catalog-title">${esc(p.ja)} ／ ${esc(p.en||'英語名未入力')} <span class="muted">${String(p.code??'').trim()?`[${esc(p.code)}]`:'型番なし'}</span></p>${[['ja','国内買取の表記（日本語など）'],['en','投稿に使う英語名（他サイトの表記でも可）'],['code','型番（任意・ない商品は空欄）'],['domesticNames','国内買取の別表記（複数は | で区切る）'],['price','SUMdex価格（円・後から入力可）'],['sourceUrl','SUMdex価格表URL（後から入力可）']].map(([k,label])=>`<label>${label}<input data-field="${k}" ${k==='price'?'type="number" min="1"':''} value="${esc(p[k])}"></label>`).join('')}<p class="muted">${p.checkedAt&&p.price&&p.sourceUrl?'価格確認済：'+esc(new Date(p.checkedAt).toLocaleString('ja-JP')):'商品名の紐づけを保存できます。販売前にSUMdex価格と価格表URLを確認してください。'}${p.notionRowId?' ／ Notion商品と紐づけ済み':''}${/^https:\/\//.test(p.sourceUrl)?` ／ <a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">この商品の価格表を開く</a>`:''}</p>${imageEditor(p, SUPABASE_URL)}<div class="toolbar"><button data-check="${esc(p.id)}">価格を確認済みにする</button><button data-delete="${esc(p.id)}">この商品を削除</button></div></article>`).join('');
 }
 async function getLiveLists(sources){const {data,error}=await client.functions.invoke('sumdex-notion-prices',{body:{sources}});if(error||!Array.isArray(data?.lists))throw Error('Notion価格表を取得できません。時間を置いて再試行するか、CSVを取り込んでください。');return data.lists;}
 async function refreshSelectedPrice(rowId,productId){
@@ -185,7 +189,7 @@ $('saveCatalog').onclick=run(async()=>{validateCatalog(catalog);await saveDoc('c
 $('reloadCatalog').onclick=run(async()=>{if(catalogDirty&&!confirm('まだ共有保存していない商品表の変更を破棄して再読込しますか？'))return;const latest=await getDoc('catalog');catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);catalogDirty=false;priceImportRows=[];renderPriceImport();renderCatalog();renderRows();clearOutput();$('catalogSaveStatus').textContent=`共有商品表を再読込しました：${catalog.length}件`;note('最新の共有商品表を読み込みました。');});
 $('discounts').onchange=e=>{const n=Number(e.target.value);if(!Number.isFinite(n)||n<0){renderSettings();return;}settings[e.target.dataset.setting]=n;settingsDirty=true;clearOutput();renderRows();};
 $('saveSettings').onclick=run(async()=>{await saveDoc('settings','settings',settings);settingsDirty=false;});
-async function verifyPrices({forCopy=false}={}){
+async function verifyPrices({forPost=false}={}){
  if(catalogDirty||settingsDirty)throw Error('商品表・割引設定の変更を共有保存してから生成してください');
  const latestSettings=await getDoc('settings');if((latestSettings?.version||0)!==(versions.settings||0)){settings={...DEFAULTS,...latestSettings?.data};versions.settings=latestSettings?.version||0;renderSettings();renderRows();clearOutput();throw Error('共有の割引設定が更新されました。新しい割引と価格を確認し、もう一度生成してください');}
  const latest=await getDoc('catalog');if(JSON.stringify(latest?.data.products||[])!==savedCatalog){catalog=latest?.data.products||[];versions.catalog=latest?.version||0;savedCatalog=JSON.stringify(catalog);renderCatalog();renderRows();clearOutput();throw Error('共有の商品表が更新されました。新しい価格を確認し、もう一度生成してください');}
@@ -203,13 +207,39 @@ async function verifyPrices({forCopy=false}={}){
   const checkedAt=new Date().toISOString();const next=catalog.map(p=>{const update=updates.find(x=>x.id===p.id);return update?{...p,price:update.price,sourceUrl:update.sourceUrl,notionRowId:update.notionRowId,checkedAt}:p;});
   validateCatalog(next);await saveDoc('catalog','catalog',{products:next});catalog=next;savedCatalog=JSON.stringify(catalog);renderCatalog();renderRows();
   const priceChanges=updates.filter(x=>x.old!==x.price);
-  if(forCopy&&priceChanges.length){clearOutput();throw Error(`SUMdex価格が変更されました（${priceChanges.map(x=>`${yen(x.old||0)}→${yen(x.price)}`).join('、')}）。新しい価格を確認して本文を再生成してください。`);}
+  if(forPost&&priceChanges.length){clearOutput();throw Error(`SUMdex価格が変更されました（${priceChanges.map(x=>`${yen(x.old||0)}→${yen(x.price)}`).join('、')}）。新しい価格を確認して本文を再生成してください。`);}
  }
  return updates.filter(x=>x.old!==x.price);
 }
-$('generate').onclick=async()=>{const button=$('generate');button.disabled=true;button.textContent='価格を確認しています…';$('outputErrors').textContent='';clearOutput();$('copyHint').textContent='Notionと国内価格を確認しています。少しお待ちください。';try{const changes=await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);if(out.errors.length){$('outputErrors').textContent=`本文を作れません：${out.errors.join(' ／ ')}`;$('copyHint').textContent='入力や価格を直してから、もう一度生成してください。';$('outputErrors').scrollIntoView({behavior:'smooth',block:'center'});return;}$('output').value=out.text;$('copy').disabled=!out.text;$('charCount').textContent=`${out.text.length.toLocaleString()}文字`;$('copyHint').textContent='本文の金額と状態を確認してからコピーしてください。';
- note(changes.length?`Notionの価格変更を反映しました：${changes.map(x=>`${yen(x.old||0)}→${yen(x.price)}`).join('、')}。本文の価格を確認してください。`:'Notionの最新価格と共有商品表の一致を確認しました。');}catch(e){$('outputErrors').textContent=`本文を作れません：${e.message||String(e)}`;$('copyHint').textContent='入力や商品情報を確認し、もう一度生成してください。';$('outputErrors').scrollIntoView({behavior:'smooth',block:'center'});}finally{button.disabled=false;button.textContent='価格を確認して本文を作る';}};
-$('copy').onclick=run(async()=>{await verifyPrices({forCopy:true});if(!$('output').value)return;await navigator.clipboard.writeText($('output').value);note('コピーしました。Discordに貼り付けてください。');});
+$('generate').onclick=async()=>{
+ if(posting)return;const button=$('generate');button.disabled=true;clearOutput();button.textContent='価格・画像を確認中…';
+ try{await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);if(out.errors.length)throw Error(out.errors.join(' ／ '));
+ const selected=rows.filter(r=>r.include).map(row=>({...row,manualPrice:calculate(row,catalog.find(p=>p.id===row.productId),settings,domesticForProduct(domestic,catalog.find(p=>p.id===row.productId))).sale}));
+ const revision=previewRevision;const data=await postApi({action:'prepare',rows:selected});if(revision!==previewRevision)throw Error('入力が変更されました。もう一度投稿内容を確認してください');prepared=data;
+ renderPostPreview($('postPreview'),data);$('copyHint').textContent='投稿先・価格・状態・画像を確認してください。表示幅は目安です。';$('charCount').textContent=`${data.messages.length}件のメッセージとして投稿します（有効期限10分）。`;
+ $('postPreview').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){$('outputErrors').textContent=e.message;$('copyHint').textContent='内容を確認して、もう一度お試しください。';}finally{button.disabled=false;button.textContent='投稿内容を確認';}
+};
+$('approvePost').onchange=()=>{$('post').disabled=!prepared||!$('approvePost').checked||posting;};
+$('post').onclick=async()=>{
+ if(!prepared||!$('approvePost').checked||posting)return;const snapshot=prepared;posting=true;$('post').disabled=true;$('generate').disabled=true;
+ try{const result=await postApi({action:'post',id:snapshot.id});prepared=null;$('approvePost').checked=false;$('copyHint').textContent=result.state==='sent'?'Discordに投稿しました。':(result.error||'送信結果をDiscordで確認してください。');
+ for(const url of result.links||[]){const a=document.createElement('a');a.href=url;a.textContent='投稿をDiscordで開く';a.target='_blank';a.rel='noopener noreferrer';$('postPreview').append(a);}
+ note(result.state==='sent'?'投稿が完了しました。':'送信結果を確認してください。');
+ }catch(e){prepared=null;$('approvePost').checked=false;$('copyHint').textContent=e.message+' 通信エラーの場合はDiscordを確認してから操作してください。';note(e.message);}
+ finally{posting=false;$('generate').disabled=false;}
+};
+$('saveWebhook').onclick=run(async()=>{const button=$('saveWebhook');button.disabled=true;try{const data=await postApi({action:'configure',url:$('webhookUrl').value.trim()});$('webhookUrl').value='';showDestination(data.destination);clearOutput();note('販売用の投稿先を保存しました。メッセージはまだ送信していません。');}finally{button.disabled=false;}});
+function showDestination(d){$('webhookStatus').textContent=d?`登録済み：${d.name} ／ チャンネルID ${d.channelId}`:'未登録です。販売投稿用のWebhookを登録してください。';}
+$('checkWebhook').onclick=run(async()=>showDestination((await postApi({action:'status'})).destination));
+$('products').addEventListener('change',run(async e=>{if(!e.target.matches('[data-image-file]'))return;await saveProductImage(e.target,e.target.files?.[0]);}));
+$('products').addEventListener('click',run(async e=>{const button=e.target.closest('[data-image-url],[data-image-remove]');if(!button)return;const card=button.closest('[data-product]'),p=catalog.find(p=>p.id===card.dataset.product);if(button.hasAttribute('data-image-remove')){delete p.imagePath;catalogDirty=true;clearOutput();renderCatalog();note('画像の紐づけを外しました。「商品表を共有保存」で確定してください。');return;}
+ button.disabled=true;try{const data=await postApi({action:'image',url:card.querySelector('[data-image-source]').value.trim()});await saveProductImage(button,await (await fetch(data.image)).blob());}finally{button.disabled=false;}}));
+async function saveProductImage(target,file){
+ if(!file)return;const p=catalog.find(p=>p.id===target.closest('[data-product]').dataset.product);note('画像を調整して保存しています…');
+ const blob=await normalizeImage(file),path=uid()+'.webp';const {error}=await client.storage.from('sumdex-products').upload(path,blob,{contentType:'image/webp',upsert:false});if(error)throw Error('画像を保存できません：'+error.message);
+ p.imagePath=path;catalogDirty=true;clearOutput();renderCatalog();note('画像を登録しました。「商品表を共有保存」で商品への紐づけを確定してください。');
+}
 function downloadCatalogCSV(products,filename){const csv=[CSV_KEYS,...products.map(p=>CSV_KEYS.map(k=>p[k]))].map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('exportCSV').onclick=()=>downloadCatalogCSV(catalog,'sumdex-products.csv');
 $('exportDomesticCSV').onclick=()=>{const unmapped=Object.entries(domestic).filter(([key,entry])=>!catalog.some(p=>domesticForProduct({[key]:entry},p))).map(([key,entry])=>({ja:entry.name||key,code:entry.code||'',sourceUrl:entry.category==='onepiece'?PRICE_SOURCES.onepiece:''}));if(!unmapped.length){note('未登録の商品はありません。');return;}downloadCatalogCSV(unmapped,'sumdex-domestic-unmapped.csv');note(`${unmapped.length}件を書き出しました。ワンピースは型番と価格表URLも入力済みです。`);};
@@ -225,4 +255,5 @@ else{
  client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('workspace').hidden=true;$('login').hidden=false;rows=[];catalog=[];clearOutput();}});
  run(start)();
 }
+
 
