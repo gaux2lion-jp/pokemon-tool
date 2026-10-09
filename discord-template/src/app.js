@@ -1,4 +1,4 @@
-import {normalizeImage, imageEditor, renderPostPreview} from './images.js';
+import {normalizeImage, imageEditor, renderPostPreview, renderPostEditor} from './images.js';
 import {ONEPIECE_FEED,parseOnepieceFeed,planOnepieceProducts} from './domestic.js';
 import {createClient} from '@supabase/supabase-js';
 import {SUPABASE_URL,SUPABASE_KEY} from './config.js';
@@ -11,7 +11,7 @@ const note=s=>$('notice').textContent=s;
 const uid=()=>crypto.randomUUID();
 let client,user,members=[],catalog=[],settings={...DEFAULTS},rows=[],domestic={},versions={},draftId=uid(),dirty=false,catalogDirty=false,settingsDirty=false,domesticDate='未取得';
 let savedCatalog='';
-let prepared=null,posting=false,previewRevision=0;
+let prepared=null,posting=false,previewRevision=0,postTextDirty=false;
 async function postApi(body){const {data,error}=await client.functions.invoke('sumdex-discord-post',{body});if(error){let msg='通信に失敗しました。';try{msg=(await error.context.json()).error||msg;}catch{}throw Error(msg);}if(data?.error&&!data?.state)throw Error(data.error);return data;}
 
 let priceImportRows=[];
@@ -20,7 +20,7 @@ let rowPriceStatus={};
 let priceRefreshQueue=Promise.resolve();
 const PRICE_SOURCES={pokemon:'https://nifty-lady-7a0.notion.site/SUMdex-Price-List-1fb5128517868045b62ad27795b0f0cd',onepiece:'https://nifty-lady-7a0.notion.site/SUMdex-One-Piece-Card-Price-List-2ff51285178680e4a1b3d0d1f8e308f3'};
 const blank=()=>({id:uid(),productId:'',cost:'',expenses:0,conditions:['sa'],discounts:{},basis:'auto',manualPrice:'',notes:'',allowLoss:false,include:true});
-const clearOutput=()=>{previewRevision++;prepared=null;$('postPreview').innerHTML='';$('post').disabled=true;$('approvePost').checked=false;$('charCount').textContent='';$('outputErrors').textContent='';$('copyHint').textContent='価格を確認して投稿内容を表示してください。';};
+const clearOutput=()=>{previewRevision++;postTextDirty=false;prepared=null;$('postPreview').innerHTML='';$('post').disabled=true;$('approvePost').checked=false;$('charCount').textContent='';$('outputErrors').textContent='';$('copyHint').textContent='価格を確認して投稿内容を表示してください。';};
 const changed=()=>{dirty=true;clearOutput();$('copyHint').textContent='入力を変更したため、確認画面を作り直してください。';updateFlow();};
 const run=fn=>async(...args)=>{try{await fn(...args);}catch(e){note(e.message||String(e));}};
 async function getDoc(id){const {data,error}=await client.from('sumdex_documents').select('*').eq('id',id).maybeSingle();if(error)throw error;return data;}
@@ -216,13 +216,21 @@ $('generate').onclick=async()=>{
  try{await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);if(out.errors.length)throw Error(out.errors.join(' ／ '));
  const selected=rows.filter(r=>r.include).map(row=>({...row,manualPrice:calculate(row,catalog.find(p=>p.id===row.productId),settings,domesticForProduct(domestic,catalog.find(p=>p.id===row.productId))).sale}));
  const revision=previewRevision;const data=await postApi({action:'prepare',rows:selected});if(revision!==previewRevision)throw Error('入力が変更されました。もう一度投稿内容を確認してください');prepared=data;
- renderPostPreview($('postPreview'),data);$('copyHint').textContent='投稿先・価格・状態・画像を確認してください。表示幅は目安です。';$('charCount').textContent=`${data.messages.length}件のメッセージとして投稿します（有効期限10分）。`;
+ showEditablePreview(data);$('copyHint').textContent='投稿先・価格・状態・画像を確認してください。表示幅は目安です。';$('charCount').textContent=`${data.messages.length}件のメッセージとして投稿します（有効期限10分）。`;
  $('postPreview').scrollIntoView({behavior:'smooth',block:'start'});
  }catch(e){$('outputErrors').textContent=e.message;$('copyHint').textContent='内容を確認して、もう一度お試しください。';}finally{button.disabled=false;button.textContent='投稿内容を確認';}
 };
-$('approvePost').onchange=()=>{$('post').disabled=!prepared||!$('approvePost').checked||posting;};
+function showEditablePreview(data){
+ postTextDirty=false;renderPostPreview($('postPreview'),data);
+ renderPostEditor($('postPreview'),data,()=>{postTextDirty=true;$('approvePost').checked=false;$('post').disabled=true;$('copyHint').textContent='編集中です。「編集を反映して最終確認」を押してください。';},async messages=>{
+  if(posting||!prepared||prepared.id!==data.id)return;
+  const revision=previewRevision;$('approvePost').checked=false;$('post').disabled=true;
+  try{const next=await postApi({action:'revise',id:data.id,messages});if(revision!==previewRevision||!prepared||prepared.id!==data.id)throw Error('入力が変わりました。確認画面を作り直してください');prepared=next;showEditablePreview(next);$('copyHint').textContent='編集を反映しました。最終内容を確認し、確認チェックを入れてください。';}catch(e){note(e.message);}
+ });
+}
+$('approvePost').onchange=()=>{$('post').disabled=!prepared||postTextDirty||!$('approvePost').checked||posting;};
 $('post').onclick=async()=>{
- if(!prepared||!$('approvePost').checked||posting)return;const snapshot=prepared;posting=true;$('post').disabled=true;$('generate').disabled=true;
+ if(!prepared||postTextDirty||!$('approvePost').checked||posting)return;const snapshot=prepared;posting=true;$('post').disabled=true;$('generate').disabled=true;
  try{const result=await postApi({action:'post',id:snapshot.id});prepared=null;$('approvePost').checked=false;$('copyHint').textContent=result.state==='sent'?'Discordに投稿しました。':(result.error||'送信結果をDiscordで確認してください。');
  for(const url of result.links||[]){const a=document.createElement('a');a.href=url;a.textContent='投稿をDiscordで開く';a.target='_blank';a.rel='noopener noreferrer';$('postPreview').append(a);}
  note(result.state==='sent'?'投稿が完了しました。':'送信結果を確認してください。');

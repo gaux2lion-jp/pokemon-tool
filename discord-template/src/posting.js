@@ -1,3 +1,4 @@
+import {categoryOf} from './domestic.js';
 import {calculate,conditionKey,CONDITIONS,yen} from './pricing.js';
 const order={sa:0,am:1,b:2},marks={sa:'🟢 S/A',am:'🟡 AM',b:'🔴 B'};
 const safe=s=>String(s??'').replace(/[\\`*_~|<>@]/g,'').replace(/[\r\n]+/g,' ').trim();
@@ -13,10 +14,10 @@ export function buildMessages(rows,catalog,settings,imageBase){
   if(String(row.notes||'').length>300)throw Error('状態の補足は300文字以内にしてください');
   const grade=conditionKey(row);
   if(!groups.has(p.id))groups.set(p.id,{p,lines:[]});
-  groups.get(p.id).lines.push({grade,text:`**${marks[grade]}**\n${yen(p.price)} → **${yen(c.sale)}**${c.actualDiscount>0?`\n💸 **${yen(c.actualDiscount)} OFF**`:''}${row.notes?`\n${safe(row.notes)}`:''}`});
+  groups.get(p.id).lines.push({grade,text:`${marks[grade]}\n${yen(p.price)} → **${yen(c.sale)}**${c.actualDiscount>0?`\n💸 **${yen(c.actualDiscount)} OFF**`:''}${row.notes?`\n${safe(row.notes)}`:''}`});
  }
  const products=[...groups.values()].map(({p,lines})=>{
-  const title=`✨ ${safe(p.en)}${safe(p.code)?` [${safe(p.code)}]`:''}`;
+  const title=`${categoryOf(p)==='pokemon'?'Pokémon Card · ':categoryOf(p)==='onepiece'?'ONE PIECE Card · ':''}${safe(p.en)}${safe(p.code)?` [${safe(p.code)}]`:''}`;
   const description=[...new Map(lines.map(l=>[l.text,l])).values()].sort((a,b)=>order[a.grade]-order[b.grade]).map(l=>l.text).join('\n\n');
   if(title.length>256||description.length>3000)throw Error(`${p.ja}：説明が長いため行を減らしてください`);
   const embed={title,description,color:0x176451};
@@ -27,5 +28,19 @@ export function buildMessages(rows,catalog,settings,imageBase){
  const batches=[];let embeds=[],chars=footer.title.length+footer.description.length;
  for(const p of products){const n=p.title.length+p.description.length;if(embeds.length>=8||chars+n>5800){batches.push(embeds);embeds=[];chars=footer.title.length+footer.description.length;}embeds.push(p);chars+=n;}
  if(embeds.length)batches.push(embeds);
- return batches.map((batch,i)=>({content:`🔥 **DISCORD-EXCLUSIVE BOX DEALS**\n🇯🇵 **JPY / BOX** · SUMdex list price → **Discord price**${batches.length>1?`\n${i+1} / ${batches.length}`:''}`,embeds:[...batch,footer],allowed_mentions:{parse:[]}}));
+ return batches.map((batch,i)=>({content:`🔥 **DISCORD-EXCLUSIVE BOX DEALS**\n🇯🇵 JPY / BOX · List price → **Discord price**${batches.length>1?`\n${i+1} / ${batches.length}`:''}`,embeds:[...batch,footer],allowed_mentions:{parse:[]}}));
+}
+
+// Accept text edits only. Images, mention rules and message structure stay server-controlled.
+export function applyTextEdits(original,edited){
+ if(!Array.isArray(edited)||edited.length!==original.length)throw Error('投稿の構成が変わりました。確認画面を作り直してください');
+ return original.map((m,i)=>{
+  const e=edited[i];if(!e||typeof e.content!=='string'||e.content.length>2000||!Array.isArray(e.embeds)||e.embeds.length!==m.embeds.length)throw Error('冒頭の文章は2,000文字以内にしてください');
+  let count=0;const embeds=m.embeds.map((embed,j)=>{
+   const x=e.embeds[j];if(!x||typeof x.title!=='string'||!x.title.trim()||x.title.length>256||typeof x.description!=='string'||!x.description.trim()||x.description.length>4096)throw Error('見出しは1〜256文字、本文は1〜4,096文字にしてください');
+   count+=x.title.length+x.description.length;return {...embed,title:x.title,description:x.description};
+  });
+  if(count>6000)throw Error(`メッセージ${i+1}の見出し・本文が合計6,000文字を超えています。短くするか商品を分けてください`);
+  return {...m,content:e.content,embeds,allowed_mentions:{parse:[]}};
+ });
 }

@@ -1,4 +1,4 @@
-import {buildMessages} from '../../src/posting.js';
+import {buildMessages,applyTextEdits} from '../../src/posting.js';
 import {fetchNotionSource} from '../sumdex-notion-prices/notion.js';
 import {matchLiveProduct,sourceKey} from '../../src/live-price.js';
 const headers={'content-type':'application/json','access-control-allow-origin':'https://gaux2lion-jp.github.io','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'POST,OPTIONS','cache-control':'no-store'};
@@ -49,17 +49,28 @@ Deno.serve(async(req:Request)=>{
    const messages=await validate(b.rows),id=crypto.randomUUID();await db('sumdex_posts','POST',{id,owner:user.id,data:{rows:b.rows,messages,destination,configUrl:config.url}});
    return reply(200,{id,messages,destination});
   }
+  if(b.action==='revise'){
+   if(!/^[\da-f-]{36}$/.test(String(b.id)))throw Error('確認画面を作り直してください');
+   const old=(await db('sumdex_posts?id=eq.'+b.id+'&owner=eq.'+user.id))[0];
+   if(!old||old.state!=='ready'||Date.now()-Date.parse(old.created_at)>10*60*1000)throw Error('確認画面の有効期限が切れたか、すでに送信されています。作り直してください');
+   if(old.data.configUrl!==config.url)throw Error('投稿先が変更されました。確認画面を作り直してください');
+   const original=await validate(old.data.rows);
+   if(JSON.stringify(original)!==JSON.stringify(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
+   const messages=applyTextEdits(original,b.messages),id=crypto.randomUUID();
+   await db('sumdex_posts','POST',{id,owner:user.id,data:{...old.data,messages,originalMessages:original}});
+   return reply(200,{id,messages,destination});
+  }
   if(b.action==='post'){
    if(!/^[\da-f-]{36}$/.test(String(b.id)))throw Error('確認画面を作り直してください');
    const path='sumdex_posts?id=eq.'+b.id+'&owner=eq.'+user.id;const post=(await db(path))[0];if(!post)throw Error('確認画面が見つかりません');
    if(post.state!=='ready')return reply(200,{state:post.state,links:post.data.links||[],error:post.state==='sent'?null:'送信済み・送信中、または結果が未確定です。Discordを確認してください。自動再送はしません。'});
    if(Date.now()-Date.parse(post.created_at)>10*60*1000)throw Error('確認画面の有効期限（10分）が切れました。作り直してください');
    if(post.data.configUrl!==config.url)throw Error('投稿先が変わりました。確認画面を作り直してください');
-   const messages=await validate(post.data.rows);if(JSON.stringify(messages)!==JSON.stringify(post.data.messages))throw Error('商品情報が変更されました。確認画面を作り直してください');
+   const messages=await validate(post.data.rows);if(JSON.stringify(messages)!==JSON.stringify(post.data.originalMessages||post.data.messages))throw Error('商品情報が変更されました。確認画面を作り直してください');
    const locked=await db(path+'&state=eq.ready','PATCH',{state:'sending'});if(!locked.length)throw Error('すでに送信処理を開始しています');
    const links:string[]=[];
    try{
-    for(const message of messages){
+    for(const message of post.data.messages){
      const r=await fetch(config.url+'?wait=true',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(message),signal:AbortSignal.timeout(20000)});
      if(!r.ok)throw Error('Discord側で受け付けられませんでした');const result=await r.json();if(!result.id)throw Error('送信結果が確認できません');
      links.push(`https://discord.com/channels/${config.guildId}/${config.channelId}/${result.id}`);
