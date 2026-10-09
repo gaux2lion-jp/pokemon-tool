@@ -14,3 +14,6 @@ grant all on public.sumdex_post_config,public.sumdex_posts to service_role;
 -- Server-only tables intentionally have no client policies.
 create policy server_manages_post_config on public.sumdex_post_config for all to service_role using(true) with check(true);
 create policy server_manages_posts on public.sumdex_posts for all to service_role using(true) with check(true);
+
+-- Posting validates the shared catalog/settings without modifying them.
+grant select on public.sumdex_documents to service_role;
