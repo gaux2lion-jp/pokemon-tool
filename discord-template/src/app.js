@@ -1,3 +1,4 @@
+import {cardSlots,createOfferCard} from './offer-card.js';
 import {normalizeImage, imageEditor, renderPostPreview, renderPostEditor} from './images.js';
 import {ONEPIECE_FEED,parseOnepieceFeed,planOnepieceProducts} from './domestic.js';
 import {createClient} from '@supabase/supabase-js';
@@ -215,17 +216,30 @@ $('generate').onclick=async()=>{
  if(posting)return;const button=$('generate');button.disabled=true;clearOutput();button.textContent='価格・画像を確認中…';
  try{await verifyPrices();await loadDomestic();const out=generate(rows,catalog,settings,domestic);if(out.errors.length)throw Error(out.errors.join(' ／ '));
  const selected=rows.filter(r=>r.include).map(row=>({...row,manualPrice:calculate(row,catalog.find(p=>p.id===row.productId),settings,domesticForProduct(domestic,catalog.find(p=>p.id===row.productId))).sale}));
- const revision=previewRevision;const data=await postApi({action:'prepare',rows:selected});if(revision!==previewRevision)throw Error('入力が変更されました。もう一度投稿内容を確認してください');prepared=data;
- showEditablePreview(data);$('copyHint').textContent='投稿先・価格・状態・画像を確認してください。表示幅は目安です。';$('charCount').textContent=`${data.messages.length}件のメッセージとして投稿します（有効期限10分）。`;
+ const revision=previewRevision;const data=await prepareCardImages(await postApi({action:'prepare',rows:selected}));if(revision!==previewRevision)throw Error('入力が変更されました。もう一度投稿内容を確認してください');prepared=data;
+ showEditablePreview(data);$('copyHint').textContent='投稿するカード画像です。商品名・価格・割引額を確認してください。編集後はカードを再作成します。';$('charCount').textContent=`${data.messages.length}件のメッセージとして投稿します（有効期限10分）。`;
  $('postPreview').scrollIntoView({behavior:'smooth',block:'start'});
  }catch(e){$('outputErrors').textContent=e.message;$('copyHint').textContent='内容を確認して、もう一度お試しください。';}finally{button.disabled=false;button.textContent='投稿内容を確認';}
 };
+async function prepareCardImages(data){
+ const cards=[];const slots=cardSlots(data.messages);
+ for(const [index,{mi,ei,embed}] of slots.entries()){
+  note(`投稿カードを作成中… ${index+1} / ${slots.length}`);
+  const blob=await createOfferCard(embed),path=`${user.id}/post-cards/${uid()}.webp`;
+  const {error}=await client.storage.from('sumdex-products').upload(path,blob,{contentType:'image/webp',upsert:false});
+  if(error)throw Error('投稿カードを保存できません：'+error.message);
+  cards.push({mi,ei,path});
+ }
+ const result=await postApi({action:'cards',id:data.id,cards});
+ note('カード画像を作成しました。まだDiscordには投稿していません。');
+ return result;
+}
 function showEditablePreview(data){
  postTextDirty=false;renderPostPreview($('postPreview'),data);
  renderPostEditor($('postPreview'),data,()=>{postTextDirty=true;$('approvePost').checked=false;$('post').disabled=true;$('copyHint').textContent='編集中です。「編集を反映して最終確認」を押してください。';},async messages=>{
   if(posting||!prepared||prepared.id!==data.id)return;
   const revision=previewRevision;$('approvePost').checked=false;$('post').disabled=true;
-  try{const next=await postApi({action:'revise',id:data.id,messages});if(revision!==previewRevision||!prepared||prepared.id!==data.id)throw Error('入力が変わりました。確認画面を作り直してください');prepared=next;showEditablePreview(next);$('copyHint').textContent='編集を反映しました。最終内容を確認し、確認チェックを入れてください。';}catch(e){note(e.message);}
+  try{const next=await prepareCardImages(await postApi({action:'revise',id:data.id,messages}));if(revision!==previewRevision||!prepared||prepared.id!==data.id)throw Error('入力が変わりました。確認画面を作り直してください');prepared=next;showEditablePreview(next);$('copyHint').textContent='編集を反映しました。最終内容を確認し、確認チェックを入れてください。';}catch(e){note(e.message);}
  });
 }
 $('approvePost').onchange=()=>{$('post').disabled=!prepared||postTextDirty||!$('approvePost').checked||posting;};

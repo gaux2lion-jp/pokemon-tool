@@ -1,4 +1,5 @@
 import {buildMessages,applyTextEdits} from '../../src/posting.js';
+import {cardSlots} from '../../src/offer-card.js';
 import {fetchNotionSource} from '../sumdex-notion-prices/notion.js';
 import {matchLiveProduct,sourceKey} from '../../src/live-price.js';
 const headers={'content-type':'application/json','access-control-allow-origin':'https://gaux2lion-jp.github.io','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'POST,OPTIONS','cache-control':'no-store'};
@@ -49,6 +50,26 @@ Deno.serve(async(req:Request)=>{
    const messages=await validate(b.rows),id=crypto.randomUUID();await db('sumdex_posts','POST',{id,owner:user.id,data:{rows:b.rows,messages,destination,configUrl:config.url}});
    return reply(200,{id,messages,destination});
   }
+  if(b.action==='cards'){
+   if(!/^[\da-f-]{36}$/.test(String(b.id)))throw Error('確認画面を作り直してください');
+   const old=(await db('sumdex_posts?id=eq.'+b.id+'&owner=eq.'+user.id))[0];
+   if(!old||old.state!=='ready'||Date.now()-Date.parse(old.created_at)>10*60*1000)throw Error('確認画面の有効期限が切れました。作り直してください');
+   if(old.data.configUrl!==config.url)throw Error('投稿先が変更されました。確認画面を作り直してください');
+   const original=await validate(old.data.rows);
+   if(JSON.stringify(original)!==JSON.stringify(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
+   const slots=cardSlots(old.data.messages),cardMessages=structuredClone(old.data.messages);
+   if(!Array.isArray(b.cards)||b.cards.length!==slots.length)throw Error('カード画像を作り直してください');
+   for(let i=0;i<slots.length;i++){
+    const {mi,ei}=slots[i],c=b.cards[i];
+    if(c?.mi!==mi||c?.ei!==ei||typeof c.path!=='string'||!c.path.startsWith(user.id+'/post-cards/')||!new RegExp('^[a-f0-9-]{36}/post-cards/[a-f0-9-]{36}\\.webp$').test(c.path))throw Error('カード画像の保存先を確認できません');
+    const url=base+'/storage/v1/object/public/sumdex-products/'+c.path;
+    const image=await fetch(url,{method:'HEAD',redirect:'error',signal:AbortSignal.timeout(10000)});
+    if(!image.ok||!/^image\/webp(;|$)/i.test(image.headers.get('content-type')||'')||Number(image.headers.get('content-length'))>2097152)throw Error('カード画像を読み込めません。作り直してください');
+    cardMessages[mi].embeds[ei]={image:{url}};
+   }
+   const id=crypto.randomUUID();await db('sumdex_posts','POST',{id,owner:user.id,data:{...old.data,cardMessages,originalMessages:original}});
+   return reply(200,{id,messages:old.data.messages,cardMessages,destination});
+  }
   if(b.action==='revise'){
    if(!/^[\da-f-]{36}$/.test(String(b.id)))throw Error('確認画面を作り直してください');
    const old=(await db('sumdex_posts?id=eq.'+b.id+'&owner=eq.'+user.id))[0];
@@ -57,7 +78,8 @@ Deno.serve(async(req:Request)=>{
    const original=await validate(old.data.rows);
    if(JSON.stringify(original)!==JSON.stringify(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
    const messages=applyTextEdits(original,b.messages),id=crypto.randomUUID();
-   await db('sumdex_posts','POST',{id,owner:user.id,data:{...old.data,messages,originalMessages:original}});
+   const {cardMessages:discardedCards,...previous}=old.data;
+   await db('sumdex_posts','POST',{id,owner:user.id,data:{...previous,messages,originalMessages:original}});
    return reply(200,{id,messages,destination});
   }
   if(b.action==='post'){
@@ -70,7 +92,7 @@ Deno.serve(async(req:Request)=>{
    const locked=await db(path+'&state=eq.ready','PATCH',{state:'sending'});if(!locked.length)throw Error('すでに送信処理を開始しています');
    const links:string[]=[];
    try{
-    for(const message of post.data.messages){
+    for(const message of post.data.cardMessages||post.data.messages){
      const r=await fetch(config.url+'?wait=true',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(message),signal:AbortSignal.timeout(20000)});
      if(!r.ok)throw Error('Discord側で受け付けられませんでした');const result=await r.json();if(!result.id)throw Error('送信結果が確認できません');
      links.push(`https://discord.com/channels/${config.guildId}/${config.channelId}/${result.id}`);
