@@ -73,12 +73,13 @@ function renderRows(){
   ${!p?'<p>商品を選ぶと価格を表示します。</p>':`<div class="price-compare"><div><span>SUMdex価格</span><strong>${priceLabel}</strong><small>Discord価格の上限</small></div><div><span>国内最高表示額</span><strong>${c.highest?yen(c.highest):'未確認'}</strong><small>状態減額前・満額保証ではありません</small></div><div><span>自動計算したDiscord価格</span><strong>${c.sale!=null?yen(c.sale):'計算待ち'}</strong><small>状態割引・赤字判定を反映</small></div></div>
   <div class="recommendation"><strong data-recommendation-title>自動おすすめ：${esc(recommendation.title)}</strong><p data-recommendation-reason>${esc(recommendation.reason)}</p></div>
   ${priceStatus?.state==='loading'?'<p class="price-status">NotionのSUMdex価格を確認しています…</p>':''}${priceStatus?.state==='success'?`<p class="price-status success">最新価格を確認しました：${esc(priceStatus.message)}</p>`:''}${priceStatus?.state==='error'?`<p class="price-status error">${esc(priceStatus.message)} <button type="button" data-price-product="${esc(p.id)}">商品名・型番の紐づけを確認</button></p>`:''}
+  ${priceMissing?`<label class="basis-select">手動Discord販売価格（円 / BOX）<input data-field="manualPrice" type="number" min="1" inputmode="numeric" value="${esc(row.manualPrice)}" placeholder="販売価格を入力してください"></label>`:''}
   <label class="basis-select">価格設定<select data-field="basis"><option value="auto" ${row.basis==='auto'?'selected':''}>おすすめを自動選択</option><option value="sumdex" ${row.basis==='sumdex'?'selected':''}>SUMdex価格から状態別に割引</option><option value="domestic" ${row.basis==='domestic'?'selected':''}>国内最高表示額を下回らない</option></select></label>`}</section>
-  <details class="advanced"><summary>費用や説明を調整したいときだけ開く</summary><div class="grid"><label>送料・決済など負担費用（円 / BOX）<input data-field="expenses" type="number" min="0" value="${esc(row.expenses)}"></label><label>販売価格を手動調整（空欄なら自動）<input data-field="manualPrice" type="number" min="1" value="${esc(row.manualPrice)}" placeholder="${c.sale??''}"></label><label>状態の補足（英語・投稿に表示）<input data-field="notes" value="${esc(row.notes)}" placeholder="例：Dent on the top right corner."></label></div><button data-action="reset">この商品の割引額を共有設定に戻す</button></details>
+  <details class="advanced"><summary>費用や説明を調整したいときだけ開く</summary><div class="grid"><label>送料・決済など負担費用（円 / BOX）<input data-field="expenses" type="number" min="0" value="${esc(row.expenses)}"></label>${!priceMissing?`<label>販売価格を手動調整（空欄なら自動）<input data-field="manualPrice" type="number" min="1" value="${esc(row.manualPrice)}" placeholder="${c.sale??''}"></label>`:''}<label>状態の補足（英語・投稿に表示）<input data-field="notes" value="${esc(row.notes)}" placeholder="例：Dent on the top right corner."></label></div><button data-action="reset">この商品の割引額を共有設定に戻す</button></details>
   <div class="metrics">${[['SUMdex',priceLabel],['Discord',c.sale!=null?yen(c.sale):'―'],['還付見込',yen(c.refund)],['還付込み利益',c.profit!=null?yen(c.profit):'―'],['国内表示最高',c.highest?yen(c.highest):'―']].map(([a,b])=>`<div><span>${a}</span><strong>${b}</strong></div>`).join('')}</div>
   ${c.profit<0?`<label class="loss-choice"><input data-field="allowLoss" type="checkbox" ${row.allowLoss?'checked':''}><span><strong>赤字 ${yen(Math.abs(c.profit))}を確認し、それでも掲載する</strong><small>チェックを入れた行だけ、赤字でも投稿文を作成できます。</small></span></label>`:''}
   <p class="warning" data-live-warning>${row.include&&p&&row.cost?c.errors.filter(error=>!(priceMissing&&error.includes('SUMdex価格が未入力'))).map(esc).join(' ／ '):''}</p>
-  ${p&&(priceMissing||priceNeedsCheck)&&priceStatus?.state!=='loading'?`<p class="warning">${priceMissing?'SUMdex価格はまだ未登録です。':'前回の価格確認から24時間以上経過しています。生成時にNotionの価格を再確認します。'} ${priceMissing?`<button data-price-product="${esc(p.id)}">商品情報を確認</button>`:''}</p>`:''}
+  ${p&&(priceMissing||priceNeedsCheck)&&priceStatus?.state!=='loading'?`<p class="warning">${priceMissing?'SUMdex価格は未登録です。手動販売価格を入力すると投稿できます。':'前回の価格確認から24時間以上経過しています。生成時にNotionの価格を再確認します。'} ${priceMissing?`<button data-price-product="${esc(p.id)}">商品情報を確認</button>`:''}</p>`:''}
   <p class="muted">還付見込＝税込仕入れ値 ÷ 11。${c.profit===0?'利益なし。':''}国内価格は買取確約ではありません。</p>
   ${c.highest&&c.sale<c.highest?'<p class="warning">国内販売も比較してください。ダメージ減額・保証条件の確認後に判断します。</p>':''}
   ${d?`<details><summary>店舗ごとの表示価格・保証表示</summary>${d.shops.map(s=>`<p>${esc(s.site)}：${yen(s.price)} ／ ${esc(s.guarantee)} ／ この状態への適用：要確認</p>`).join('')}</details>`:''}</article>`;
@@ -197,9 +198,11 @@ async function verifyPrices({forPost=false}={}){
  const selected=[...new Set(rows.filter(r=>r.include).map(r=>r.productId))].map(id=>catalog.find(p=>p.id===id));
  if(selected.some(p=>!p))throw Error('掲載する商品を選択してください');
  if(!selected.length)return [];
- const sources=[...new Set(selected.flatMap(p=>sourceKey(p.sourceUrl)?[sourceKey(p.sourceUrl)]:['pokemon','onepiece']))];
+ const priced=selected.filter(p=>Number.isFinite(p.price)&&p.price>0);
+ if(!priced.length)return [];
+ const sources=[...new Set(priced.flatMap(p=>sourceKey(p.sourceUrl)?[sourceKey(p.sourceUrl)]:['pokemon','onepiece']))];
  const lists=await getLiveLists(sources),updates=[];
- for(const p of selected){
+ for(const p of priced){
   const {row,list}=matchLiveProduct(p,lists);
   if(!Number.isSafeInteger(row.price)||row.price<=0)throw Error(`「${p.ja}」のNotion価格が不正です`);
   if(p.price!==row.price||p.sourceUrl!==list.url||p.notionRowId!==row.id||!p.checkedAt||Date.now()-Date.parse(p.checkedAt)>86400000)updates.push({id:p.id,old:p.price,price:row.price,sourceUrl:list.url,notionRowId:row.id});
