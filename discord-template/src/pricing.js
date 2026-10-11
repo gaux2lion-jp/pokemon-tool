@@ -48,18 +48,19 @@ function calculateWithBasis(row,product,settings,domestic,basis){
  const highest=domestic?.shops?.length?Math.max(...domestic.shops.map(s=>s.price)):null;
  const suggested=validPrice?Math.max(0,sumdex-discount):null;
  const target=basis==='domestic'&&highest!==null&&suggested!==null?Math.max(highest,suggested):suggested;
- const sale=row.manualPrice!==''&&row.manualPrice!=null?Number(row.manualPrice):target;
+ const manualBase=row.manualBasePrice!==''&&row.manualBasePrice!=null?Number(row.manualBasePrice):null;
+ const sale=!validPrice&&manualBase!==null?manualBase-discount:row.manualPrice!==''&&row.manualPrice!=null?Number(row.manualPrice):target;
  const cost=Number(row.cost), expenses=Number(row.expenses||0);
  const refund=cost/11; const profit=sale==null?null:sale-cost+refund-expenses;
  const errors=[];
  if(!String(product?.en??'').trim())errors.push('投稿に使う英語の商品名を入力してください');
- if(!validPrice&&(row.manualPrice===''||row.manualPrice==null))errors.push('SUMdex未登録の商品です。販売価格を手動入力してください');
+ if(!validPrice&&(row.manualBasePrice===''||row.manualBasePrice==null)&&(row.manualPrice===''||row.manualPrice==null))errors.push('SUMdex未登録の商品です。割引前の基準価格を入力してください');
  if(!row.cost||!Number.isFinite(cost)||cost<=0||!Number.isFinite(expenses)||expenses<0)errors.push('仕入れ値・費用を確認');
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');
  if(profit!==null&&profit < -0.000001&&!row.allowLoss)errors.push('還付込みでも赤字：赤字で掲載する場合は確認チェックを入れてください');
  if(basis==='domestic'&&highest===null)errors.push('国内買取価格を取得できていません');
- return {sale,profit,refund,discount,damage:grade==='sa'?0:discount,grade,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:null,basis};
+ return {sale,profit,refund,discount,damage:grade==='sa'?0:discount,grade,highest,sumdex,errors,actualDiscount:validPrice?sumdex-sale:manualBase!==null?manualBase-sale:null,basis};
 }
 export function recommendPriceBasis(row,product,settings,domestic){
  const candidate={...row,manualPrice:''};
