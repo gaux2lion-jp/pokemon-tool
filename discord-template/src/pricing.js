@@ -53,7 +53,7 @@ function calculateWithBasis(row,product,settings,domestic,basis){
  const refund=cost/11; const profit=sale==null?null:sale-cost+refund-expenses;
  const errors=[];
  if(!String(product?.en??'').trim())errors.push('投稿に使う英語の商品名を入力してください');
- if(!validPrice)errors.push('SUMdex価格が未入力：商品名・価格表で登録してください');
+ if(!validPrice&&(row.manualPrice===''||row.manualPrice==null))errors.push('SUMdex未登録の商品です。販売価格を手動入力してください');
  if(!row.cost||!Number.isFinite(cost)||cost<=0||!Number.isFinite(expenses)||expenses<0)errors.push('仕入れ値・費用を確認');
  if(!Number.isFinite(sale)||sale<=0)errors.push('販売価格を確認');
  if(validPrice&&sale>sumdex)errors.push('SUMdex価格を超過：価格変更または掲載対象外を選択');
@@ -66,7 +66,7 @@ export function recommendPriceBasis(row,product,settings,domestic){
  const sumdex=calculateWithBasis(candidate,product,settings,domestic,'sumdex');
  const domesticFloor=calculateWithBasis(candidate,product,settings,domestic,'domestic');
  const valid=result=>Number.isFinite(result.sale)&&result.sale>0&&result.profit>=0&&(!Number.isFinite(result.sumdex)||result.sale<=result.sumdex);
- if(!Number.isFinite(sumdex.sumdex)||sumdex.sumdex<=0)return {basis:'sumdex',status:'waiting',title:'SUMdex価格の確認待ち',reason:'商品を選ぶとNotion価格表を確認します。',sumdex,domesticFloor};
+ if(!Number.isFinite(sumdex.sumdex)||sumdex.sumdex<=0)return {basis:'sumdex',status:'caution',title:'SUMdex未登録：販売価格を手動入力',reason:'SUMdexの価格上限はありません。販売価格を入力すれば投稿できます。',sumdex,domesticFloor};
  if(valid(sumdex)&&(sumdex.highest===null||sumdex.sale>=sumdex.highest))return {basis:'sumdex',status:'ready',title:'SUMdexから割引がおすすめ',reason:sumdex.highest===null?'国内価格が未確認のため、SUMdex価格から状態別に値引きします。':'割引後も国内最高表示額以上で、還付込み利益も残ります。',sumdex,domesticFloor};
  if(valid(domesticFloor)&&domesticFloor.sale<=domesticFloor.sumdex)return {basis:'domestic',status:'ready',title:'国内最高表示額を下回らない設定がおすすめ',reason:'SUMdexの上限内で国内最高表示額を維持できます。国内買取は状態による減額があるため確約ではありません。',sumdex,domesticFloor};
  if(valid(sumdex))return {basis:'sumdex',status:'caution',title:'SUMdexから割引を使用',reason:'国内最高表示額の方が高いため国内販売も比較してください。ただし、国内買取は状態による減額があり満額保証ではありません。',sumdex,domesticFloor};
@@ -88,7 +88,7 @@ export function generate(rows,catalog,settings,domestic){
   usedGrades.add(grade);
   if(!groups.has(key))groups.set(key,{product,lines:[]});
   const discount=c.actualDiscount>0?`\n💸 **${yen(c.actualDiscount)} OFF**`:'';
-  groups.get(key).lines.push({grade,text:`${yen(product.price)} → **${yen(c.sale)}**${discount}${row.notes?`\n↳ ${safe(row.notes)}`:''}`});
+  groups.get(key).lines.push({grade,text:`${Number(product.price)>0?`${yen(product.price)} → `:''}**${yen(c.sale)}**${discount}${row.notes?`\n↳ ${safe(row.notes)}`:''}`});
  }
  const singleGrade=usedGrades.size===1;
  const grades=[...usedGrades].sort((a,b)=>CONDITION_ORDER[a]-CONDITION_ORDER[b]);
