@@ -18,7 +18,7 @@ export function buildMessages(rows,catalog,settings,imageBase){
  }
  const products=[...groups.values()].map(({p,lines})=>{
   const title=`${categoryOf(p)==='pokemon'?'Pokémon Card · ':categoryOf(p)==='onepiece'?'ONE PIECE Card · ':''}${safe(p.en)}${safe(p.code)?` [${safe(p.code)}]`:''}`;
-  const description=`SUMdex List: ${yen(p.price)}\n\n`+[...new Map(lines.map(l=>[l.text,l])).values()].sort((a,b)=>order[a.grade]-order[b.grade]).map(l=>l.text).join('\n');
+  const description=(Number.isFinite(p.price)&&p.price>0?`SUMdex List: ${yen(p.price)}\n\n`:'')+[...new Map(lines.map(l=>[l.text,l])).values()].sort((a,b)=>order[a.grade]-order[b.grade]).map(l=>l.text).join('\n');
   if(title.length>256||description.length>3000)throw Error(`${p.ja}：説明が長いため行を減らしてください`);
   const embed={title,description,color:0x176451};
   if(p.imagePath){if(!/^[a-zA-Z0-9_/-]+\.webp$/.test(p.imagePath))throw Error('商品画像を再登録してください');embed.thumbnail={url:imageBase+p.imagePath};}
