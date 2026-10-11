@@ -3,6 +3,7 @@ import {cardSlots} from '../../src/offer-card.js';
 import {fetchNotionSource} from '../sumdex-notion-prices/notion.js';
 import {matchLiveProduct,sourceKey} from '../../src/live-price.js';
 const headers={'content-type':'application/json','access-control-allow-origin':'https://gaux2lion-jp.github.io','access-control-allow-headers':'authorization,apikey,content-type,x-client-info','access-control-allow-methods':'POST,OPTIONS','cache-control':'no-store'};
+const stableJson=(value:any):string=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 const reply=(status:number,data:unknown)=>new Response(JSON.stringify(data),{status,headers});
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
@@ -57,7 +58,7 @@ Deno.serve(async(req:Request)=>{
    if(!old||old.state!=='ready'||Date.now()-Date.parse(old.created_at)>10*60*1000)throw Error('確認画面の有効期限が切れました。作り直してください');
    if(old.data.configUrl!==config.url)throw Error('投稿先が変更されました。確認画面を作り直してください');
    const original=await validate(old.data.rows);
-   if(JSON.stringify(original)!==JSON.stringify(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
+   if(stableJson(original)!==stableJson(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
    const slots=cardSlots(old.data.messages),cardMessages=structuredClone(old.data.messages);
    if(!Array.isArray(b.cards)||b.cards.length!==slots.length)throw Error('カード画像を作り直してください');
    for(let i=0;i<slots.length;i++){
@@ -77,7 +78,7 @@ Deno.serve(async(req:Request)=>{
    if(!old||old.state!=='ready'||Date.now()-Date.parse(old.created_at)>10*60*1000)throw Error('確認画面の有効期限が切れたか、すでに送信されています。作り直してください');
    if(old.data.configUrl!==config.url)throw Error('投稿先が変更されました。確認画面を作り直してください');
    const original=await validate(old.data.rows);
-   if(JSON.stringify(original)!==JSON.stringify(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
+   if(stableJson(original)!==stableJson(old.data.originalMessages||old.data.messages))throw Error('商品情報が変わりました。確認画面を作り直してください');
    const messages=applyTextEdits(original,b.messages),id=crypto.randomUUID();
    const {cardMessages:discardedCards,...previous}=old.data;
    await db('sumdex_posts','POST',{id,owner:user.id,data:{...previous,messages,originalMessages:original}});
@@ -89,7 +90,7 @@ Deno.serve(async(req:Request)=>{
    if(post.state!=='ready')return reply(200,{state:post.state,links:post.data.links||[],error:post.state==='sent'?null:'送信済み・送信中、または結果が未確定です。Discordを確認してください。自動再送はしません。'});
    if(Date.now()-Date.parse(post.created_at)>10*60*1000)throw Error('確認画面の有効期限（10分）が切れました。作り直してください');
    if(post.data.configUrl!==config.url)throw Error('投稿先が変わりました。確認画面を作り直してください');
-   const messages=await validate(post.data.rows);if(JSON.stringify(messages)!==JSON.stringify(post.data.originalMessages||post.data.messages))throw Error('商品情報が変更されました。確認画面を作り直してください');
+   const messages=await validate(post.data.rows);if(stableJson(messages)!==stableJson(post.data.originalMessages||post.data.messages))throw Error('商品情報が変更されました。確認画面を作り直してください');
    const locked=await db(path+'&state=eq.ready','PATCH',{state:'sending'});if(!locked.length)throw Error('すでに送信処理を開始しています');
    const links:string[]=[];
    try{
