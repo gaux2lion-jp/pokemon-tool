@@ -41,9 +41,10 @@ Deno.serve(async(req:Request)=>{
    const docs=await db('sumdex_documents?id=in.(catalog,settings)');const catalog=docs.find((d:any)=>d.id==='catalog')?.data.products||[],settings=docs.find((d:any)=>d.id==='settings')?.data||{};
    if(!Array.isArray(rows)||!rows.length||rows.length>300)throw Error('掲載行を確認してください');
    const selected=[...new Set(rows.map(r=>r.productId))].map(id=>catalog.find((p:any)=>p.id===id));if(selected.some(p=>!p))throw Error('商品が削除されました。確認画面を作り直してください');
-   const sources=[...new Set(selected.flatMap(p=>sourceKey(p.sourceUrl)?[sourceKey(p.sourceUrl)]:['pokemon','onepiece']))];
+   const priced=selected.filter((p:any)=>Number.isFinite(p.price)&&p.price>0);
+   const sources=[...new Set(priced.flatMap((p:any)=>sourceKey(p.sourceUrl)?[sourceKey(p.sourceUrl)]:['pokemon','onepiece']))];
    const lists=await Promise.all(sources.map(s=>fetchNotionSource(s)));
-   for(const p of selected){const hit=matchLiveProduct(p,lists);if(hit.row.price!==p.price)throw Error('SUMdex価格が変更されました。価格を確認してプレビューを作り直してください');}
+   for(const p of priced){const hit=matchLiveProduct(p,lists);if(hit.row.price!==p.price)throw Error('SUMdex価格が変更されました。価格を確認してプレビューを作り直してください');}
    return buildMessages(rows,catalog,settings,base+'/storage/v1/object/public/sumdex-products/');
   };
   if(b.action==='prepare'){
