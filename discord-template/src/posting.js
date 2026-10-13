@@ -28,7 +28,7 @@ export function buildMessages(rows,catalog,settings,imageBase){
  const batches=[];let embeds=[],chars=footer.title.length+footer.description.length;
  for(const p of products){const n=p.title.length+p.description.length;if(embeds.length>=8||chars+n>5800){batches.push(embeds);embeds=[];chars=footer.title.length+footer.description.length;}embeds.push(p);chars+=n;}
  if(embeds.length)batches.push(embeds);
- return batches.map((batch,i)=>({content:`${i===0?'🔥 **DISCORD-EXCLUSIVE BOX DEALS**\n🇯🇵 JPY / BOX · **Discord price** · −Discount': '🇯🇵 SUMdex · Discord Offers'}${batches.length>1?`\n${i+1} / ${batches.length}`:''}`,embeds:i===batches.length-1?[...batch,footer]:batch,allowed_mentions:{parse:[]}}));
+ return batches.map((batch,i)=>({content:`${i===0?'🔥 **DISCORD-EXCLUSIVE BOX DEALS**\n🇯🇵 JPY / BOX · **Discord price** · −Discount': '🇯🇵 SUMdex · Discord Offers'}${batches.length>1?`\n${i+1} / ${batches.length}`:''}${i===batches.length-1?'\n\n@everyone':''}`,embeds:i===batches.length-1?[...batch,footer]:batch,allowed_mentions:{parse:i===batches.length-1?['everyone']:[]}}));
 }
 
 // Accept text edits only. Images, mention rules and message structure stay server-controlled.
@@ -41,6 +41,7 @@ export function applyTextEdits(original,edited){
    count+=x.title.length+x.description.length;return {...embed,title:x.title,description:x.description};
   });
   if(count>6000)throw Error(`メッセージ${i+1}の見出し・本文が合計6,000文字を超えています。短くするか商品を分けてください`);
-  return {...m,content:e.content,embeds,allowed_mentions:{parse:[]}};
+  const isLast=i===original.length-1;const content=isLast?e.content.replace(/\s*@everyone\s*/g,'').trimEnd()+'\n\n@everyone':e.content.replace(/\s*@everyone\s*/g,'');
+  return {...m,content,embeds,allowed_mentions:{parse:isLast?['everyone']:[]}};
  });
 }
