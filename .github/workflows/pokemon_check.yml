@@ -10,6 +10,8 @@ on:
       - config.json
       - pokemon_scraper.py
       - price_resilience.py
+      - discord_notifications.py
+      - test_discord_notifications.py
       - test_homura.py
       - test_price_resilience.py
       - test_x_freshness.py
@@ -46,7 +48,7 @@ jobs:
 
       - name: X価格の有効期限と取得失敗時のテスト
         run: |
-          python -m unittest -v test_x_freshness test_homura test_price_resilience
+          python -m unittest -v test_x_freshness test_homura test_price_resilience test_discord_notifications
           python -m unittest discover -s tests -v
 
       - name: ポケモン買取価格チェックを実行

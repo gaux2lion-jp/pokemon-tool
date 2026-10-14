@@ -12,6 +12,7 @@ import unicodedata
 import logging
 import urllib.parse
 import html as html_module
+from discord_notifications import build_change_messages, send_messages
 from price_resilience import (reconcile_prices, load_previous, report_payload, atomic_json, atomic_text,
                               observation_html, failure_summary, RESILIENCE_CSS, display_time)
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1162,44 +1163,23 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
+def build_discord_messages(changed_items, report_url=None):
+    return build_change_messages(
+        changed_items, now_jst().strftime('%Y-%m-%d %H:%M'),
+        report_url or "https://gaux2lion-jp.github.io/pokemon-tool/",
+    )
+
+
 def send_discord_notification(config, changed_items):
-    if not changed_items:
+    messages = build_discord_messages(changed_items, config.get("report_url"))
+    if not messages:
         print("\n ℹ️ 前回実行時から価格の変化がなかったため、Discord通知はスキップしました。")
         return
-
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or config.get("discord_webhook_url")
     if not webhook_url:
         print(" ⚠️ DiscordのWebhook URLが設定されていないため、通知をスキップします。")
         return
-
-    report_url = config.get("report_url", "https://gaux2lion-jp.github.io/pokemon-tool/")
-    now_str = now_jst().strftime('%Y-%m-%d %H:%M')
-
-    content = f"📦 **買取価格チェック（{now_str}）**\n\n"
-    content += "🔔 **価格が変わった商品**\n"
-    
-    max_display = 30
-    for i, item in enumerate(changed_items):
-        if i >= max_display:
-            content += f"など、他 {len(changed_items) - max_display} 件の変動あり\n"
-            break
-        
-        icon = "📈" if item['diff'] > 0 else "📉"
-        sign = "+" if item['diff'] > 0 else ""
-        content += f"{icon} {item['product']}：{item['price']:,}円 （{item['site']}） {sign}{item['diff']:,}円\n"
-
-    content += f"\n📋 **全商品・全サイトの詳細一覧はこちら**\n{report_url}"
-
-    if len(content) > 1900:
-        content = content[:1900] + f"...\n\n📋 **続き・詳細一覧はこちら**\n{report_url}"
-
-    payload = {"content": content}
-    try:
-        response = requests.post(webhook_url, json=payload)
-        response.raise_for_status()
-        print(" ✓ Discordへ更新完了の通知を送信しました！")
-    except Exception as e:
-        print(f" ❌ Discord通知エラー: {e}")
+    return send_messages(webhook_url, messages)
 
 def run_all(config):
     print(f"\n{'='*60}")
