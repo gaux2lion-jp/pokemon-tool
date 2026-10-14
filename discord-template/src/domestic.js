@@ -9,13 +9,28 @@ export function parseOnepieceFeed(data,now=Date.now()){
  if(!Number.isFinite(age)||age< -300000||age>86400000)throw Error('ワンピース国内価格が24時間以上更新されていません');
  const result={};
  for(const row of data.results){
-  if(!row.product_display_name||!Number.isFinite(row.price)||row.price<=0)continue;
+  if(row?.stale||!row?.product_display_name||!Number.isFinite(row.price)||row.price<=0)continue;
   if(row.published_at){const age=now-Date.parse(row.published_at);if(!Number.isFinite(age)||age<0||age>86400000)continue;}
   const key='onepiece:'+row.product_display_name;
   const entry=result[key]??={name:row.product_display_name,category:'onepiece',code:opCode(row.product_display_name),shops:[]};
   entry.shops.push({site:row.site,price:row.price,guarantee:row.variant||'状態・適用条件は要確認',url:row.url});
  }
  return result;
+}
+
+// Retained reference rows are visible in the report, but are not current quotes.
+export function parsePokemonReport(doc){
+ const result={};let current;
+ for(const tr of doc.querySelectorAll('table tr')){
+  if(tr.classList.contains('product-row')){const name=tr.querySelector('strong')?.textContent.trim();current=name?result[name]={name,category:'pokemon',shops:[]}:null;}
+  else if(current&&!tr.classList.contains('stale-row')){
+   const cells=tr.querySelectorAll('td');if(cells.length<3)continue;
+   const amount=(cells[2].querySelector('.price')?.textContent||cells[2].textContent).match(/^\s*(?:[¥￥]\s*)?([\d,]+)\s*円/);
+   const price=Number(amount?.[1].replaceAll(',',''));
+   if(price>0)current.shops.push({site:(cells[0].childNodes[0]?.textContent||cells[0].textContent).trim(),price,guarantee:cells[0].querySelector('.condition-badge')?.textContent.trim()||'保証表示なし'});
+  }
+ }
+ return Object.fromEntries(Object.entries(result).filter(([,entry])=>entry.shops.length));
 }
 
 export function planOnepieceProducts(list,domestic,catalog,idFactory){
@@ -31,3 +46,4 @@ export function planOnepieceProducts(list,domestic,catalog,idFactory){
  }
  return {products,skipped};
 }
+

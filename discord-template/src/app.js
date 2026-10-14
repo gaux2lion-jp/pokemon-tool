@@ -1,6 +1,6 @@
 import {cardSlots,createOfferCard} from './offer-card.js';
 import {normalizeImage, imageEditor, renderPostPreview, renderPostEditor} from './images.js';
-import {ONEPIECE_FEED,parseOnepieceFeed,planOnepieceProducts} from './domestic.js';
+import {ONEPIECE_FEED,parseOnepieceFeed,parsePokemonReport,planOnepieceProducts} from './domestic.js';
 import {createClient} from '@supabase/supabase-js';
 import {SUPABASE_URL,SUPABASE_KEY} from './config.js';
 import {CONDITIONS,DEFAULTS,calculate,recommendPriceBasis,generate,toggleCondition,conditionKey,normalizeConditionRow,yen,nameKey,productNames,domesticForProduct} from './pricing.js';
@@ -37,14 +37,7 @@ async function loadDomestic(){
  const combined={}, statuses=[];
  try{
   const res=await fetch('../index.html',{cache:'no-store'});if(!res.ok)throw Error('取得失敗');
-  const doc=new DOMParser().parseFromString(await res.text(),'text/html');const result={};let current;
-  for(const tr of doc.querySelectorAll('table tr')){
-   if(tr.classList.contains('product-row')){const name=tr.querySelector('strong')?.textContent.trim();current=name?result[name]={name,category:'pokemon',shops:[]}:null;}
-   else if(current){const cells=tr.querySelectorAll('td');if(cells.length<3)continue;
-    const price=Number((cells[2].querySelector('.price')?.textContent||cells[2].textContent).match(/[\d,]+/)?.[0].replaceAll(',',''));
-    if(price>0)current.shops.push({site:(cells[0].childNodes[0]?.textContent||cells[0].textContent).trim(),price,guarantee:cells[0].querySelector('.condition-badge')?.textContent.trim()||'保証表示なし'});
-   }
-  }
+  const doc=new DOMParser().parseFromString(await res.text(),'text/html');const result=parsePokemonReport(doc);
   if(!Object.keys(result).length)throw Error('商品データがありません');
   Object.assign(combined,result);domesticDate=doc.querySelector('.updated')?.textContent.trim()||'更新日時不明';
   statuses.push(`ポケモン ${Object.keys(result).length}商品・${domesticDate}`);
@@ -280,5 +273,6 @@ else{
  client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('workspace').hidden=true;$('login').hidden=false;rows=[];catalog=[];clearOutput();}});
  run(start)();
 }
+
 
 

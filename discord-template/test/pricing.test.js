@@ -9,7 +9,7 @@ test('automatic price recommendation explains the safe choice',()=>{
  const floor=recommendPriceBasis({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:11750}]});assert.equal(floor.basis,'domestic');assert.equal(calculate({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:11750}]}).sale,11750);
  const higherDomestic=recommendPriceBasis({...row,basis:'auto'},p,DEFAULTS,{shops:[{price:12200}]});assert.equal(higherDomestic.basis,'sumdex');assert.equal(higherDomestic.status,'caution');
  const loss=recommendPriceBasis({...row,basis:'auto',cost:14000},p,DEFAULTS,{shops:[{price:11500}]});assert.equal(loss.status,'stop');
- const waiting=recommendPriceBasis({...row,basis:'auto'},{...p,price:''},DEFAULTS,{shops:[{price:11500}]});assert.equal(waiting.status,'waiting');
+ const manual=recommendPriceBasis({...row,basis:'auto'},{...p,price:''},DEFAULTS,{shops:[{price:11500}]});assert.equal(manual.status,'caution');assert.match(manual.title,/販売価格を手動入力/);
 });
 test('negative requires explicit permission and zero is allowed',()=>{assert.ok(calculate({...row,manualPrice:9999},p,DEFAULTS,{}).errors.some(e=>e.includes('赤字')));assert.equal(calculate({...row,manualPrice:9999,allowLoss:true},p,DEFAULTS,{}).errors.length,0);assert.equal(calculate({...row,manualPrice:10000},p,DEFAULTS,{}).errors.length,0);});
 test('explicitly approved loss can be generated',()=>{const out=generate([{...row,cost:14000,allowLoss:true}],[p],DEFAULTS,{});assert.equal(out.errors.length,0);assert.match(out.text,/Mega Dream ex/);assert.equal(recommendPriceBasis({...row,cost:14000,allowLoss:true},p,DEFAULTS,{}).status,'caution');});
@@ -84,4 +84,10 @@ test('different sale prices and notes survive grouping across costs',()=>{
  assert.deepEqual(out.errors,[]);
  for(const value of ['¥11,000','¥11,200','Dent left','Dent right'])assert.ok(out.text.includes(value));
  assert.equal(out.text.split('Mega Dream ex').length-1,1);
+});
+
+
+test('missing SUMdex reference accepts an explicit manual base price with the grade discount',()=>{
+ const value=calculate({...row,manualBasePrice:12000},{...p,price:''},DEFAULTS,{});
+ assert.equal(value.sale,11900);assert.deepEqual(value.errors,[]);
 });
