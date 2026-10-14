@@ -11,6 +11,9 @@ import sys
 import unicodedata
 import logging
 import urllib.parse
+import html as html_module
+from price_resilience import (reconcile_prices, load_previous, report_payload, atomic_json, atomic_text,
+                              observation_html, failure_summary, RESILIENCE_CSS, display_time)
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.adapters import HTTPAdapter
@@ -28,6 +31,7 @@ HISTORY_PATH = os.path.join(BASE_DIR, "price_history.json")
 REPORT_DIR = os.path.join(BASE_DIR, "docs")
 LOG_FILE_PATH = os.path.join(BASE_DIR, "latest_run.log")
 X_API_STATE_PATH = os.path.join(BASE_DIR, "x_api_state.json")
+SITE_STATUS = {}
 
 JST = timezone(timedelta(hours=9))
 
@@ -285,7 +289,7 @@ def scrape_base(config):
                                         if 3000 <= price <= 5000000:
                                             add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                                 except Exception:
-                                    pass
+                                    SITE_STATUS[site_name] = {"status": "partial", "message": "一部商品の解析に失敗しました"}
                                 break
                 if results:
                     break
@@ -294,6 +298,7 @@ def scrape_base(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -330,6 +335,7 @@ def scrape_runto(config):
                                 break
                 time.sleep(0.2)
             except Exception:
+                SITE_STATUS[site_name] = {"status": "partial", "message": "一部ページの取得に失敗しました"}
                 break
 
         for product_url, product in target_items:
@@ -340,12 +346,13 @@ def scrape_runto(config):
                     add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product))
                 time.sleep(0.2)
             except Exception:
-                pass
+                SITE_STATUS[site_name] = {"status": "partial", "message": "一部商品の取得に失敗しました"}
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -394,49 +401,139 @@ def scrape_newenoking(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
 # 4. 買取ホムラ
-def scrape_homura(config):
-    site_name = "買取ホムラ"
-    base_url = "https://kaitori-homura.com/products?q%5Bproduct_sub_category_product_category_id_eq%5D=14"
+HOMURA_API_URL = "https://api.kaitori-homura.com/api/v1/products"
+
+
+def fetch_homura_products(subcategory_id):
+    """Read the same unauthenticated product API as Homura's public storefront.
+
+    A partial/inconsistent crawl must fail, so callers never publish an
+    incomplete page as a successful replacement for the last good snapshot.
+    """
+    rows, seen = [], set()
+    expected_count = expected_pages = None
+    expected_category = {128: "シュリンク有り", 130: "スペシャルセット",
+                         132: "ワンピース 未開封BOX"}[subcategory_id]
+    with requests.Session() as session:
+        session.headers.update({"Accept": "application/json",
+                                "User-Agent": "Mozilla/5.0",
+                                "Accept-Language": "ja"})
+        retry = Retry(total=3, connect=3, read=3, backoff_factor=1,
+                      status_forcelist=(429, 500, 502, 503, 504),
+                      allowed_methods=frozenset(("GET",)))
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+        for page in range(1, 21):
+            response = session.get(HOMURA_API_URL, params={
+                "product_category_id": 14,
+                "product_sub_category_id": subcategory_id, "page": page,
+            }, timeout=(10, 30))
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+                raise ValueError("ホムラの商品API形式を確認してください")
+            products, meta = payload["data"], payload.get("meta")
+            if not isinstance(meta, dict):
+                raise ValueError("ホムラのページ情報がありません")
+            total, pages, current = (meta.get(k) for k in
+                                     ("total_count", "total_pages", "current_page"))
+            if (any(type(v) is not int for v in (total, pages, current))
+                    or total < 0 or not 0 <= pages <= 20 or current != page
+                    or (pages == 0 and (total != 0 or products))):
+                raise ValueError("ホムラのページ情報が不正です")
+            if page == 1:
+                expected_count, expected_pages = total, pages
+            elif (total, pages) != (expected_count, expected_pages):
+                raise ValueError("ホムラの商品一覧が取得途中で変更されました")
+            for product in products:
+                if (not isinstance(product, dict)
+                        or type(product.get("id")) is not int or product["id"] <= 0):
+                    raise ValueError("ホムラの商品IDが不正です")
+                category = product.get("product_sub_category")
+                parent = category.get("product_category") if isinstance(category, dict) else None
+                if (not isinstance(product.get("name"), str) or not product["name"].strip()
+                        or type(product.get("price")) is not int or product["price"] < 0
+                        or not isinstance(category, dict)
+                        or category.get("id") != subcategory_id
+                        or category.get("name") != expected_category
+                        or not isinstance(parent, dict) or parent.get("id") != 14):
+                    raise ValueError("ホムラの商品データ形式を確認してください")
+                if product["id"] in seen:
+                    raise ValueError("ホムラのページに重複商品があります")
+                seen.add(product["id"])
+                rows.append(product)
+            if page >= pages:
+                if len(rows) != total:
+                    raise ValueError("ホムラの商品件数が一致しません")
+                return rows
+            if not products:
+                raise ValueError("ホムラの取得途中のページが空です")
+            time.sleep(0.2)
+    raise ValueError("ホムラのページ数が上限を超えました")
+
+
+def parse_homura_products(products, config):
+    """Match only shrink-wrapped BOXes and explicitly configured special sets."""
     results = []
     products_config = config.get("products", [])
     global_exclude = config.get("exclude_variant_keywords", [])
+    allowed = {128: "シュリンク有り", 130: "スペシャルセット"}
+    for source in products:
+        category = source.get("product_sub_category") or {}
+        parent = category.get("product_category") or {}
+        if (category.get("id") not in allowed
+                or category.get("name") != allowed[category["id"]]
+                or parent.get("id") != 14):
+            continue
+        name, price = source.get("name"), source.get("price")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("ホムラの商品名がありません")
+        if type(price) is not int or not 3000 <= price <= 5000000:
+            continue
+        if category["id"] == 128 and not re.search(r"BOX", name, re.I):
+            continue
+        # Never let another category's notes or a neighbouring price match.
+        # Homura writes this set in kana; the master uses the official MEGA label.
+        match_text = name.replace("メガドリーム", "MEGAドリーム") + " " + category["name"]
+        source_jan = str(source.get("jan_code") or "")
+        exact_jan = [product for product in products_config
+                     if re.fullmatch(r"\d{13}", source_jan)
+                     and source_jan in [str(jan) for jan in product.get("jan_codes", [])]]
+        if exact_jan:
+            candidates = exact_jan
+        elif category["id"] == 130:
+            # A set containing a booster name is not that booster BOX.
+            candidates = [product for product in products_config
+                          if compact_normalize(name) in
+                          [compact_normalize(alias) for alias in
+                           [product.get("display_name", "")] + product.get("keywords", [])
+                           if alias]]
+        else:
+            candidates = [product for product in products_config
+                          if matches_product(match_text, product, global_exclude)]
+        candidates = [product for product in candidates
+                      if not contains_excluded_variant(match_text, product, global_exclude)]
+        if len(candidates) != 1:
+            continue
+        product = candidates[0]
+        badge = "満額保証" if source.get("full_price_guarantee") is True else None
+        add_or_update_result(results, "買取ホムラ", product.get("display_name"),
+                             price, first_jan_code(product), badge)
+    return results
 
-    try:
-        max_pages = 2 if TEST_MODE else 20
 
-        for page in range(1, max_pages + 1):
-            url = f"{base_url}&page={page}"
-            soup = fetch_soup(url)
-            cards = soup.find_all("div", class_=re.compile(r"product|card|item", re.I))
+def scrape_homura(config):
+    products = []
+    for subcategory_id in (128, 130):
+        products.extend(fetch_homura_products(subcategory_id))
+    results = parse_homura_products(products, config)
+    print(f" ✓ [{'買取ホムラ':15}] {len(results):3}件取得")
+    return results
 
-            if not cards:
-                break
-
-            for card in cards:
-                text = card.get_text(strip=True)
-                for product in products_config:
-                    if matches_product(text, product, global_exclude):
-                        price_match = re.search(r"買取金額[^\d]*¥?\s*([\d,]{4,8})", text) or re.search(r"¥\s*([\d,]{4,8})", text)
-                        if price_match:
-                            clean_price = price_match.group(1).replace(",", "")
-                            if clean_price.isdigit():
-                                price = int(clean_price)
-                                if 3000 <= price <= 5000000:
-                                    badge = "満額保証" if "満額保証" in text else None
-                                    add_or_update_result(results, site_name, product.get("display_name"), price, first_jan_code(product), badge)
-                                    break
-            time.sleep(0.2)
-
-        print(f" ✓ [{site_name:15}] {len(results):3}件取得")
-        return results
-
-    except Exception as e:
-        print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
-        return results
 
 # 5. モバイル一番
 def scrape_mobile_ichiban(config):
@@ -473,6 +570,7 @@ def scrape_mobile_ichiban(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -534,6 +632,7 @@ def scrape_kaitori_itchome(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -568,12 +667,13 @@ def scrape_rudeya(config):
                                     break
                 time.sleep(0.2)
             except Exception:
-                pass
+                SITE_STATUS[site_name] = {"status": "partial", "message": "一部商品の取得に失敗しました"}
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -618,6 +718,7 @@ def scrape_toreca_lounge(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -682,6 +783,7 @@ def scrape_toreca_masai(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -722,6 +824,7 @@ def scrape_torecabank(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -756,12 +859,13 @@ def scrape_somurie(config):
                                     break
                 time.sleep(0.2)
             except Exception:
-                pass
+                SITE_STATUS[site_name] = {"status": "partial", "message": "一部商品の取得に失敗しました"}
 
         print(f" ✓ [{site_name:15}] {len(results):3}件取得")
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -806,6 +910,7 @@ def scrape_shinsoku(config):
         return results
 
     except Exception as e:
+        SITE_STATUS[site_name] = {"status": "partial" if results else "error", "message": "店舗の価格取得に失敗しました"}
         print(f" ✗ [{site_name:15}] エラー: {str(e)[:50]}")
         return results
 
@@ -813,6 +918,8 @@ def scrape_shinsoku(config):
 def scrape_x_api(config):
     bearer_token = os.environ.get("X_BEARER_TOKEN", "").strip()
     if not bearer_token:
+        for site in ("買取EXPO", "買取RISE"):
+            SITE_STATUS[site] = {"status": "unconfigured", "message": "X API未設定", "count": 0}
         print(" ⚠️ [X公式API       ] X_BEARER_TOKEN が未設定のためスキップします。")
         return []
 
@@ -863,15 +970,18 @@ def scrape_x_api(config):
                 timeout=30
             )
             if response.status_code != 200:
+                SITE_STATUS[site_name] = {"status": "error", "message": "X API取得失敗", "count": 0}
                 print(f" ✗ [{site_name:15}] API HTTP {response.status_code}・今回の価格掲載を保留")
                 continue
             payload = response.json()
             if payload.get("errors") or payload.get("meta", {}).get("next_token"):
+                SITE_STATUS[site_name] = {"status": "error", "message": "投稿をすべて確認できません", "count": 0}
                 print(f" ⚠️ [{site_name:15}] 投稿をすべて確認できないため今回の価格掲載を保留")
                 continue
             posts = payload.get("data", [])
             successful_sites.add(site_name)
         except Exception as e:
+            SITE_STATUS[site_name] = {"status": "error", "message": "X API通信エラー", "count": 0}
             print(f" ✗ [{site_name:15}] API通信エラー: {str(e)[:100]}")
             continue
 
@@ -920,6 +1030,8 @@ def scrape_x_api(config):
     results = [r for r in _x_cached_results(state, config) if r["site"] in successful_sites]
     for site_name in ("買取EXPO", "買取RISE"):
         count = sum(1 for row in results if row["site"] == site_name)
+        if site_name in successful_sites:
+            SITE_STATUS[site_name] = {"status": "ok" if count else "empty", "message": "直近24時間の投稿を確認", "count": count}
         print(f" ✓ [{site_name:15}] {count:3}件採用（投稿から24時間以内のみ）")
     return results
 
@@ -955,35 +1067,39 @@ def _x_cached_results(state, config):
             })
     return results
 
-def generate_html_report(results):
+def generate_html_report(results, updated_at=None):
     os.makedirs(REPORT_DIR, exist_ok=True)
     grouped = {}
     for r in results:
         product_rows = grouped.setdefault(r["product_name"], {})
         current = product_rows.get(r["site"])
-        if current is None or r["price"] > current["price"]:
+        if current is None or (bool(r.get("stale")), -r["price"]) < (bool(current.get("stale")), -current["price"]):
             product_rows[r["site"]] = r
-        elif r.get("condition_badge") and not current.get("condition_badge"):
+        elif r.get("stale", False) == current.get("stale", False) and r.get("condition_badge") and not current.get("condition_badge"):
             current["condition_badge"] = r["condition_badge"]
 
+    checked_at = updated_at or now_jst().isoformat()
+    esc = html_module.escape
     rows_html = []
     sorted_product_names = sorted(grouped.keys(), key=lambda x: unicodedata.normalize('NFKC', str(x)).lower())
     
     for product_name in sorted_product_names:
         rows = list(grouped[product_name].values())
-        rows_sorted = sorted(rows, key=lambda x: x["price"], reverse=True)
-        best = rows_sorted[0]
+        rows_sorted = sorted(rows, key=lambda x: (bool(x.get("stale")), -x["price"]))
+        current_rows = [row for row in rows_sorted if not row.get("stale")]
+        best = current_rows[0] if current_rows else None
+        best_label = f"今回取得の最高値 {best['price']:,}円 ({esc(best['site'])})" if best else "今回取得できた価格なし"
 
         rows_html.append(
-            f'<tr class="product-row"><td colspan="3"><strong>{product_name}</strong> '
-            f'<span class="best">最高値 {best["price"]:,}円 ({best["site"]})</span></td></tr>'
+            f'<tr class="product-row"><td colspan="3"><strong>{esc(product_name)}</strong> '
+            f'<span class="best">{best_label}</span></td></tr>'
         )
 
         for r in rows_sorted:
             badge_html = ""
             if r.get("condition_badge"):
                 badge_class = "badge-full" if r["condition_badge"] == "満額保証" else "badge-no-reduction"
-                badge_html = f'<span class="condition-badge {badge_class}">{r["condition_badge"]}</span>'
+                badge_html = f'<span class="condition-badge {badge_class}">{"前回掲載: " if r.get("stale") else ""}{esc(r["condition_badge"])}</span>'
             diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(変動なし)</span>'
             if r.get("prev_price") is not None:
                 diff = r["price"] - r["prev_price"]
@@ -994,9 +1110,12 @@ def generate_html_report(results):
             else:
                 diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(初回)</span>'
 
+            if r.get("stale"):
+                diff_html = ""
+            row_class = "stale-row" if r.get("stale") else ""
             rows_html.append(
-                f'<tr><td style="padding-left: 20px;">{r["site"]} {badge_html}</td><td>―</td>'
-                f'<td class="price">{r["price"]:,}円{diff_html}</td></tr>'
+                f'<tr class="{row_class}"><td style="padding-left: 20px;">{esc(r["site"])} {badge_html}</td><td>―</td>'
+                f'<td class="price">{r["price"]:,}円{diff_html}{observation_html(r)}</td></tr>'
             )
 
     html = f"""<!DOCTYPE html>
@@ -1019,13 +1138,16 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 .badge-full {{ color:#b45309; background:#fef3c7; }}
 .badge-no-reduction {{ color:#047857; background:#d1fae5; }}
 .price {{ text-align:right; font-weight:600; white-space: nowrap; }}
+{RESILIENCE_CSS}
 </style>
 </head>
 <body>
 <div class="container">
 <h1>📊 買取価格一覧（ポケモンカード）</h1>
-<div class="updated">最終更新: {now_jst().strftime('%Y-%m-%d %H:%M (日本時間)')}</div>
+<div class="updated">最終確認: {display_time(checked_at)}</div>
 <a class="admin-link" href="admin.html">⚙️ 商品マスタを編集</a>
+{failure_summary(SITE_STATUS)}
+<p class="updated">前回取得価格は参考情報です。表示価格・前回掲載の保証条件が現在も有効かは店舗で確認してください。</p>
 <table>
 {"".join(rows_html)}
 </table>
@@ -1033,9 +1155,9 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 </body>
 </html>"""
 
+    atomic_json(os.path.join(REPORT_DIR, "prices.json"), report_payload(results, SITE_STATUS, "pokemon", checked_at))
     filepath = os.path.join(REPORT_DIR, "index.html")
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(html)
+    atomic_text(filepath, html)
 
     print(f" 📄 HTMLレポートを更新しました: {filepath}")
 
@@ -1085,36 +1207,49 @@ def run_all(config):
     print(f"実行時刻: {now_jst().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}\n")
 
+    checked_at = now_jst().isoformat()
+    previous = load_previous(REPORT_DIR)
+    SITE_STATUS.clear()
     scraper_funcs = [
-        scrape_base, scrape_runto, scrape_newenoking, scrape_homura,
-        scrape_mobile_ichiban, scrape_kaitori_itchome, scrape_rudeya,
-        scrape_toreca_lounge, scrape_toreca_masai, scrape_torecabank,
-        scrape_somurie, scrape_shinsoku
+        ("買取BASE", scrape_base), ("Runto買取", scrape_runto),
+        ("買取エノキング", scrape_newenoking), ("買取ホムラ", scrape_homura),
+        ("モバイル一番", scrape_mobile_ichiban), ("買取１丁目", scrape_kaitori_itchome),
+        ("買取ルデヤ", scrape_rudeya), ("トレカラウンジ", scrape_toreca_lounge),
+        ("トレカマサイ", scrape_toreca_masai), ("トレカバンク", scrape_torecabank),
+        ("買取ソムリエ", scrape_somurie), ("シンソク", scrape_shinsoku),
     ]
-
     all_results = []
-
     with ThreadPoolExecutor(max_workers=8) as executor:
-        future_to_func = {executor.submit(func, config): func for func in scraper_funcs}
-        for future in as_completed(future_to_func):
+        futures = {executor.submit(func, config): site for site, func in scraper_funcs}
+        for future in as_completed(futures):
+            site = futures[future]
             try:
-                res = future.result()
-                if res:
-                    all_results.extend(res)
-            except Exception as e:
-                print(f" ❌ スレッド実行エラー: {e}")
-
-    x_results = scrape_x_api(config)
-    if x_results:
-        all_results.extend(x_results)
+                res = future.result() or []
+            except Exception as error:
+                res = []
+                SITE_STATUS[site] = {"status": "error", "message": "店舗の価格取得に失敗しました"}
+                print(f" ❌ [{site}] 取得失敗: {type(error).__name__}")
+            SITE_STATUS.setdefault(site, {"status": "ok" if res else "unexpected_empty", "message": ""})
+            SITE_STATUS[site]["count"] = len(res)
+            all_results.extend(res)
+    try:
+        all_results.extend(scrape_x_api(config))
+    except Exception as error:
+        for site in ("買取EXPO", "買取RISE"):
+            SITE_STATUS[site] = {"status": "error", "message": "X API取得失敗", "count": 0}
+    all_results, statuses = reconcile_prices(
+        all_results, SITE_STATUS, previous, "product_name", checked_at,
+        {p["display_name"] for p in config.get("products", [])},
+    )
+    SITE_STATUS.clear()
+    SITE_STATUS.update(statuses)
 
     print(f"\n{'='*60}")
     print(f"スクレイピング完了！ 合計 {len(all_results)} 件のデータを取得")
     print(f"{'='*60}\n")
 
     if not all_results:
-        print(" ⚠️ データが取得できませんでした。")
-        return
+        print(" ⚠️ データが取得できませんでした。取得状況を公開します。")
 
     history = load_history()
     grouped = {}
@@ -1124,6 +1259,9 @@ def run_all(config):
         product_name = result["product_name"]
         grouped.setdefault(product_name, []).append(result)
 
+        if result.get("stale"):
+            result["prev_price"] = None
+            continue
         hist_key = f"{product_name}_{result['site']}"
         prev_price = history.get(hist_key)
         result["prev_price"] = prev_price
@@ -1138,21 +1276,22 @@ def run_all(config):
                 "diff": diff
             })
 
-    save_history(history)
+    if any(not row.get("stale") for row in all_results):
+        save_history(history)
 
     for product_name in sorted(grouped.keys()):
         rows = sorted(grouped[product_name], key=lambda x: x["price"], reverse=True)
         print(f"📦 {product_name}")
         print("─" * 60)
         for r in rows:
-            diff_str = "初回"
+            diff_str = "前回取得価格・更新失敗" if r.get("stale") else "初回"
             if r["prev_price"] is not None:
                 diff = r["price"] - r["prev_price"]
                 diff_str = f"{diff:+,}円" if diff != 0 else "変動なし"
             print(f"  [{r['site']:12}] {r['price']:,}円 ({diff_str})")
         print()
 
-    generate_html_report(all_results)
+    generate_html_report(all_results, updated_at=checked_at)
     if "--no-notify" not in sys.argv:
         send_discord_notification(config, changed_items)
 
@@ -1160,3 +1299,4 @@ if __name__ == "__main__":
     sys.stdout = AutoLogger(LOG_FILE_PATH)
     config = load_config()
     run_all(config)
+
