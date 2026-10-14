@@ -17,7 +17,7 @@ from price_resilience import (reconcile_prices, load_previous, report_payload, a
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from price_resilience import BoundedRetry as Retry
 from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
@@ -1097,9 +1097,9 @@ def generate_html_report(results, updated_at=None):
 
         for r in rows_sorted:
             badge_html = ""
-            if r.get("condition_badge"):
+            if not r.get("stale") and r.get("condition_badge"):
                 badge_class = "badge-full" if r["condition_badge"] == "満額保証" else "badge-no-reduction"
-                badge_html = f'<span class="condition-badge {badge_class}">{"前回掲載: " if r.get("stale") else ""}{esc(r["condition_badge"])}</span>'
+                badge_html = f'<span class="condition-badge {badge_class}">{esc(r["condition_badge"])}</span>'
             diff_html = '<span style="color:#999; font-size:12px; margin-left:8px; font-weight:normal;">(変動なし)</span>'
             if r.get("prev_price") is not None:
                 diff = r["price"] - r["prev_price"]
@@ -1113,9 +1113,10 @@ def generate_html_report(results, updated_at=None):
             if r.get("stale"):
                 diff_html = ""
             row_class = "stale-row" if r.get("stale") else ""
+            price_label = "取得不可" if r.get("stale") else f'{r["price"]:,}円'
             rows_html.append(
                 f'<tr class="{row_class}"><td style="padding-left: 20px;">{esc(r["site"])} {badge_html}</td><td>―</td>'
-                f'<td class="price">{r["price"]:,}円{diff_html}{observation_html(r)}</td></tr>'
+                f'<td class="price">{price_label}{diff_html}{observation_html(r)}</td></tr>'
             )
 
     html = f"""<!DOCTYPE html>
@@ -1147,7 +1148,7 @@ td {{ padding:10px 12px; border-bottom:1px solid #eee; font-size:14px; }}
 <div class="updated">最終確認: {display_time(checked_at)}</div>
 <a class="admin-link" href="admin.html">⚙️ 商品マスタを編集</a>
 {failure_summary(SITE_STATUS)}
-<p class="updated">前回取得価格は参考情報です。表示価格・前回掲載の保証条件が現在も有効かは店舗で確認してください。</p>
+<p class="updated">今回取得できた価格だけを表示しています。取得失敗時は古い金額を表示しません。表示価格・保証条件は取得後に変わることがあるため、利用前に店舗で確認してください。</p>
 <table>
 {"".join(rows_html)}
 </table>
@@ -1280,11 +1281,14 @@ def run_all(config):
         save_history(history)
 
     for product_name in sorted(grouped.keys()):
-        rows = sorted(grouped[product_name], key=lambda x: x["price"], reverse=True)
+        rows = sorted(grouped[product_name], key=lambda x: (bool(x.get("stale")), -x["price"]))
         print(f"📦 {product_name}")
         print("─" * 60)
         for r in rows:
-            diff_str = "前回取得価格・更新失敗" if r.get("stale") else "初回"
+            if r.get("stale"):
+                print(f"  [{r['site']:12}] 取得不可（更新失敗）")
+                continue
+            diff_str = "初回"
             if r["prev_price"] is not None:
                 diff = r["price"] - r["prev_price"]
                 diff_str = f"{diff:+,}円" if diff != 0 else "変動なし"

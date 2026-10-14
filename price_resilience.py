@@ -1,11 +1,33 @@
-"""Last-observed shop prices; cached observations are never live quotes."""
+"""Current-run prices and explicitly separate historical observations."""
 import json
 import os
 import math
 from datetime import datetime, timedelta, timezone
 from html import escape
+from urllib3.util.retry import Retry
 
 FAILURE_STATUSES = frozenset(('error', 'partial', 'unexpected_empty'))
+
+
+class RetryBudgetExceeded(RuntimeError):
+    """A server cooldown is too long for this scheduled check."""
+
+
+class BoundedRetry(Retry):
+    """Honor short server cooldowns; fail closed instead of retrying early.
+
+    Retry-After may be hours or days. Waiting that long prevents a scheduled
+    report from publishing source failures. A long cooldown stops this source;
+    it is not truncated into an earlier retry.
+    """
+    max_retry_after_wait = 30
+
+    def sleep(self, response=None):
+        if self.respect_retry_after_header and response is not None:
+            retry_after = self.get_retry_after(response)
+            if retry_after and retry_after > self.max_retry_after_wait:
+                raise RetryBudgetExceeded('掲載元の待機指定が長いため今回の価格取得を中止します')
+        return super().sleep(response)
 
 
 def timestamp(value):
@@ -36,7 +58,10 @@ def atomic_json(path, value):
 
 
 def reconcile_prices(rows, statuses, previous, product_key, checked_at, valid_products=None):
-    """Retain missing rows only when the *shop* failed, not on normal removals.
+    """Retain missing rows internally for audit/unavailable placeholders only.
+
+    Renderers must hide amounts on stale rows. The public `results` collection
+    contains current-run prices only; cached rows have a separate collection.
 
     Zero unclassified rows are anomalous. Explicit `empty` is allowed only when
     the source parser has confirmed no currently eligible listings (e.g. X's
@@ -47,14 +72,25 @@ def reconcile_prices(rows, statuses, previous, product_key, checked_at, valid_pr
         raise ValueError('checked_at must include a timezone')
     statuses = {site: dict(info) for site, info in statuses.items()}
     current = {}
+    rejected_sites = set()
+    invalid_unknown_row = False
     for raw in rows:
+        if not isinstance(raw, dict):
+            invalid_unknown_row = True
+            continue
         row = dict(raw)
         site = row.get('site')
         price = row.get('price')
         name = row.get(product_key)
-        if not site or not name or isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+        if row.get('stale') or not site or not name or isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+            if site:
+                rejected_sites.add(site)
+            else:
+                invalid_unknown_row = True
             continue
         if valid_products is not None and name not in valid_products:
+            continue
+        if statuses.get(site, {}).get('status') in ('error', 'unexpected_empty', 'empty', 'unconfigured'):
             continue
         row.update(stale=False, fetched_at=checked_at)
         row.pop('stale_reason', None)
@@ -65,7 +101,11 @@ def reconcile_prices(rows, statuses, previous, product_key, checked_at, valid_pr
     old_statuses = previous.get('sites', {})
     old_statuses = old_statuses if isinstance(old_statuses, dict) else {}
     old_results = previous.get('results', [])
-    for raw in old_results if isinstance(old_results, list) else []:
+    historical = previous.get('historical_observations', [])
+    # Read both legacy mixed results and the current-only v2 feed. Never
+    # relabel historical observations with this run's check timestamp.
+    old_results = (old_results if isinstance(old_results, list) else []) + (historical if isinstance(historical, list) else [])
+    for raw in old_results:
         if not isinstance(raw, dict):
             continue
         row = dict(raw)
@@ -97,7 +137,9 @@ def reconcile_prices(rows, statuses, previous, product_key, checked_at, valid_pr
         fresh = current.get(site, [])
         old = old_by_site.get(site, [])
         state = info.get('status', 'ok' if fresh else 'unexpected_empty')
-        if state == 'ok' and not fresh and not info.get('source_count', info.get('count', 0)):
+        if state == 'ok' and site in rejected_sites:
+            state = 'partial' if fresh else 'unexpected_empty'
+        elif state == 'ok' and not fresh and (invalid_unknown_row or not info.get('source_count', 0)):
             state = 'unexpected_empty'
         info.update(status=state, checked_at=checked_at, current_count=len(fresh), cached_count=0)
         # Full successes replace the snapshot. Missing individual products do
@@ -127,14 +169,23 @@ def reconcile_prices(rows, statuses, previous, product_key, checked_at, valid_pr
 
 
 def report_payload(rows, statuses, category, checked_at):
-    observed = [row['fetched_at'] for row in rows if timestamp(row.get('fetched_at'))]
+    """Keep cached amounts out of the feed consumed as current prices."""
+    current = [row for row in rows if not row.get('stale')]
+    historical = [row for row in rows if row.get('stale')]
+    observed = [row['fetched_at'] for row in current if timestamp(row.get('fetched_at'))]
+
+    def public_rows(items):
+        return [{key: value for key, value in row.items() if key not in ('cost_price', 'diff_from_cost')} for row in items]
+
     return {
-        'version': 1,
+        'version': 2,
+        'price_policy': 'current_run_only',
         'checked_at': checked_at,
         'updated_at': max(observed, key=timestamp) if observed else None,
         'category': category,
         'sites': statuses,
-        'results': [{key: value for key, value in row.items() if key not in ('cost_price', 'diff_from_cost')} for row in rows],
+        'results': public_rows(current),
+        'historical_observations': public_rows(historical),
     }
 
 
@@ -145,7 +196,7 @@ def display_time(value):
 
 def observation_html(row):
     if row.get('stale'):
-        return '<span class="stale-label">前回取得価格・更新失敗</span><small class="observed">取得日時: ' + escape(display_time(row.get('fetched_at'))) + '</small>'
+        return '<span class="stale-label">更新失敗</span><small class="observed">前回の取得日時: ' + escape(display_time(row.get('fetched_at'))) + '</small>'
     if row.get('fetched_at'):
         return '<small class="observed">取得日時: ' + escape(display_time(row['fetched_at'])) + '</small>'
     return ''
@@ -158,9 +209,9 @@ def failure_summary(statuses):
     parts = []
     for site, info in failures:
         count = info.get('cached_count', 0)
-        detail = f'前回取得価格 {count}件を参考表示' if count else '前回取得データなし'
+        detail = f'{count}件の価格を非表示' if count else '今回の価格を確認できません'
         parts.append(escape(site) + ': ' + detail)
-    return '<p class="failure-summary" role="status">更新失敗: ' + ' / '.join(parts) + '。前回取得価格は現在の価格・最高値比較・変動通知には使いません。</p>'
+    return '<p class="failure-summary" role="status">更新失敗: ' + ' / '.join(parts) + '。取得できなかった価格は「取得不可」とし、古い金額は表示しません。次回の定期取得で再確認します。</p>'
 
 
 RESILIENCE_CSS = '''

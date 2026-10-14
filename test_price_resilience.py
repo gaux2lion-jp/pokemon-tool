@@ -1,5 +1,8 @@
 import copy
 import json
+import csv
+import io
+from contextlib import redirect_stdout
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,7 +49,11 @@ class ResilienceTests(unittest.TestCase):
         rows, status = self.reconcile([], states, payload, checked=T3)
         self.assertEqual(len(rows), 2)
         self.assertTrue(all(r['stale'] and r['fetched_at']==T1 for r in rows))
-        self.assertEqual(resilience.report_payload(rows, status, 'test', T3)['updated_at'], T1)
+        payload = resilience.report_payload(rows, status, 'test', T3)
+        self.assertIsNone(payload['updated_at'])
+        self.assertEqual(payload['results'], [])
+        self.assertEqual(len(payload['historical_observations']), 2)
+        self.assertTrue(all(r['fetched_at'] == T1 for r in payload['historical_observations']))
 
     def test_zero_unclassified_rows_are_failure(self):
         rows, status = self.reconcile([], {'A': {'status':'ok','count':0}}, previous([row()]))
@@ -106,13 +113,17 @@ class ResilienceTests(unittest.TestCase):
         rows, status = self.reconcile([row('B',cost_price=5)], {'A': {'status':'error'}, 'B': {'status':'ok'}}, previous([row()]))
         payload=resilience.report_payload(rows,status,'test',T2)
         self.assertEqual(payload['updated_at'],T2)
-        self.assertFalse(any('cost_price' in r for r in payload['results']))
+        self.assertEqual(payload['version'], 2)
+        self.assertEqual(payload['price_policy'], 'current_run_only')
+        self.assertEqual([r['site'] for r in payload['results']], ['B'])
+        self.assertEqual([r['site'] for r in payload['historical_observations']], ['A'])
+        self.assertFalse(any('cost_price' in r for r in payload['results'] + payload['historical_observations']))
         with tempfile.TemporaryDirectory() as directory:
             resilience.atomic_json(str(Path(directory,'prices.json')),payload)
             self.assertEqual(resilience.load_previous(directory),payload)
 
     def test_malformed_and_future_dated_cache_is_not_adopted(self):
-        for old in ({'results':None}, {'results':{},'sites':None}, previous([row(price=float('nan'))]), previous([row(price=True)])):
+        for old in ({'results':None}, {'results':{},'sites':None,'historical_observations':None}, previous([row(price=float('nan'))]), previous([row(price=True)])):
             with self.subTest(old=old):
                 self.assertEqual(self.reconcile([], {'A':{'status':'error'}},old)[0], [])
         old=previous([row()]); old['results'][0]['fetched_at']=T3
@@ -130,6 +141,103 @@ class ResilienceTests(unittest.TestCase):
         rows, _ = self.reconcile([], {'A': {'status':'error'}}, previous([row(guarantee_displayed=True, shop_condition_prices={'b':None})]))
         self.assertTrue(rows[0]['guarantee_displayed']); self.assertIsNone(rows[0]['shop_condition_prices']['b'])
         self.assertTrue(rows[0]['stale'])
+
+    def test_stale_or_malformed_input_cannot_be_relabelled_fresh(self):
+        rows, status = self.reconcile([None, 'bad', row(stale=True, fetched_at=T1)], {'A': {'status':'ok'}}, {})
+        self.assertEqual(rows, [])
+        self.assertEqual(status['A']['status'], 'unexpected_empty')
+
+    def test_invalid_current_rows_do_not_claim_success_from_raw_count(self):
+        for bad in (None, row(price=float('nan')), row(price=True), row(price=0)):
+            with self.subTest(bad=bad):
+                rows, status=self.reconcile([bad], {'A': {'status':'ok','count':1}}, previous([row()]))
+                self.assertEqual(status['A']['status'], 'unexpected_empty')
+                self.assertEqual(status['A']['last_success_at'], T1)
+                self.assertTrue(rows[0]['stale'])
+                self.assertEqual(resilience.report_payload(rows,status,'test',T2)['results'], [])
+
+    def test_invalid_row_among_confirmed_rows_makes_partial_status(self):
+        rows, status=self.reconcile([row(product='P'),row(product='Q',price=float('nan'))], {'A': {'status':'ok','source_count':2}}, {})
+        self.assertEqual(status['A']['status'], 'partial')
+        self.assertEqual(len(rows),1)
+        self.assertFalse(rows[0]['stale'])
+
+    def test_failed_shop_cannot_claim_raw_rows_are_current(self):
+        for state in ('error', 'unexpected_empty', 'empty', 'unconfigured'):
+            with self.subTest(state=state):
+                rows, _ = self.reconcile([row(price=99999)], {'A': {'status':state}}, {})
+                self.assertEqual(rows, [])
+
+    def test_partial_check_publishes_confirmed_rows_only(self):
+        rows, status = self.reconcile([row(product='P',price=8000)], {'A': {'status':'partial'}}, previous([row(product='P'),row(product='Q')]))
+        payload = resilience.report_payload(rows, status, 'test', T2)
+        self.assertEqual([(r['product_name'],r['price']) for r in payload['results']], [('P',8000)])
+        self.assertEqual([(r['product_name'],r['fetched_at']) for r in payload['historical_observations']], [('Q',T1)])
+
+    def test_v2_recovery_retires_historical_row_and_uses_new_observation(self):
+        rows, status = self.reconcile([], {'A': {'status':'error'}}, previous([row()]))
+        failed = resilience.report_payload(rows, status, 'test', T2)
+        rows, status = self.reconcile([row(price=12000)], {'A': {'status':'ok'}}, failed, checked=T3)
+        payload = resilience.report_payload(rows, status, 'test', T3)
+        self.assertEqual(payload['historical_observations'], [])
+        self.assertEqual(payload['results'][0]['price'], 12000)
+        self.assertEqual(payload['results'][0]['fetched_at'], T3)
+        self.assertEqual(payload['updated_at'], T3)
+
+    def test_report_payload_does_not_mutate_input(self):
+        rows=[dict(row(),fetched_at=T1,stale=True,cost_price=1,diff_from_cost=2)]
+        before=copy.deepcopy(rows)
+        payload=resilience.report_payload(rows,{},'test',T2)
+        self.assertEqual(rows,before)
+        self.assertNotIn('cost_price',payload['historical_observations'][0])
+        self.assertNotIn('diff_from_cost',payload['historical_observations'][0])
+
+
+class RetryBudgetTests(unittest.TestCase):
+    def test_long_retry_after_fails_without_sleeping_or_retrying_early(self):
+        from urllib3.response import HTTPResponse
+        retry=resilience.BoundedRetry(total=3, backoff_factor=1, status_forcelist=(429,503), allowed_methods=frozenset(('GET',)))
+        response=HTTPResponse(status=429, headers={'Retry-After':'86400'})
+        retry=retry.increment(method='GET',url='https://example.com/',response=response)
+        with patch('urllib3.util.retry.time.sleep') as sleep:
+            with self.assertRaises(resilience.RetryBudgetExceeded):
+                retry.sleep(response)
+            sleep.assert_not_called()
+        self.assertEqual(retry.total,2)
+
+    def test_http_date_cooldown_is_not_shortened(self):
+        from email.utils import formatdate
+        from urllib3.response import HTTPResponse
+        retry=resilience.BoundedRetry(total=3)
+        response=HTTPResponse(status=503,headers={'Retry-After':formatdate(1700000000+86400,usegmt=True)})
+        with patch('urllib3.util.retry.time.time',return_value=1700000000), patch('urllib3.util.retry.time.sleep') as sleep:
+            with self.assertRaises(resilience.RetryBudgetExceeded):
+                retry.sleep(response)
+            sleep.assert_not_called()
+
+    def test_retry_clone_keeps_budget_and_get_only_scope(self):
+        retry=resilience.BoundedRetry(total=3,allowed_methods=frozenset(('GET',)))
+        clone=retry.new(total=2)
+        self.assertIsInstance(clone,resilience.BoundedRetry)
+        self.assertEqual(clone.max_retry_after_wait,30)
+        self.assertEqual(clone.allowed_methods,frozenset(('GET',)))
+
+    def test_short_retry_after_is_respected(self):
+        from urllib3.response import HTTPResponse
+        retry=resilience.BoundedRetry(total=3)
+        with patch('urllib3.util.retry.time.sleep') as sleep:
+            retry.sleep(HTTPResponse(status=429,headers={'Retry-After':'2'}))
+            sleep.assert_called_once_with(2)
+
+    def test_normal_backoff_remains_bounded_by_existing_retry_count(self):
+        from urllib3.response import HTTPResponse
+        retry=resilience.BoundedRetry(total=3,backoff_factor=1,status_forcelist=(503,))
+        response=HTTPResponse(status=503)
+        retry=retry.increment(method='GET',url='https://example.com/',response=response)
+        retry=retry.increment(method='GET',url='https://example.com/',response=response)
+        with patch('urllib3.util.retry.time.sleep') as sleep:
+            retry.sleep(response)
+            sleep.assert_called_once_with(2.0)
 
 
 try:
@@ -153,13 +261,18 @@ class IntegrationTests(unittest.TestCase):
             doc=BeautifulSoup(Path(directory,'index.html').read_text(),'html.parser')
             self.assertIn('8,000円',doc.select_one('.best').get_text())
             self.assertNotIn('20,000円',doc.select_one('.best').get_text())
-            self.assertIn('前回取得価格',doc.select_one('.stale-row').get_text())
-            self.assertIn('前回掲載',doc.select_one('.stale-row').get_text())
+            self.assertIn('取得不可',doc.select_one('.stale-row').get_text())
+            self.assertNotIn('20,000',str(doc))
+            self.assertNotIn('満額保証',doc.select_one('.stale-row').get_text())
+            self.assertIsNone(doc.select_one('.stale-row .condition-badge'))
+            self.assertIn('古い金額は表示しません',doc.select_one('.failure-summary').get_text())
             self.assertIn('2026-10-14 21:00',doc.select_one('.stale-row').get_text())
             self.assertNotIn('初回',doc.select_one('.stale-row').get_text())
             self.assertEqual(doc.select('td.price')[0].get_text().split('円')[0], '8,000')
             payload=json.loads(Path(directory,'prices.json').read_text())
             self.assertEqual(payload['updated_at'],T2)
+            self.assertEqual([r['price'] for r in payload['results']], [8000])
+            self.assertEqual([r['price'] for r in payload['historical_observations']], [20000])
             self.assertEqual(resilience.timestamp(payload['checked_at']),resilience.timestamp(T2))
 
     def test_all_stale_ui_has_no_current_highest(self):
@@ -168,7 +281,12 @@ class IntegrationTests(unittest.TestCase):
             s.generate_html_report([stale],updated_at=T2)
             doc=BeautifulSoup(Path(directory,'index.html').read_text(),'html.parser')
             self.assertEqual(doc.select_one('.best').get_text(),'今回取得できた価格なし')
-            self.assertEqual(json.loads(Path(directory,'prices.json').read_text())['updated_at'],T1)
+            self.assertNotIn('10,000', str(doc))
+            self.assertIn('取得不可', doc.select_one('.stale-row').get_text())
+            data = json.loads(Path(directory,'prices.json').read_text())
+            self.assertIsNone(data['updated_at'])
+            self.assertEqual(data['results'], [])
+            self.assertEqual(data['historical_observations'][0]['fetched_at'], T1)
 
     @unittest.skipUnless(ONEPIECE, 'ONE PIECE comparisons API')
     def test_stale_does_not_mutate_history_or_notify_then_recovery_compares_real_price(self):
@@ -189,7 +307,9 @@ class IntegrationTests(unittest.TestCase):
             s.run_once({'products':[{'display_name':'P'}]},notify=False)
             save.assert_not_called(); send.assert_not_called()
             data=json.loads(Path(directory,'prices.json').read_text())
-            self.assertTrue(data['results'][0]['stale']); self.assertEqual(data['results'][0]['fetched_at'],T1)
+            self.assertEqual(data['results'], [])
+            self.assertTrue(data['historical_observations'][0]['stale'])
+            self.assertEqual(data['historical_observations'][0]['fetched_at'],T1)
 
     @unittest.skipIf(ONEPIECE, 'Pokémon run_all API')
     def test_pokemon_failure_keeps_history_then_recovery_compares_real_price(self):
@@ -203,16 +323,48 @@ class IntegrationTests(unittest.TestCase):
             send=stack.enter_context(patch.object(s,'send_discord_notification'))
             mocks={f:stack.enter_context(patch.object(s,f,return_value=[])) for f in functions}
             resilience.atomic_json(str(Path(directory,'prices.json')),previous([row('買取ホムラ')]))
-            s.run_all({'products':[{'display_name':'P'}]})
+            output = io.StringIO()
+            with redirect_stdout(output):
+                s.run_all({'products':[{'display_name':'P'}]})
+            self.assertNotIn('10,000', output.getvalue())
+            self.assertIn('取得不可', output.getvalue())
             save.assert_not_called(); self.assertEqual(send.call_args.args[1],[])
             data=json.loads(Path(directory,'prices.json').read_text())
-            self.assertEqual(data['results'][0]['fetched_at'],T1); self.assertTrue(data['results'][0]['stale'])
+            self.assertEqual(data['results'], [])
+            self.assertEqual(data['historical_observations'][0]['fetched_at'],T1)
+            self.assertTrue(data['historical_observations'][0]['stale'])
             mocks['scrape_homura'].return_value=[row('買取ホムラ',price=11000)]
             s.run_all({'products':[{'display_name':'P'}]})
             self.assertEqual(save.call_args.args[0]['P_買取ホムラ'],11000)
             self.assertEqual(send.call_args.args[1][0]['diff'],1000)
             data=json.loads(Path(directory,'prices.json').read_text())
             self.assertFalse(data['results'][0]['stale']); self.assertEqual(data['results'][0]['fetched_at'],T2)
+
+    @unittest.skipUnless(ONEPIECE, 'ONE PIECE CSV and console APIs')
+    def test_csv_and_console_never_render_stale_amount_or_conditions(self):
+        stale=dict(row(price=23456),fetched_at=T1,stale=True,diff_from_prev=None)
+        stale['variant']='旧条件 23,456円'
+        fresh=dict(row('B',price=8000),fetched_at=T2,stale=False,diff_from_prev=0)
+        output=io.StringIO()
+        with tempfile.TemporaryDirectory() as directory, patch.object(s,'RESULTS_DIR',directory), redirect_stdout(output):
+            s.save_csv([stale,fresh])
+            s.print_results([stale,fresh])
+            with next(Path(directory).glob('*.csv')).open(encoding='utf-8-sig') as stream:
+                saved=list(csv.DictReader(stream))
+            self.assertEqual([r['price'] for r in saved], ['8000'])
+        self.assertNotIn('23,456',output.getvalue())
+        self.assertNotIn('旧条件',output.getvalue())
+        self.assertIn('取得不可',output.getvalue())
+        self.assertLess(output.getvalue().index('8,000'),output.getvalue().index('取得不可'))
+
+    def test_stale_conditions_are_not_rendered_even_if_they_contain_old_amounts(self):
+        stale=dict(row(price=23456,guarantee_displayed=True,condition_badge='旧条件 23,456円'),fetched_at=T1,stale=True,diff_from_prev=None,prev_price=None)
+        stale['variant']='旧条件 23,456円'
+        with tempfile.TemporaryDirectory() as directory, patch.object(s,'REPORT_DIR',directory):
+            s.generate_html_report([stale],updated_at=T2)
+            html=Path(directory,'index.html').read_text()
+            self.assertNotIn('23,456',html)
+            self.assertNotIn('旧条件',html)
 
 
 if __name__=='__main__': unittest.main()
