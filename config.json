@@ -222,7 +222,9 @@
       "jan_codes": [
         "4521329374659"
       ],
-      "exclude_keywords": [],
+      "exclude_keywords": [
+        "アタッシュ"
+      ],
       "cost_price": null
     },
     {
