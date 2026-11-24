@@ -1,15 +1,15 @@
 {
   "version": 2,
   "price_policy": "current_run_only",
-  "checked_at": "2026-11-24T13:01:00.470766+09:00",
-  "updated_at": "2026-11-24T13:01:00.470766+09:00",
+  "checked_at": "2026-11-24T14:01:03.274771+09:00",
+  "updated_at": "2026-11-24T14:01:03.274771+09:00",
   "category": "pokemon",
   "sites": {
     "買取エノキング": {
       "status": "error",
       "message": "店舗の価格取得に失敗しました",
       "count": 0,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 0,
       "cached_count": 0
     },
@@ -17,106 +17,106 @@
       "status": "error",
       "message": "店舗の価格取得に失敗しました",
       "count": 0,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 0,
       "cached_count": 90,
       "last_success_at": "2026-11-07T18:00:57.773132+09:00"
-    },
-    "モバイル一番": {
-      "status": "ok",
-      "message": "",
-      "count": 20,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
-      "current_count": 20,
-      "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
-    },
-    "買取１丁目": {
-      "status": "ok",
-      "message": "",
-      "count": 37,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
-      "current_count": 37,
-      "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
     },
     "買取BASE": {
       "status": "ok",
       "message": "",
       "count": 56,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 56,
       "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
-    },
-    "トレカバンク": {
-      "status": "ok",
-      "message": "",
-      "count": 17,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
-      "current_count": 17,
-      "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
     },
     "トレカマサイ": {
       "status": "ok",
       "message": "",
       "count": 57,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 57,
       "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
+    },
+    "買取１丁目": {
+      "status": "ok",
+      "message": "",
+      "count": 37,
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
+      "current_count": 37,
+      "cached_count": 0,
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
+    },
+    "トレカバンク": {
+      "status": "ok",
+      "message": "",
+      "count": 17,
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
+      "current_count": 17,
+      "cached_count": 0,
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
+    },
+    "モバイル一番": {
+      "status": "ok",
+      "message": "",
+      "count": 20,
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
+      "current_count": 20,
+      "cached_count": 0,
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
     },
     "シンソク": {
       "status": "ok",
       "message": "",
       "count": 99,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 99,
       "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
     },
     "トレカラウンジ": {
       "status": "ok",
       "message": "",
       "count": 110,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 110,
       "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
     },
     "Runto買取": {
       "status": "partial",
       "message": "一部ページの取得に失敗しました",
       "count": 68,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 68,
       "cached_count": 4,
       "last_success_at": "2026-10-14T23:08:26.827792+09:00"
-    },
-    "買取ルデヤ": {
-      "status": "ok",
-      "message": "",
-      "count": 40,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
-      "current_count": 40,
-      "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
     },
     "買取ソムリエ": {
       "status": "ok",
       "message": "",
       "count": 4,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 4,
       "cached_count": 0,
-      "last_success_at": "2026-11-24T13:01:00.470766+09:00"
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
+    },
+    "買取ルデヤ": {
+      "status": "ok",
+      "message": "",
+      "count": 40,
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
+      "current_count": 40,
+      "cached_count": 0,
+      "last_success_at": "2026-11-24T14:01:03.274771+09:00"
     },
     "買取EXPO": {
       "status": "error",
       "message": "X API取得失敗",
       "count": 0,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 0,
       "cached_count": 0
     },
@@ -124,582 +124,12 @@
       "status": "error",
       "message": "X API取得失敗",
       "count": 0,
-      "checked_at": "2026-11-24T13:01:00.470766+09:00",
+      "checked_at": "2026-11-24T14:01:03.274771+09:00",
       "current_count": 0,
       "cached_count": 0
     }
   },
   "results": [
-    {
-      "product_name": "30th CELEBRATION",
-      "site": "モバイル一番",
-      "price": 17100,
-      "jan_code": "4521329462424",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 17100
-    },
-    {
-      "product_name": "30th CELEBRATION プレミアムデッキセット",
-      "site": "モバイル一番",
-      "price": 12000,
-      "jan_code": "4521329462189",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 12000
-    },
-    {
-      "product_name": "30th CELEBRATION FUTURISTIC BOX",
-      "site": "モバイル一番",
-      "price": 45000,
-      "jan_code": "4521329463872",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 45000
-    },
-    {
-      "product_name": "ストームエメラルダ",
-      "site": "モバイル一番",
-      "price": 7500,
-      "jan_code": "4521329462233",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7500
-    },
-    {
-      "product_name": "アビスアイ",
-      "site": "モバイル一番",
-      "price": 6500,
-      "jan_code": "4521329462127",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "ニンジャスピナー",
-      "site": "モバイル一番",
-      "price": 6500,
-      "jan_code": "4521329432786",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "ムニキスゼロ",
-      "site": "モバイル一番",
-      "price": 6500,
-      "jan_code": "4521329432274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "インフェルノX",
-      "site": "モバイル一番",
-      "price": 16400,
-      "jan_code": "4521329431529",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16400
-    },
-    {
-      "product_name": "MEGAドリームex",
-      "site": "モバイル一番",
-      "price": 11500,
-      "jan_code": "4521329431932",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "ポケモンGO",
-      "site": "モバイル一番",
-      "price": 11500,
-      "jan_code": "4521329364582",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンターフクオカ",
-      "site": "モバイル一番",
-      "price": 10000,
-      "jan_code": "4521329431536",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンターヒロシマ",
-      "site": "モバイル一番",
-      "price": 10500,
-      "jan_code": "4521329427669",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10500
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンタートウホク",
-      "site": "モバイル一番",
-      "price": 10000,
-      "jan_code": "4521329431277",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "メガブレイブ",
-      "site": "モバイル一番",
-      "price": 7000,
-      "jan_code": "4521329431161",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7000
-    },
-    {
-      "product_name": "メガシンフォニア",
-      "site": "モバイル一番",
-      "price": 6500,
-      "jan_code": "4521329431185",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "ホワイトフレア",
-      "site": "モバイル一番",
-      "price": 21500,
-      "jan_code": "4521329427782",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 21500
-    },
-    {
-      "product_name": "ブラックボルト",
-      "site": "モバイル一番",
-      "price": 23000,
-      "jan_code": "4521329427768",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 23000
-    },
-    {
-      "product_name": "トリプレットビート",
-      "site": "モバイル一番",
-      "price": 17000,
-      "jan_code": "4521329346274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 17000
-    },
-    {
-      "product_name": "ポケモンカード151",
-      "site": "モバイル一番",
-      "price": 46000,
-      "jan_code": "4521329346038",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 46000
-    },
-    {
-      "product_name": "シャイニートレジャーex",
-      "site": "モバイル一番",
-      "price": 15000,
-      "jan_code": "4521329394824",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 15000
-    },
-    {
-      "product_name": "30th CELEBRATION",
-      "site": "買取１丁目",
-      "price": 16500,
-      "jan_code": "4521329462424",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16500
-    },
-    {
-      "product_name": "30th CELEBRATION プレミアムデッキセット",
-      "site": "買取１丁目",
-      "price": 12000,
-      "jan_code": "4521329462189",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 12000
-    },
-    {
-      "product_name": "30th CELEBRATION FUTURISTIC BOX",
-      "site": "買取１丁目",
-      "price": 44000,
-      "jan_code": "4521329463872",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 44000
-    },
-    {
-      "product_name": "ストームエメラルダ",
-      "site": "買取１丁目",
-      "price": 8000,
-      "jan_code": "4521329462233",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
-    },
-    {
-      "product_name": "アビスアイ",
-      "site": "買取１丁目",
-      "price": 7500,
-      "jan_code": "4521329462127",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7500
-    },
-    {
-      "product_name": "ニンジャスピナー",
-      "site": "買取１丁目",
-      "price": 8500,
-      "jan_code": "4521329432786",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8500
-    },
-    {
-      "product_name": "ムニキスゼロ",
-      "site": "買取１丁目",
-      "price": 7800,
-      "jan_code": "4521329432274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7800
-    },
-    {
-      "product_name": "MEGAドリームex",
-      "site": "買取１丁目",
-      "price": 11500,
-      "jan_code": "4521329431932",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "インフェルノX",
-      "site": "買取１丁目",
-      "price": 16500,
-      "jan_code": "4521329431529",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16500
-    },
-    {
-      "product_name": "メガブレイブ",
-      "site": "買取１丁目",
-      "price": 7300,
-      "jan_code": "4521329431161",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7300
-    },
-    {
-      "product_name": "メガシンフォニア",
-      "site": "買取１丁目",
-      "price": 7000,
-      "jan_code": "4521329431185",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7000
-    },
-    {
-      "product_name": "ブラックボルト",
-      "site": "買取１丁目",
-      "price": 22000,
-      "jan_code": "4521329427768",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 22000
-    },
-    {
-      "product_name": "ホワイトフレア",
-      "site": "買取１丁目",
-      "price": 21000,
-      "jan_code": "4521329427782",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 21000
-    },
-    {
-      "product_name": "ロケット団の栄光",
-      "site": "買取１丁目",
-      "price": 22000,
-      "jan_code": "4521329374659",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 22000
-    },
-    {
-      "product_name": "熱風のアリーナ",
-      "site": "買取１丁目",
-      "price": 17500,
-      "jan_code": "4521329374758",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 17500
-    },
-    {
-      "product_name": "バトルパートナーズ",
-      "site": "買取１丁目",
-      "price": 10000,
-      "jan_code": "4521329362649",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "テラスタルフェスex",
-      "site": "買取１丁目",
-      "price": 16500,
-      "jan_code": "4521329362342",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16500
-    },
-    {
-      "product_name": "超電ブレイカー",
-      "site": "買取１丁目",
-      "price": 26000,
-      "jan_code": "4521329361505",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 26000
-    },
-    {
-      "product_name": "楽園ドラゴーナ",
-      "site": "買取１丁目",
-      "price": 15500,
-      "jan_code": "4521329361352",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 15500
-    },
-    {
-      "product_name": "ステラミラクル",
-      "site": "買取１丁目",
-      "price": 11300,
-      "jan_code": "4521329361000",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11300
-    },
-    {
-      "product_name": "ナイトワンダラー",
-      "site": "買取１丁目",
-      "price": 11200,
-      "jan_code": "4521329362496",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11200
-    },
-    {
-      "product_name": "変幻の仮面",
-      "site": "買取１丁目",
-      "price": 11200,
-      "jan_code": "4521329362526",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11200
-    },
-    {
-      "product_name": "クリムゾンヘイズ",
-      "site": "買取１丁目",
-      "price": 12200,
-      "jan_code": "4521329361239",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 12200
-    },
-    {
-      "product_name": "ワイルドフォース",
-      "site": "買取１丁目",
-      "price": 11400,
-      "jan_code": "4521329394831",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11400
-    },
-    {
-      "product_name": "サイバージャッジ",
-      "site": "買取１丁目",
-      "price": 10700,
-      "jan_code": "4521329394848",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10700
-    },
-    {
-      "product_name": "シャイニートレジャーex",
-      "site": "買取１丁目",
-      "price": 15000,
-      "jan_code": "4521329394824",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 15000
-    },
-    {
-      "product_name": "古代の咆哮",
-      "site": "買取１丁目",
-      "price": 11000,
-      "jan_code": "4521329394732",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11000
-    },
-    {
-      "product_name": "未来の一閃",
-      "site": "買取１丁目",
-      "price": 9800,
-      "jan_code": "4521329394756",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9800
-    },
-    {
-      "product_name": "レイジングサーフ",
-      "site": "買取１丁目",
-      "price": 14300,
-      "jan_code": "4521329391397",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14300
-    },
-    {
-      "product_name": "黒炎の支配者",
-      "site": "買取１丁目",
-      "price": 18800,
-      "jan_code": "4521329346014",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 18800
-    },
-    {
-      "product_name": "ポケモンカード151",
-      "site": "買取１丁目",
-      "price": 46000,
-      "jan_code": "4521329346038",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 46000
-    },
-    {
-      "product_name": "クレイバースト",
-      "site": "買取１丁目",
-      "price": 10500,
-      "jan_code": "4521329346182",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10500
-    },
-    {
-      "product_name": "スノーハザード",
-      "site": "買取１丁目",
-      "price": 10300,
-      "jan_code": "4521329346229",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10300
-    },
-    {
-      "product_name": "トリプレットビート",
-      "site": "買取１丁目",
-      "price": 18000,
-      "jan_code": "4521329346274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 18000
-    },
-    {
-      "product_name": "バイオレットex",
-      "site": "買取１丁目",
-      "price": 10000,
-      "jan_code": "4521329373539",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "スカーレットex",
-      "site": "買取１丁目",
-      "price": 13500,
-      "jan_code": "4521329373515",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13500
-    },
-    {
-      "product_name": "VSTARユニバース",
-      "site": "買取１丁目",
-      "price": 26500,
-      "jan_code": "4521329373362",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 26500
-    },
     {
       "product_name": "ストームエメラルダ",
       "site": "買取BASE",
@@ -707,17 +137,17 @@
       "jan_code": "4521329462233",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8100
     },
     {
       "product_name": "アビスアイ",
       "site": "買取BASE",
-      "price": 7700,
+      "price": 7500,
       "jan_code": "4521329462127",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7700
     },
     {
@@ -727,7 +157,7 @@
       "jan_code": "4521329432786",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8600
     },
     {
@@ -737,37 +167,37 @@
       "jan_code": "4521329432274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7800
     },
     {
       "product_name": "MEGAドリームex",
       "site": "買取BASE",
-      "price": 11200,
+      "price": 11000,
       "jan_code": "4521329431932",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11200
     },
     {
       "product_name": "インフェルノX",
       "site": "買取BASE",
-      "price": 17200,
+      "price": 16800,
       "jan_code": "4521329431529",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17200
     },
     {
       "product_name": "メガブレイブ",
       "site": "買取BASE",
-      "price": 7300,
+      "price": 7200,
       "jan_code": "4521329431161",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7300
     },
     {
@@ -777,7 +207,7 @@
       "jan_code": "4521329431185",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 6800
     },
     {
@@ -787,17 +217,17 @@
       "jan_code": "4521329427768",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 23300
     },
     {
       "product_name": "ホワイトフレア",
       "site": "買取BASE",
-      "price": 21700,
+      "price": 21200,
       "jan_code": "4521329427782",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21700
     },
     {
@@ -807,7 +237,7 @@
       "jan_code": "4521329427300",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 24000
     },
     {
@@ -817,27 +247,27 @@
       "jan_code": "4521329427324",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
       "product_name": "ロケット団の栄光",
       "site": "買取BASE",
-      "price": 22800,
+      "price": 22300,
       "jan_code": "4521329374659",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 22800
     },
     {
       "product_name": "熱風のアリーナ",
       "site": "買取BASE",
-      "price": 17500,
+      "price": 17600,
       "jan_code": "4521329374758",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17500
     },
     {
@@ -847,7 +277,7 @@
       "jan_code": "4521329362649",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9500
     },
     {
@@ -857,7 +287,7 @@
       "jan_code": "4521329362342",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17200
     },
     {
@@ -867,7 +297,7 @@
       "jan_code": "4521329361505",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26500
     },
     {
@@ -877,7 +307,7 @@
       "jan_code": "4521329361352",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15300
     },
     {
@@ -887,7 +317,7 @@
       "jan_code": "4521329361000",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11200
     },
     {
@@ -897,7 +327,7 @@
       "jan_code": "4521329362496",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11200
     },
     {
@@ -907,7 +337,7 @@
       "jan_code": "4521329362526",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -917,7 +347,7 @@
       "jan_code": "4521329361239",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12000
     },
     {
@@ -927,7 +357,7 @@
       "jan_code": "4521329394831",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -937,7 +367,7 @@
       "jan_code": "4521329394848",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -947,7 +377,7 @@
       "jan_code": "4521329394824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14500
     },
     {
@@ -957,17 +387,17 @@
       "jan_code": "4521329394732",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
       "product_name": "未来の一閃",
       "site": "買取BASE",
-      "price": 9000,
+      "price": 9500,
       "jan_code": "4521329394756",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9000
     },
     {
@@ -977,37 +407,37 @@
       "jan_code": "4521329391397",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14500
     },
     {
       "product_name": "黒炎の支配者",
       "site": "買取BASE",
-      "price": 19200,
+      "price": 18800,
       "jan_code": "4521329346014",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19200
     },
     {
       "product_name": "ポケモンカード151",
       "site": "買取BASE",
-      "price": 45000,
+      "price": 44000,
       "jan_code": "4521329346038",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 45000
     },
     {
       "product_name": "クレイバースト",
       "site": "買取BASE",
-      "price": 10200,
+      "price": 10500,
       "jan_code": "4521329346182",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10200
     },
     {
@@ -1017,7 +447,7 @@
       "jan_code": "4521329346229",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10200
     },
     {
@@ -1027,7 +457,7 @@
       "jan_code": "4521329346274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16500
     },
     {
@@ -1037,7 +467,7 @@
       "jan_code": "4521329373515",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13600
     },
     {
@@ -1047,7 +477,7 @@
       "jan_code": "4521329373539",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10500
     },
     {
@@ -1057,17 +487,17 @@
       "jan_code": "4521329373362",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 27300
     },
     {
       "product_name": "パラダイムトリガー",
       "site": "買取BASE",
-      "price": 20700,
+      "price": 20800,
       "jan_code": "4521329373126",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20700
     },
     {
@@ -1077,7 +507,7 @@
       "jan_code": "4521329365480",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10500
     },
     {
@@ -1087,7 +517,7 @@
       "jan_code": "4521329365824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 48000
     },
     {
@@ -1097,7 +527,7 @@
       "jan_code": "4521329364582",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19500
     },
     {
@@ -1107,7 +537,7 @@
       "jan_code": "4521329365862",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19500
     },
     {
@@ -1117,7 +547,7 @@
       "jan_code": "4521329364605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15200
     },
     {
@@ -1127,7 +557,7 @@
       "jan_code": "4521329364704",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18700
     },
     {
@@ -1137,7 +567,7 @@
       "jan_code": "4521329323244",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12500
     },
     {
@@ -1147,7 +577,7 @@
       "jan_code": "4521329323077",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20700
     },
     {
@@ -1157,17 +587,17 @@
       "jan_code": "4521329322698",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 29000
     },
     {
       "product_name": "25th ANNIVERSARY COLLECTION",
       "site": "買取BASE",
-      "price": 55000,
+      "price": 53000,
       "jan_code": "4521329322568",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 55000
     },
     {
@@ -1177,7 +607,7 @@
       "jan_code": "4521329322629",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 52000
     },
     {
@@ -1187,7 +617,7 @@
       "jan_code": "4521329322384",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 220000
     },
     {
@@ -1197,7 +627,7 @@
       "jan_code": "4521329306513",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -1207,7 +637,7 @@
       "jan_code": "4521329306452",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -1217,17 +647,17 @@
       "jan_code": "4521329306438",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19000
     },
     {
       "product_name": "シャイニースターv",
       "site": "買取BASE",
-      "price": 20000,
+      "price": 19500,
       "jan_code": "4521329305981",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -1237,7 +667,7 @@
       "jan_code": "4521329290133",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 48500
     },
     {
@@ -1247,7 +677,7 @@
       "jan_code": "4521329266558",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 177000
     },
     {
@@ -1257,178 +687,8 @@
       "jan_code": "4521329246048",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 415000
-    },
-    {
-      "product_name": "イーブイヒーローズ",
-      "site": "トレカバンク",
-      "price": 127000,
-      "jan_code": "4521329306513",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 127000
-    },
-    {
-      "product_name": "仰天のボルテッカー",
-      "site": "トレカバンク",
-      "price": 48500,
-      "jan_code": "4521329290133",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 48500
-    },
-    {
-      "product_name": "フルメタルウォール",
-      "site": "トレカバンク",
-      "price": 48500,
-      "jan_code": "4521329246109",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 48500
-    },
-    {
-      "product_name": "スターバース",
-      "site": "トレカバンク",
-      "price": 21000,
-      "jan_code": "4521329323077",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 21000
-    },
-    {
-      "product_name": "スペースジャグラー",
-      "site": "トレカバンク",
-      "price": 18000,
-      "jan_code": "4521329364605",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 18000
-    },
-    {
-      "product_name": "シャイニートレジャーex",
-      "site": "トレカバンク",
-      "price": 16000,
-      "jan_code": "4521329394824",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16000
-    },
-    {
-      "product_name": "レイジングサーフ",
-      "site": "トレカバンク",
-      "price": 14000,
-      "jan_code": "4521329391397",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14000
-    },
-    {
-      "product_name": "スカーレットex",
-      "site": "トレカバンク",
-      "price": 13500,
-      "jan_code": "4521329373515",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13500
-    },
-    {
-      "product_name": "ステラミラクル",
-      "site": "トレカバンク",
-      "price": 11500,
-      "jan_code": "4521329361000",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "ワイルドフォース",
-      "site": "トレカバンク",
-      "price": 11500,
-      "jan_code": "4521329394831",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "ナイトワンダラー",
-      "site": "トレカバンク",
-      "price": 11500,
-      "jan_code": "4521329362496",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
-    },
-    {
-      "product_name": "白熱のアルカナ",
-      "site": "トレカバンク",
-      "price": 11000,
-      "jan_code": "4521329365480",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11000
-    },
-    {
-      "product_name": "クレイバースト",
-      "site": "トレカバンク",
-      "price": 9900,
-      "jan_code": "4521329346182",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9900
-    },
-    {
-      "product_name": "バイオレットex",
-      "site": "トレカバンク",
-      "price": 9900,
-      "jan_code": "4521329373539",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9900
-    },
-    {
-      "product_name": "未来の一閃",
-      "site": "トレカバンク",
-      "price": 9500,
-      "jan_code": "4521329394756",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9500
-    },
-    {
-      "product_name": "ニンジャスピナー",
-      "site": "トレカバンク",
-      "price": 8500,
-      "jan_code": "4521329432786",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8500
-    },
-    {
-      "product_name": "メガブレイブ",
-      "site": "トレカバンク",
-      "price": 7600,
-      "jan_code": "4521329431161",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7600
     },
     {
       "product_name": "ソード",
@@ -1437,7 +697,7 @@
       "jan_code": "4521329266749",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -1447,8 +707,8 @@
       "jan_code": "4521329462424",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 17100
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 17000
     },
     {
       "product_name": "ストームエメラルダ",
@@ -1457,7 +717,7 @@
       "jan_code": "4521329462233",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8000
     },
     {
@@ -1467,7 +727,7 @@
       "jan_code": "4521329462127",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -1477,8 +737,8 @@
       "jan_code": "4521329432786",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8500
     },
     {
       "product_name": "ムニキスゼロ",
@@ -1487,7 +747,7 @@
       "jan_code": "4521329432274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -1497,7 +757,7 @@
       "jan_code": "4521329431932",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11200
     },
     {
@@ -1507,7 +767,7 @@
       "jan_code": "4521329431529",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16500
     },
     {
@@ -1517,8 +777,8 @@
       "jan_code": "4521329431185",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7300
     },
     {
       "product_name": "メガブレイブ",
@@ -1527,7 +787,7 @@
       "jan_code": "4521329431161",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7600
     },
     {
@@ -1537,7 +797,7 @@
       "jan_code": "4521329427768",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 23000
     },
     {
@@ -1547,7 +807,7 @@
       "jan_code": "4521329427782",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -1557,7 +817,7 @@
       "jan_code": "4521329374659",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -1567,7 +827,7 @@
       "jan_code": "4521329374758",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -1577,7 +837,7 @@
       "jan_code": "4521329362649",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -1587,7 +847,7 @@
       "jan_code": "4521329362342",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17000
     },
     {
@@ -1597,7 +857,7 @@
       "jan_code": "4521329361505",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26600
     },
     {
@@ -1607,7 +867,7 @@
       "jan_code": "4521329361352",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15500
     },
     {
@@ -1617,8 +877,8 @@
       "jan_code": "4521329361000",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11000
     },
     {
       "product_name": "ナイトワンダラー",
@@ -1627,7 +887,7 @@
       "jan_code": "4521329362496",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -1637,8 +897,8 @@
       "jan_code": "4521329362526",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
     },
     {
       "product_name": "クリムゾンヘイズ",
@@ -1647,7 +907,7 @@
       "jan_code": "4521329361239",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -1657,7 +917,7 @@
       "jan_code": "4521329394848",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -1667,7 +927,7 @@
       "jan_code": "4521329394831",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -1677,8 +937,8 @@
       "jan_code": "4521329394824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 15000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14700
     },
     {
       "product_name": "古代の咆哮",
@@ -1687,7 +947,7 @@
       "jan_code": "4521329394732",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -1697,8 +957,8 @@
       "jan_code": "4521329394756",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9500
     },
     {
       "product_name": "レイジングサーフ",
@@ -1707,8 +967,8 @@
       "jan_code": "4521329391397",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14300
     },
     {
       "product_name": "黒炎の支配者",
@@ -1717,7 +977,7 @@
       "jan_code": "4521329346014",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18500
     },
     {
@@ -1727,8 +987,8 @@
       "jan_code": "4521329346038",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 45000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 45500
     },
     {
       "product_name": "クレイバースト",
@@ -1737,8 +997,8 @@
       "jan_code": "4521329346182",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10300
     },
     {
       "product_name": "スノーハザード",
@@ -1747,7 +1007,7 @@
       "jan_code": "4521329346229",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -1757,7 +1017,7 @@
       "jan_code": "4521329346274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16000
     },
     {
@@ -1767,7 +1027,7 @@
       "jan_code": "4521329373515",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13100
     },
     {
@@ -1777,7 +1037,7 @@
       "jan_code": "4521329373539",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -1787,7 +1047,7 @@
       "jan_code": "4521329373362",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26900
     },
     {
@@ -1797,8 +1057,8 @@
       "jan_code": "4521329373126",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20400
     },
     {
       "product_name": "ロストアビス",
@@ -1807,8 +1067,8 @@
       "jan_code": "4521329365824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 47500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 47200
     },
     {
       "product_name": "ポケモンGO",
@@ -1817,8 +1077,8 @@
       "jan_code": "4521329364582",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20700
     },
     {
       "product_name": "ダークファンタズマ",
@@ -1827,8 +1087,8 @@
       "jan_code": "4521329365862",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20500
     },
     {
       "product_name": "VMAXクライマックス",
@@ -1837,8 +1097,8 @@
       "jan_code": "4521329322698",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 30000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 30300
     },
     {
       "product_name": "イーブイヒーローズ",
@@ -1847,8 +1107,8 @@
       "jan_code": "4521329306513",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 123000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 122000
     },
     {
       "product_name": "白銀のランス",
@@ -1857,7 +1117,7 @@
       "jan_code": "4521329306438",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -1867,7 +1127,7 @@
       "jan_code": "4521329266763",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 50000
     },
     {
@@ -1877,7 +1137,7 @@
       "jan_code": "4521329266558",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -1887,7 +1147,7 @@
       "jan_code": "4521329266329",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 57000
     },
     {
@@ -1897,7 +1157,7 @@
       "jan_code": "4521329266183",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 152000
     },
     {
@@ -1907,8 +1167,8 @@
       "jan_code": "4521329266107",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 115000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 120000
     },
     {
       "product_name": "ミラクルツイン",
@@ -1917,7 +1177,7 @@
       "jan_code": "4521329246970",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -1927,7 +1187,7 @@
       "jan_code": "4521329246956",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 113000
     },
     {
@@ -1937,7 +1197,7 @@
       "jan_code": "4521329246703",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 87000
     },
     {
@@ -1947,7 +1207,7 @@
       "jan_code": "4521329246468",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 109000
     },
     {
@@ -1957,7 +1217,7 @@
       "jan_code": "4521329246086",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 92000
     },
     {
@@ -1967,7 +1227,7 @@
       "jan_code": "4521329246048",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 409000
     },
     {
@@ -1977,7 +1237,7 @@
       "jan_code": "4521329226972",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 175000
     },
     {
@@ -1987,7 +1247,7 @@
       "jan_code": "4521329463872",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 47000
     },
     {
@@ -1997,8 +1257,748 @@
       "jan_code": "4521329462189",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10500
+    },
+    {
+      "product_name": "30th CELEBRATION",
+      "site": "買取１丁目",
+      "price": 16500,
+      "jan_code": "4521329462424",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16500
+    },
+    {
+      "product_name": "30th CELEBRATION プレミアムデッキセット",
+      "site": "買取１丁目",
+      "price": 12000,
+      "jan_code": "4521329462189",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 12000
+    },
+    {
+      "product_name": "30th CELEBRATION FUTURISTIC BOX",
+      "site": "買取１丁目",
+      "price": 44000,
+      "jan_code": "4521329463872",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 44000
+    },
+    {
+      "product_name": "ストームエメラルダ",
+      "site": "買取１丁目",
+      "price": 8000,
+      "jan_code": "4521329462233",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
+    },
+    {
+      "product_name": "アビスアイ",
+      "site": "買取１丁目",
+      "price": 7500,
+      "jan_code": "4521329462127",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7500
+    },
+    {
+      "product_name": "ニンジャスピナー",
+      "site": "買取１丁目",
+      "price": 8500,
+      "jan_code": "4521329432786",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8500
+    },
+    {
+      "product_name": "ムニキスゼロ",
+      "site": "買取１丁目",
+      "price": 7800,
+      "jan_code": "4521329432274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7800
+    },
+    {
+      "product_name": "MEGAドリームex",
+      "site": "買取１丁目",
+      "price": 11500,
+      "jan_code": "4521329431932",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "インフェルノX",
+      "site": "買取１丁目",
+      "price": 16500,
+      "jan_code": "4521329431529",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16500
+    },
+    {
+      "product_name": "メガブレイブ",
+      "site": "買取１丁目",
+      "price": 7300,
+      "jan_code": "4521329431161",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7300
+    },
+    {
+      "product_name": "メガシンフォニア",
+      "site": "買取１丁目",
+      "price": 7000,
+      "jan_code": "4521329431185",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7000
+    },
+    {
+      "product_name": "ブラックボルト",
+      "site": "買取１丁目",
+      "price": 22000,
+      "jan_code": "4521329427768",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 22000
+    },
+    {
+      "product_name": "ホワイトフレア",
+      "site": "買取１丁目",
+      "price": 21000,
+      "jan_code": "4521329427782",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 21000
+    },
+    {
+      "product_name": "ロケット団の栄光",
+      "site": "買取１丁目",
+      "price": 22000,
+      "jan_code": "4521329374659",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 22000
+    },
+    {
+      "product_name": "熱風のアリーナ",
+      "site": "買取１丁目",
+      "price": 17500,
+      "jan_code": "4521329374758",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 17500
+    },
+    {
+      "product_name": "バトルパートナーズ",
+      "site": "買取１丁目",
+      "price": 10000,
+      "jan_code": "4521329362649",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "テラスタルフェスex",
+      "site": "買取１丁目",
+      "price": 16500,
+      "jan_code": "4521329362342",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16500
+    },
+    {
+      "product_name": "超電ブレイカー",
+      "site": "買取１丁目",
+      "price": 26000,
+      "jan_code": "4521329361505",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 26000
+    },
+    {
+      "product_name": "楽園ドラゴーナ",
+      "site": "買取１丁目",
+      "price": 15500,
+      "jan_code": "4521329361352",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 15500
+    },
+    {
+      "product_name": "ステラミラクル",
+      "site": "買取１丁目",
+      "price": 11300,
+      "jan_code": "4521329361000",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11300
+    },
+    {
+      "product_name": "ナイトワンダラー",
+      "site": "買取１丁目",
+      "price": 11200,
+      "jan_code": "4521329362496",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11200
+    },
+    {
+      "product_name": "変幻の仮面",
+      "site": "買取１丁目",
+      "price": 11200,
+      "jan_code": "4521329362526",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11200
+    },
+    {
+      "product_name": "クリムゾンヘイズ",
+      "site": "買取１丁目",
+      "price": 12200,
+      "jan_code": "4521329361239",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 12200
+    },
+    {
+      "product_name": "ワイルドフォース",
+      "site": "買取１丁目",
+      "price": 11400,
+      "jan_code": "4521329394831",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11400
+    },
+    {
+      "product_name": "サイバージャッジ",
+      "site": "買取１丁目",
+      "price": 10700,
+      "jan_code": "4521329394848",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10700
+    },
+    {
+      "product_name": "シャイニートレジャーex",
+      "site": "買取１丁目",
+      "price": 15000,
+      "jan_code": "4521329394824",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 15000
+    },
+    {
+      "product_name": "古代の咆哮",
+      "site": "買取１丁目",
+      "price": 11000,
+      "jan_code": "4521329394732",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
+    },
+    {
+      "product_name": "未来の一閃",
+      "site": "買取１丁目",
+      "price": 9800,
+      "jan_code": "4521329394756",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9800
+    },
+    {
+      "product_name": "レイジングサーフ",
+      "site": "買取１丁目",
+      "price": 14300,
+      "jan_code": "4521329391397",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14300
+    },
+    {
+      "product_name": "黒炎の支配者",
+      "site": "買取１丁目",
+      "price": 18800,
+      "jan_code": "4521329346014",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18800
+    },
+    {
+      "product_name": "ポケモンカード151",
+      "site": "買取１丁目",
+      "price": 46000,
+      "jan_code": "4521329346038",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 46000
+    },
+    {
+      "product_name": "クレイバースト",
+      "site": "買取１丁目",
+      "price": 10500,
+      "jan_code": "4521329346182",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10500
+    },
+    {
+      "product_name": "スノーハザード",
+      "site": "買取１丁目",
+      "price": 10300,
+      "jan_code": "4521329346229",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10300
+    },
+    {
+      "product_name": "トリプレットビート",
+      "site": "買取１丁目",
+      "price": 18000,
+      "jan_code": "4521329346274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18000
+    },
+    {
+      "product_name": "バイオレットex",
+      "site": "買取１丁目",
+      "price": 10000,
+      "jan_code": "4521329373539",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "スカーレットex",
+      "site": "買取１丁目",
+      "price": 13500,
+      "jan_code": "4521329373515",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 13500
+    },
+    {
+      "product_name": "VSTARユニバース",
+      "site": "買取１丁目",
+      "price": 26500,
+      "jan_code": "4521329373362",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 26500
+    },
+    {
+      "product_name": "イーブイヒーローズ",
+      "site": "トレカバンク",
+      "price": 127000,
+      "jan_code": "4521329306513",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 127000
+    },
+    {
+      "product_name": "仰天のボルテッカー",
+      "site": "トレカバンク",
+      "price": 48500,
+      "jan_code": "4521329290133",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 48500
+    },
+    {
+      "product_name": "フルメタルウォール",
+      "site": "トレカバンク",
+      "price": 48500,
+      "jan_code": "4521329246109",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 48500
+    },
+    {
+      "product_name": "スターバース",
+      "site": "トレカバンク",
+      "price": 21000,
+      "jan_code": "4521329323077",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 21000
+    },
+    {
+      "product_name": "スペースジャグラー",
+      "site": "トレカバンク",
+      "price": 18000,
+      "jan_code": "4521329364605",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18000
+    },
+    {
+      "product_name": "シャイニートレジャーex",
+      "site": "トレカバンク",
+      "price": 16000,
+      "jan_code": "4521329394824",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16000
+    },
+    {
+      "product_name": "レイジングサーフ",
+      "site": "トレカバンク",
+      "price": 14000,
+      "jan_code": "4521329391397",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14000
+    },
+    {
+      "product_name": "スカーレットex",
+      "site": "トレカバンク",
+      "price": 13500,
+      "jan_code": "4521329373515",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 13500
+    },
+    {
+      "product_name": "ワイルドフォース",
+      "site": "トレカバンク",
+      "price": 11500,
+      "jan_code": "4521329394831",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "ナイトワンダラー",
+      "site": "トレカバンク",
+      "price": 11500,
+      "jan_code": "4521329362496",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "ステラミラクル",
+      "site": "トレカバンク",
+      "price": 11500,
+      "jan_code": "4521329361000",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "白熱のアルカナ",
+      "site": "トレカバンク",
+      "price": 11000,
+      "jan_code": "4521329365480",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11000
+    },
+    {
+      "product_name": "バイオレットex",
+      "site": "トレカバンク",
+      "price": 9900,
+      "jan_code": "4521329373539",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9900
+    },
+    {
+      "product_name": "クレイバースト",
+      "site": "トレカバンク",
+      "price": 9900,
+      "jan_code": "4521329346182",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9900
+    },
+    {
+      "product_name": "未来の一閃",
+      "site": "トレカバンク",
+      "price": 9500,
+      "jan_code": "4521329394756",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9500
+    },
+    {
+      "product_name": "ニンジャスピナー",
+      "site": "トレカバンク",
+      "price": 8500,
+      "jan_code": "4521329432786",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8500
+    },
+    {
+      "product_name": "メガブレイブ",
+      "site": "トレカバンク",
+      "price": 7600,
+      "jan_code": "4521329431161",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7600
+    },
+    {
+      "product_name": "30th CELEBRATION",
+      "site": "モバイル一番",
+      "price": 17100,
+      "jan_code": "4521329462424",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 17100
+    },
+    {
+      "product_name": "30th CELEBRATION プレミアムデッキセット",
+      "site": "モバイル一番",
+      "price": 12000,
+      "jan_code": "4521329462189",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 12000
+    },
+    {
+      "product_name": "30th CELEBRATION FUTURISTIC BOX",
+      "site": "モバイル一番",
+      "price": 45000,
+      "jan_code": "4521329463872",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 45000
+    },
+    {
+      "product_name": "ストームエメラルダ",
+      "site": "モバイル一番",
+      "price": 7500,
+      "jan_code": "4521329462233",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7500
+    },
+    {
+      "product_name": "アビスアイ",
+      "site": "モバイル一番",
+      "price": 6500,
+      "jan_code": "4521329462127",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "ニンジャスピナー",
+      "site": "モバイル一番",
+      "price": 6500,
+      "jan_code": "4521329432786",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "ムニキスゼロ",
+      "site": "モバイル一番",
+      "price": 6500,
+      "jan_code": "4521329432274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "インフェルノX",
+      "site": "モバイル一番",
+      "price": 16400,
+      "jan_code": "4521329431529",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16400
+    },
+    {
+      "product_name": "MEGAドリームex",
+      "site": "モバイル一番",
+      "price": 11500,
+      "jan_code": "4521329431932",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "ポケモンGO",
+      "site": "モバイル一番",
+      "price": 11500,
+      "jan_code": "4521329364582",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンターフクオカ",
+      "site": "モバイル一番",
+      "price": 10000,
+      "jan_code": "4521329431536",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンターヒロシマ",
+      "site": "モバイル一番",
+      "price": 10500,
+      "jan_code": "4521329427669",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10500
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンタートウホク",
+      "site": "モバイル一番",
+      "price": 10000,
+      "jan_code": "4521329431277",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "メガブレイブ",
+      "site": "モバイル一番",
+      "price": 7000,
+      "jan_code": "4521329431161",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7000
+    },
+    {
+      "product_name": "メガシンフォニア",
+      "site": "モバイル一番",
+      "price": 6500,
+      "jan_code": "4521329431185",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "ホワイトフレア",
+      "site": "モバイル一番",
+      "price": 21500,
+      "jan_code": "4521329427782",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 21500
+    },
+    {
+      "product_name": "ブラックボルト",
+      "site": "モバイル一番",
+      "price": 23000,
+      "jan_code": "4521329427768",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 23000
+    },
+    {
+      "product_name": "トリプレットビート",
+      "site": "モバイル一番",
+      "price": 17000,
+      "jan_code": "4521329346274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 17000
+    },
+    {
+      "product_name": "ポケモンカード151",
+      "site": "モバイル一番",
+      "price": 46000,
+      "jan_code": "4521329346038",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 46000
+    },
+    {
+      "product_name": "シャイニートレジャーex",
+      "site": "モバイル一番",
+      "price": 15000,
+      "jan_code": "4521329394824",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 15000
     },
     {
       "product_name": "GXバトルブースト",
@@ -2007,7 +2007,7 @@
       "jan_code": "4521329224992",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 1200000
     },
     {
@@ -2017,7 +2017,7 @@
       "jan_code": "4521329190990",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 850000
     },
     {
@@ -2027,7 +2027,7 @@
       "jan_code": "4521329191393",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 750000
     },
     {
@@ -2037,7 +2037,7 @@
       "jan_code": "4521329191324",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 590000
     },
     {
@@ -2047,7 +2047,7 @@
       "jan_code": "4521329190976",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 580000
     },
     {
@@ -2057,7 +2057,7 @@
       "jan_code": "4521329246048",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 420000
     },
     {
@@ -2067,7 +2067,7 @@
       "jan_code": "4521329226262",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 360000
     },
     {
@@ -2077,7 +2077,7 @@
       "jan_code": "4521329191713",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 260000
     },
     {
@@ -2087,7 +2087,7 @@
       "jan_code": "4521329190945",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 240000
     },
     {
@@ -2097,7 +2097,7 @@
       "jan_code": "4521329190938",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 230000
     },
     {
@@ -2107,7 +2107,7 @@
       "jan_code": "4521329322384",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 223000
     },
     {
@@ -2117,7 +2117,7 @@
       "jan_code": "4521329191355",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 220000
     },
     {
@@ -2127,7 +2127,7 @@
       "jan_code": "4521329191690",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 190000
     },
     {
@@ -2137,7 +2137,7 @@
       "jan_code": "4521329266558",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -2147,7 +2147,7 @@
       "jan_code": "4521329246970",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -2157,7 +2157,7 @@
       "jan_code": "4521329226972",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 175000
     },
     {
@@ -2167,7 +2167,7 @@
       "jan_code": "4521329266183",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 153000
     },
     {
@@ -2177,7 +2177,7 @@
       "jan_code": "4521329190857",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 135000
     },
     {
@@ -2187,7 +2187,7 @@
       "jan_code": "4521329306513",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 126000
     },
     {
@@ -2197,7 +2197,7 @@
       "jan_code": "4521329191799",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -2207,7 +2207,7 @@
       "jan_code": "4521329246956",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -2217,7 +2217,7 @@
       "jan_code": "4521329226545",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -2227,7 +2227,7 @@
       "jan_code": "4521329266107",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -2237,7 +2237,7 @@
       "jan_code": "4521329226224",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 115000
     },
     {
@@ -2247,7 +2247,7 @@
       "jan_code": "4521329246468",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 110000
     },
     {
@@ -2257,7 +2257,7 @@
       "jan_code": "4521329191867",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 100000
     },
     {
@@ -2267,7 +2267,7 @@
       "jan_code": "4521329283913",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 95000
     },
     {
@@ -2277,7 +2277,7 @@
       "jan_code": "4521329246086",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 92000
     },
     {
@@ -2287,7 +2287,7 @@
       "jan_code": "4521329266053",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 88000
     },
     {
@@ -2297,7 +2297,7 @@
       "jan_code": "4521329246703",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 86000
     },
     {
@@ -2307,7 +2307,7 @@
       "jan_code": "4521329226316",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 80000
     },
     {
@@ -2317,7 +2317,7 @@
       "jan_code": "4521329191775",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 70000
     },
     {
@@ -2327,7 +2327,7 @@
       "jan_code": "4521329226521",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 70000
     },
     {
@@ -2337,7 +2337,7 @@
       "jan_code": "4521329226156",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 60000
     },
     {
@@ -2347,7 +2347,7 @@
       "jan_code": "4521329266763",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 58000
     },
     {
@@ -2357,7 +2357,7 @@
       "jan_code": "4521329266329",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 58000
     },
     {
@@ -2367,7 +2367,7 @@
       "jan_code": "4521329322629",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 58000
     },
     {
@@ -2377,7 +2377,7 @@
       "jan_code": "4521329322568",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 55000
     },
     {
@@ -2387,7 +2387,7 @@
       "jan_code": "4521329226507",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 55000
     },
     {
@@ -2397,7 +2397,7 @@
       "jan_code": "4521329290133",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 48500
     },
     {
@@ -2407,7 +2407,7 @@
       "jan_code": "4521329365824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 47000
     },
     {
@@ -2417,7 +2417,7 @@
       "jan_code": "4521329346038",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 45000
     },
     {
@@ -2427,7 +2427,7 @@
       "jan_code": "4521329283999",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 44000
     },
     {
@@ -2437,7 +2437,7 @@
       "jan_code": "4521329246109",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 42000
     },
     {
@@ -2447,7 +2447,7 @@
       "jan_code": "4521329306162",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 41000
     },
     {
@@ -2457,7 +2457,7 @@
       "jan_code": "4521329284040",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -2467,7 +2467,7 @@
       "jan_code": "4521329306360",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -2477,7 +2477,7 @@
       "jan_code": "4521329266749",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -2487,7 +2487,7 @@
       "jan_code": "4521329306148",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -2497,7 +2497,7 @@
       "jan_code": "4521329284026",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 36000
     },
     {
@@ -2507,7 +2507,7 @@
       "jan_code": "4521329226774",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 35000
     },
     {
@@ -2517,7 +2517,7 @@
       "jan_code": "4521329290119",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 30000
     },
     {
@@ -2527,7 +2527,7 @@
       "jan_code": "4521329322698",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 28800
     },
     {
@@ -2537,7 +2537,7 @@
       "jan_code": "4521329373362",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26800
     },
     {
@@ -2547,7 +2547,7 @@
       "jan_code": "4521329361505",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26700
     },
     {
@@ -2557,7 +2557,7 @@
       "jan_code": "4521329427768",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 22100
     },
     {
@@ -2567,7 +2567,7 @@
       "jan_code": "4521329374659",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21300
     },
     {
@@ -2577,7 +2577,7 @@
       "jan_code": "4521329323077",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21100
     },
     {
@@ -2587,7 +2587,7 @@
       "jan_code": "4521329427782",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -2597,7 +2597,7 @@
       "jan_code": "4521329306452",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -2607,7 +2607,7 @@
       "jan_code": "4521329373126",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -2617,7 +2617,7 @@
       "jan_code": "4521329364582",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -2627,7 +2627,7 @@
       "jan_code": "4521329305981",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -2637,7 +2637,7 @@
       "jan_code": "4521329365862",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -2647,7 +2647,7 @@
       "jan_code": "4521329364704",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19000
     },
     {
@@ -2657,8 +2657,8 @@
       "jan_code": "4521329346014",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 19000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18800
     },
     {
       "product_name": "白銀のランス",
@@ -2667,7 +2667,7 @@
       "jan_code": "4521329306438",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18500
     },
     {
@@ -2677,7 +2677,7 @@
       "jan_code": "4521329322391",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -2687,7 +2687,7 @@
       "jan_code": "4521329346274",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -2697,7 +2697,7 @@
       "jan_code": "4521329374758",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17500
     },
     {
@@ -2707,8 +2707,8 @@
       "jan_code": "4521329431529",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16200
     },
     {
       "product_name": "30th CELEBRATION",
@@ -2717,8 +2717,8 @@
       "jan_code": "4521329462424",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16000
     },
     {
       "product_name": "スペースジャグラー",
@@ -2727,7 +2727,7 @@
       "jan_code": "4521329364605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15600
     },
     {
@@ -2737,7 +2737,7 @@
       "jan_code": "4521329362342",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15500
     },
     {
@@ -2747,7 +2747,7 @@
       "jan_code": "4521329361352",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15300
     },
     {
@@ -2757,7 +2757,7 @@
       "jan_code": "4521329391397",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14800
     },
     {
@@ -2767,7 +2767,7 @@
       "jan_code": "4521329394824",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14500
     },
     {
@@ -2777,7 +2777,7 @@
       "jan_code": "4521329373515",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13900
     },
     {
@@ -2787,7 +2787,7 @@
       "jan_code": "4521329323244",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12900
     },
     {
@@ -2797,7 +2797,7 @@
       "jan_code": "4521329361239",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12100
     },
     {
@@ -2807,7 +2807,7 @@
       "jan_code": "4521329362496",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -2817,8 +2817,8 @@
       "jan_code": "4521329362526",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11700
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11500
     },
     {
       "product_name": "ステラミラクル",
@@ -2827,7 +2827,7 @@
       "jan_code": "4521329361000",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -2837,7 +2837,7 @@
       "jan_code": "4521329394831",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -2847,8 +2847,8 @@
       "jan_code": "4521329431932",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11200
     },
     {
       "product_name": "白熱のアルカナ",
@@ -2857,7 +2857,7 @@
       "jan_code": "4521329365480",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11100
     },
     {
@@ -2867,7 +2867,7 @@
       "jan_code": "4521329394848",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10900
     },
     {
@@ -2877,8 +2877,8 @@
       "jan_code": "4521329394732",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10800
     },
     {
       "product_name": "バイオレットex",
@@ -2887,7 +2887,7 @@
       "jan_code": "4521329373539",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10700
     },
     {
@@ -2897,8 +2897,8 @@
       "jan_code": "4521329346182",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10600
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10700
     },
     {
       "product_name": "スノーハザード",
@@ -2907,7 +2907,7 @@
       "jan_code": "4521329346229",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10600
     },
     {
@@ -2917,7 +2917,7 @@
       "jan_code": "4521329394756",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10100
     },
     {
@@ -2927,8 +2927,8 @@
       "jan_code": "4521329362649",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10100
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
     },
     {
       "product_name": "ニンジャスピナー",
@@ -2937,8 +2937,8 @@
       "jan_code": "4521329432786",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8300
     },
     {
       "product_name": "ストームエメラルダ",
@@ -2947,7 +2947,7 @@
       "jan_code": "4521329462233",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8000
     },
     {
@@ -2957,7 +2957,7 @@
       "jan_code": "4521329432274",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7800
     },
     {
@@ -2967,7 +2967,7 @@
       "jan_code": "4521329462127",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -2977,8 +2977,8 @@
       "jan_code": "4521329431161",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7200
     },
     {
       "product_name": "メガシンフォニア",
@@ -2987,8 +2987,8 @@
       "jan_code": "4521329431185",
       "condition_badge": "減額なし",
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6800
     },
     {
       "product_name": "バイオレットex",
@@ -2997,8 +2997,8 @@
       "jan_code": "4521329373539",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10400
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
     },
     {
       "product_name": "スカーレットex",
@@ -3007,8 +3007,8 @@
       "jan_code": "4521329373515",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13900
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 13800
     },
     {
       "product_name": "トリプレットビート",
@@ -3017,7 +3017,7 @@
       "jan_code": "4521329346274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17300
     },
     {
@@ -3027,8 +3027,8 @@
       "jan_code": "4521329346182",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10100
     },
     {
       "product_name": "スノーハザード",
@@ -3037,7 +3037,7 @@
       "jan_code": "4521329346229",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10300
     },
     {
@@ -3047,8 +3047,8 @@
       "jan_code": "4521329346038",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 45600
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 44100
     },
     {
       "product_name": "黒炎の支配者",
@@ -3057,8 +3057,8 @@
       "jan_code": "4521329346014",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 18600
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18400
     },
     {
       "product_name": "レイジングサーフ",
@@ -3067,7 +3067,7 @@
       "jan_code": "4521329391397",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14700
     },
     {
@@ -3077,7 +3077,7 @@
       "jan_code": "4521329394756",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9800
     },
     {
@@ -3087,8 +3087,8 @@
       "jan_code": "4521329394732",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10200
     },
     {
       "product_name": "シャイニートレジャーex",
@@ -3097,8 +3097,8 @@
       "jan_code": "4521329394824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 15300
     },
     {
       "product_name": "サイバージャッジ",
@@ -3107,7 +3107,7 @@
       "jan_code": "4521329394848",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10800
     },
     {
@@ -3117,7 +3117,7 @@
       "jan_code": "4521329394831",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11400
     },
     {
@@ -3127,7 +3127,7 @@
       "jan_code": "4521329361239",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12500
     },
     {
@@ -3137,7 +3137,7 @@
       "jan_code": "4521329362526",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -3147,7 +3147,7 @@
       "jan_code": "4521329362496",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -3157,8 +3157,8 @@
       "jan_code": "4521329361000",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11200
     },
     {
       "product_name": "楽園ドラゴーナ",
@@ -3167,7 +3167,7 @@
       "jan_code": "4521329361352",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15500
     },
     {
@@ -3177,8 +3177,8 @@
       "jan_code": "4521329361505",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 28000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 27000
     },
     {
       "product_name": "テラスタルフェスex",
@@ -3187,8 +3187,8 @@
       "jan_code": "4521329362342",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16000
     },
     {
       "product_name": "バトルパートナーズ",
@@ -3197,7 +3197,7 @@
       "jan_code": "4521329362649",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10600
     },
     {
@@ -3207,8 +3207,8 @@
       "jan_code": "4521329374758",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 17800
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 17600
     },
     {
       "product_name": "ロケット団の栄光",
@@ -3217,8 +3217,8 @@
       "jan_code": "4521329374659",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 22500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 22000
     },
     {
       "product_name": "ブラックボルト",
@@ -3227,8 +3227,8 @@
       "jan_code": "4521329427768",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 23000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 22500
     },
     {
       "product_name": "ホワイトフレア",
@@ -3237,8 +3237,8 @@
       "jan_code": "4521329427782",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 22000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 21500
     },
     {
       "product_name": "メガブレイブ",
@@ -3247,8 +3247,8 @@
       "jan_code": "4521329431161",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6900
     },
     {
       "product_name": "メガシンフォニア",
@@ -3257,8 +3257,8 @@
       "jan_code": "4521329431185",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7200
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7000
     },
     {
       "product_name": "インフェルノX",
@@ -3267,8 +3267,8 @@
       "jan_code": "4521329431529",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16800
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16200
     },
     {
       "product_name": "MEGAドリームex",
@@ -3277,8 +3277,8 @@
       "jan_code": "4521329431932",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11500
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11200
     },
     {
       "product_name": "ムニキスゼロ",
@@ -3287,7 +3287,7 @@
       "jan_code": "4521329432274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8000
     },
     {
@@ -3297,17 +3297,17 @@
       "jan_code": "4521329432786",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8400
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8300
     },
     {
       "product_name": "アビスアイ",
       "site": "トレカラウンジ",
-      "price": 7500,
+      "price": 7700,
       "jan_code": "4521329462127",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -3317,7 +3317,7 @@
       "jan_code": "4521329462233",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8000
     },
     {
@@ -3327,7 +3327,7 @@
       "jan_code": "4521329462424",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17200
     },
     {
@@ -3337,7 +3337,7 @@
       "jan_code": "4521329266749",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 46000
     },
     {
@@ -3347,7 +3347,7 @@
       "jan_code": "4521329266763",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 57000
     },
     {
@@ -3357,7 +3357,7 @@
       "jan_code": "4521329283913",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 110000
     },
     {
@@ -3367,7 +3367,7 @@
       "jan_code": "4521329283999",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 50000
     },
     {
@@ -3377,7 +3377,7 @@
       "jan_code": "4521329284026",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 35000
     },
     {
@@ -3387,7 +3387,7 @@
       "jan_code": "4521329284040",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -3397,7 +3397,7 @@
       "jan_code": "4521329290119",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 31000
     },
     {
@@ -3407,7 +3407,7 @@
       "jan_code": "4521329290133",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 48500
     },
     {
@@ -3417,8 +3417,8 @@
       "jan_code": "4521329305981",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20200
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 19600
     },
     {
       "product_name": "連撃マスター",
@@ -3427,7 +3427,7 @@
       "jan_code": "4521329306162",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 41000
     },
     {
@@ -3437,7 +3437,7 @@
       "jan_code": "4521329306148",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -3447,7 +3447,7 @@
       "jan_code": "4521329306360",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -3457,7 +3457,7 @@
       "jan_code": "4521329306452",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 23000
     },
     {
@@ -3467,7 +3467,7 @@
       "jan_code": "4521329306438",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -3477,8 +3477,8 @@
       "jan_code": "4521329306513",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 125000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 122000
     },
     {
       "product_name": "蒼空ストリーム",
@@ -3487,8 +3487,8 @@
       "jan_code": "4521329322384",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 214000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 211000
     },
     {
       "product_name": "摩天パーフェクト",
@@ -3497,8 +3497,8 @@
       "jan_code": "4521329322391",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 18300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 18100
     },
     {
       "product_name": "フュージョンアーツ",
@@ -3507,7 +3507,7 @@
       "jan_code": "4521329322629",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 58000
     },
     {
@@ -3517,7 +3517,7 @@
       "jan_code": "4521329322568",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 52000
     },
     {
@@ -3527,7 +3527,7 @@
       "jan_code": "4521329322698",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 29400
     },
     {
@@ -3537,7 +3537,7 @@
       "jan_code": "4521329323077",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -3547,8 +3547,8 @@
       "jan_code": "4521329323244",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 12800
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 12500
     },
     {
       "product_name": "スペースジャグラー",
@@ -3557,7 +3557,7 @@
       "jan_code": "4521329364605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16000
     },
     {
@@ -3567,7 +3567,7 @@
       "jan_code": "4521329364704",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 19000
     },
     {
@@ -3577,8 +3577,8 @@
       "jan_code": "4521329365862",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20400
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20300
     },
     {
       "product_name": "ポケモンGO",
@@ -3587,7 +3587,7 @@
       "jan_code": "4521329364582",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20200
     },
     {
@@ -3597,8 +3597,8 @@
       "jan_code": "4521329365824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 46100
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 45700
     },
     {
       "product_name": "白熱のアルカナ",
@@ -3607,7 +3607,7 @@
       "jan_code": "4521329365480",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12000
     },
     {
@@ -3617,7 +3617,7 @@
       "jan_code": "4521329373126",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20100
     },
     {
@@ -3627,7 +3627,7 @@
       "jan_code": "4521329373362",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26300
     },
     {
@@ -3637,7 +3637,7 @@
       "jan_code": "4521329190792",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 680000
     },
     {
@@ -3647,7 +3647,7 @@
       "jan_code": "4521329190785",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 230000
     },
     {
@@ -3657,7 +3657,7 @@
       "jan_code": "4521329190857",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 110000
     },
     {
@@ -3667,7 +3667,7 @@
       "jan_code": "4521329190945",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 230000
     },
     {
@@ -3677,7 +3677,7 @@
       "jan_code": "4521329190938",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 220000
     },
     {
@@ -3687,7 +3687,7 @@
       "jan_code": "4521329190976",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 550000
     },
     {
@@ -3697,7 +3697,7 @@
       "jan_code": "4521329191355",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -3707,7 +3707,7 @@
       "jan_code": "4521329191324",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 580000
     },
     {
@@ -3717,7 +3717,7 @@
       "jan_code": "4521329191393",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 770000
     },
     {
@@ -3727,7 +3727,7 @@
       "jan_code": "4521329191713",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 250000
     },
     {
@@ -3737,7 +3737,7 @@
       "jan_code": "4521329191690",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 190000
     },
     {
@@ -3747,7 +3747,7 @@
       "jan_code": "4521329224992",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 1200000
     },
     {
@@ -3757,7 +3757,7 @@
       "jan_code": "4521329191799",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 125000
     },
     {
@@ -3767,7 +3767,7 @@
       "jan_code": "4521329191775",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 67000
     },
     {
@@ -3777,7 +3777,7 @@
       "jan_code": "4521329191867",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 92000
     },
     {
@@ -3787,7 +3787,7 @@
       "jan_code": "4521329226156",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 78000
     },
     {
@@ -3797,7 +3797,7 @@
       "jan_code": "4521329226224",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 105000
     },
     {
@@ -3807,7 +3807,7 @@
       "jan_code": "4521329226316",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 95000
     },
     {
@@ -3817,7 +3817,7 @@
       "jan_code": "4521329226262",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 350000
     },
     {
@@ -3827,7 +3827,7 @@
       "jan_code": "4521329226521",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 75000
     },
     {
@@ -3837,7 +3837,7 @@
       "jan_code": "4521329226507",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 70000
     },
     {
@@ -3847,7 +3847,7 @@
       "jan_code": "4521329226545",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 115000
     },
     {
@@ -3857,7 +3857,7 @@
       "jan_code": "4521329226774",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 45000
     },
     {
@@ -3867,7 +3867,7 @@
       "jan_code": "4521329226972",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 175000
     },
     {
@@ -3877,7 +3877,7 @@
       "jan_code": "4521329246048",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 415000
     },
     {
@@ -3887,7 +3887,7 @@
       "jan_code": "4521329246086",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 102000
     },
     {
@@ -3897,7 +3897,7 @@
       "jan_code": "4521329246109",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 42000
     },
     {
@@ -3907,7 +3907,7 @@
       "jan_code": "4521329246468",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 110000
     },
     {
@@ -3917,7 +3917,7 @@
       "jan_code": "4521329266053",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 90000
     },
     {
@@ -3927,7 +3927,7 @@
       "jan_code": "4521329246703",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 85000
     },
     {
@@ -3937,7 +3937,7 @@
       "jan_code": "4521329246956",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 115000
     },
     {
@@ -3947,7 +3947,7 @@
       "jan_code": "4521329246970",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 178000
     },
     {
@@ -3957,7 +3957,7 @@
       "jan_code": "4521329266107",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -3967,8 +3967,8 @@
       "jan_code": "4521329266183",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 153000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 150000
     },
     {
       "product_name": "オルタージェネシス",
@@ -3977,7 +3977,7 @@
       "jan_code": "4521329266329",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 58800
     },
     {
@@ -3987,8 +3987,8 @@
       "jan_code": "4521329266558",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 181000
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 180000
     },
     {
       "product_name": "THE BEST OF XY",
@@ -3997,7 +3997,7 @@
       "jan_code": "4521329190990",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 850000
     },
     {
@@ -4007,7 +4007,7 @@
       "jan_code": "4521329322407",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 280000
     },
     {
@@ -4017,7 +4017,7 @@
       "jan_code": "4521329322605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 160000
     },
     {
@@ -4027,8 +4027,8 @@
       "jan_code": "4521329427300",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 25600
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 25500
     },
     {
       "product_name": "ホワイトフレア DX",
@@ -4037,7 +4037,7 @@
       "jan_code": "4521329427324",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -4047,8 +4047,8 @@
       "jan_code": "4521329431277",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9900
     },
     {
       "product_name": "スペシャルBOXポケモンセンターヒロシマ",
@@ -4057,8 +4057,8 @@
       "jan_code": "4521329427669",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 11200
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 11000
     },
     {
       "product_name": "スペシャルBOXポケモンセンターフクオカ",
@@ -4067,7 +4067,7 @@
       "jan_code": "4521329431536",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -4077,8 +4077,8 @@
       "jan_code": "4521329462189",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10300
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9900
     },
     {
       "product_name": "30th CELEBRATION FUTURISTIC BOX",
@@ -4087,7 +4087,7 @@
       "jan_code": "4521329463872",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 45000
     },
     {
@@ -4097,7 +4097,7 @@
       "jan_code": "4521329462424",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16000
     },
     {
@@ -4107,7 +4107,7 @@
       "jan_code": "4521329463872",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 40000
     },
     {
@@ -4117,7 +4117,7 @@
       "jan_code": "4521329462189",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -4127,7 +4127,7 @@
       "jan_code": "4521329462233",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7800
     },
     {
@@ -4137,8 +4137,8 @@
       "jan_code": "4521329462127",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 7700
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 7500
     },
     {
       "product_name": "ニンジャスピナー",
@@ -4147,7 +4147,7 @@
       "jan_code": "4521329432786",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 8200
     },
     {
@@ -4157,7 +4157,7 @@
       "jan_code": "4521329432274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -4167,7 +4167,7 @@
       "jan_code": "4521329431536",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9000
     },
     {
@@ -4177,7 +4177,7 @@
       "jan_code": "4521329427669",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10500
     },
     {
@@ -4187,7 +4187,7 @@
       "jan_code": "4521329431277",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10500
     },
     {
@@ -4197,7 +4197,7 @@
       "jan_code": "4521329431185",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7000
     },
     {
@@ -4207,7 +4207,7 @@
       "jan_code": "4521329431161",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 7500
     },
     {
@@ -4217,7 +4217,7 @@
       "jan_code": "4521329427782",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 21000
     },
     {
@@ -4227,7 +4227,7 @@
       "jan_code": "4521329427768",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 22000
     },
     {
@@ -4237,7 +4237,7 @@
       "jan_code": "4521329374659",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 22000
     },
     {
@@ -4247,7 +4247,7 @@
       "jan_code": "4521329374758",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17500
     },
     {
@@ -4257,7 +4257,7 @@
       "jan_code": "4521329362649",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9500
     },
     {
@@ -4267,7 +4267,7 @@
       "jan_code": "4521329362342",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15500
     },
     {
@@ -4277,7 +4277,7 @@
       "jan_code": "4521329361505",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 26600
     },
     {
@@ -4287,7 +4287,7 @@
       "jan_code": "4521329361352",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15000
     },
     {
@@ -4297,7 +4297,7 @@
       "jan_code": "4521329361000",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -4307,7 +4307,7 @@
       "jan_code": "4521329362496",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -4317,7 +4317,7 @@
       "jan_code": "4521329362526",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -4327,7 +4327,7 @@
       "jan_code": "4521329361239",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11500
     },
     {
@@ -4337,7 +4337,7 @@
       "jan_code": "4521329394848",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -4347,7 +4347,7 @@
       "jan_code": "4521329394831",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12000
     },
     {
@@ -4357,7 +4357,7 @@
       "jan_code": "4521329394824",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 15500
     },
     {
@@ -4367,7 +4367,7 @@
       "jan_code": "4521329394756",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9500
     },
     {
@@ -4377,7 +4377,7 @@
       "jan_code": "4521329394732",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
     },
     {
@@ -4387,7 +4387,7 @@
       "jan_code": "4521329391397",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 14000
     },
     {
@@ -4397,7 +4397,7 @@
       "jan_code": "4521329373515",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13000
     },
     {
@@ -4407,7 +4407,7 @@
       "jan_code": "4521329346014",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18500
     },
     {
@@ -4417,7 +4417,7 @@
       "jan_code": "4521329346274",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 16500
     },
     {
@@ -4427,7 +4427,7 @@
       "jan_code": "4521329373126",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -4437,7 +4437,7 @@
       "jan_code": "4521329365480",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9500
     },
     {
@@ -4447,7 +4447,7 @@
       "jan_code": "4521329373539",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 9500
     },
     {
@@ -4457,7 +4457,7 @@
       "jan_code": "4521329346229",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -4467,7 +4467,7 @@
       "jan_code": "4521329305981",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20000
     },
     {
@@ -4477,7 +4477,7 @@
       "jan_code": "4521329322698",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 30000
     },
     {
@@ -4487,7 +4487,7 @@
       "jan_code": "4521329322605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 160000
     },
     {
@@ -4497,7 +4497,7 @@
       "jan_code": "4521329322629",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 54000
     },
     {
@@ -4507,7 +4507,7 @@
       "jan_code": "4521329306452",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20500
     },
     {
@@ -4517,7 +4517,7 @@
       "jan_code": "4521329306438",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -4527,7 +4527,7 @@
       "jan_code": "4521329322391",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -4537,7 +4537,7 @@
       "jan_code": "4521329364704",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 18000
     },
     {
@@ -4547,7 +4547,7 @@
       "jan_code": "4521329322384",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 220000
     },
     {
@@ -4557,7 +4557,7 @@
       "jan_code": "4521329364605",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13000
     },
     {
@@ -4567,7 +4567,7 @@
       "jan_code": "4521329306162",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 42000
     },
     {
@@ -4577,7 +4577,7 @@
       "jan_code": "4521329306148",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 42000
     },
     {
@@ -4587,7 +4587,7 @@
       "jan_code": "4521329306360",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 42000
     },
     {
@@ -4597,7 +4597,7 @@
       "jan_code": "4521329290133",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 48500
     },
     {
@@ -4607,7 +4607,7 @@
       "jan_code": "4521329322568",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 55000
     },
     {
@@ -4617,7 +4617,7 @@
       "jan_code": "4521329266763",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 135000
     },
     {
@@ -4627,7 +4627,7 @@
       "jan_code": "4521329323077",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20500
     },
     {
@@ -4637,7 +4637,7 @@
       "jan_code": "4521329306513",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 123000
     },
     {
@@ -4647,7 +4647,7 @@
       "jan_code": "4521329323244",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 12500
     },
     {
@@ -4657,7 +4657,7 @@
       "jan_code": "4521329246048",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 400000
     },
     {
@@ -4667,7 +4667,7 @@
       "jan_code": "4521329226972",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 160000
     },
     {
@@ -4677,7 +4677,7 @@
       "jan_code": "4521329365862",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 20500
     },
     {
@@ -4687,7 +4687,7 @@
       "jan_code": "4521329266183",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 150000
     },
     {
@@ -4697,7 +4697,7 @@
       "jan_code": "4521329246970",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 178000
     },
     {
@@ -4707,7 +4707,7 @@
       "jan_code": "4521329266329",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 50000
     },
     {
@@ -4717,7 +4717,7 @@
       "jan_code": "4521329266558",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 180000
     },
     {
@@ -4727,7 +4727,7 @@
       "jan_code": "4521329246468",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 95000
     },
     {
@@ -4737,7 +4737,7 @@
       "jan_code": "4521329246086",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 100000
     },
     {
@@ -4747,7 +4747,7 @@
       "jan_code": "4521329190857",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 680000
     },
     {
@@ -4757,7 +4757,7 @@
       "jan_code": "4521329246956",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 120000
     },
     {
@@ -4767,408 +4767,8 @@
       "jan_code": "4521329190990",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 800000
-    },
-    {
-      "product_name": "30th CELEBRATION",
-      "site": "買取ルデヤ",
-      "price": 14000,
-      "jan_code": "4521329462424",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14000
-    },
-    {
-      "product_name": "30th CELEBRATION プレミアムデッキセット",
-      "site": "買取ルデヤ",
-      "price": 8000,
-      "jan_code": "4521329462189",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
-    },
-    {
-      "product_name": "30th CELEBRATION FUTURISTIC BOX",
-      "site": "買取ルデヤ",
-      "price": 40000,
-      "jan_code": "4521329463872",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 40000
-    },
-    {
-      "product_name": "ストームエメラルダ",
-      "site": "買取ルデヤ",
-      "price": 6500,
-      "jan_code": "4521329462233",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "アビスアイ",
-      "site": "買取ルデヤ",
-      "price": 6000,
-      "jan_code": "4521329462127",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6000
-    },
-    {
-      "product_name": "ニンジャスピナー",
-      "site": "買取ルデヤ",
-      "price": 6500,
-      "jan_code": "4521329432786",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "ムニキスゼロ",
-      "site": "買取ルデヤ",
-      "price": 6500,
-      "jan_code": "4521329432274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6500
-    },
-    {
-      "product_name": "MEGAドリームex",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329431932",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "インフェルノX",
-      "site": "買取ルデヤ",
-      "price": 14000,
-      "jan_code": "4521329431529",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14000
-    },
-    {
-      "product_name": "メガブレイブ",
-      "site": "買取ルデヤ",
-      "price": 6000,
-      "jan_code": "4521329431161",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6000
-    },
-    {
-      "product_name": "メガシンフォニア",
-      "site": "買取ルデヤ",
-      "price": 6000,
-      "jan_code": "4521329431185",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 6000
-    },
-    {
-      "product_name": "ブラックボルト",
-      "site": "買取ルデヤ",
-      "price": 20000,
-      "jan_code": "4521329427768",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20000
-    },
-    {
-      "product_name": "ホワイトフレア",
-      "site": "買取ルデヤ",
-      "price": 19000,
-      "jan_code": "4521329427782",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 19000
-    },
-    {
-      "product_name": "ロケット団の栄光",
-      "site": "買取ルデヤ",
-      "price": 19000,
-      "jan_code": "4521329374659",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 19000
-    },
-    {
-      "product_name": "熱風のアリーナ",
-      "site": "買取ルデヤ",
-      "price": 14500,
-      "jan_code": "4521329374758",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14500
-    },
-    {
-      "product_name": "バトルパートナーズ",
-      "site": "買取ルデヤ",
-      "price": 8000,
-      "jan_code": "4521329362649",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
-    },
-    {
-      "product_name": "テラスタルフェスex",
-      "site": "買取ルデヤ",
-      "price": 14000,
-      "jan_code": "4521329362342",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14000
-    },
-    {
-      "product_name": "超電ブレイカー",
-      "site": "買取ルデヤ",
-      "price": 20000,
-      "jan_code": "4521329361505",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 20000
-    },
-    {
-      "product_name": "楽園ドラゴーナ",
-      "site": "買取ルデヤ",
-      "price": 14500,
-      "jan_code": "4521329361352",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 14500
-    },
-    {
-      "product_name": "ステラミラクル",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329361000",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "ナイトワンダラー",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329362496",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "変幻の仮面",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329362526",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "クリムゾンヘイズ",
-      "site": "買取ルデヤ",
-      "price": 10500,
-      "jan_code": "4521329361239",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10500
-    },
-    {
-      "product_name": "ワイルドフォース",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329394831",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "サイバージャッジ",
-      "site": "買取ルデヤ",
-      "price": 9000,
-      "jan_code": "4521329394848",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9000
-    },
-    {
-      "product_name": "シャイニートレジャーex",
-      "site": "買取ルデヤ",
-      "price": 13000,
-      "jan_code": "4521329394824",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13000
-    },
-    {
-      "product_name": "古代の咆哮",
-      "site": "買取ルデヤ",
-      "price": 10000,
-      "jan_code": "4521329394732",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 10000
-    },
-    {
-      "product_name": "未来の一閃",
-      "site": "買取ルデヤ",
-      "price": 9000,
-      "jan_code": "4521329394756",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9000
-    },
-    {
-      "product_name": "レイジングサーフ",
-      "site": "買取ルデヤ",
-      "price": 13000,
-      "jan_code": "4521329391397",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 13000
-    },
-    {
-      "product_name": "黒炎の支配者",
-      "site": "買取ルデヤ",
-      "price": 16000,
-      "jan_code": "4521329346014",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16000
-    },
-    {
-      "product_name": "クレイバースト",
-      "site": "買取ルデヤ",
-      "price": 9500,
-      "jan_code": "4521329346182",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9500
-    },
-    {
-      "product_name": "スノーハザード",
-      "site": "買取ルデヤ",
-      "price": 9500,
-      "jan_code": "4521329346229",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9500
-    },
-    {
-      "product_name": "トリプレットビート",
-      "site": "買取ルデヤ",
-      "price": 16000,
-      "jan_code": "4521329346274",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 16000
-    },
-    {
-      "product_name": "スカーレットex",
-      "site": "買取ルデヤ",
-      "price": 12000,
-      "jan_code": "4521329373515",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 12000
-    },
-    {
-      "product_name": "バイオレットex",
-      "site": "買取ルデヤ",
-      "price": 9000,
-      "jan_code": "4521329373539",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 9000
-    },
-    {
-      "product_name": "VSTARユニバース",
-      "site": "買取ルデヤ",
-      "price": 21000,
-      "jan_code": "4521329373362",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 21000
-    },
-    {
-      "product_name": "25th ANNIVERSARY COLLECTION",
-      "site": "買取ルデヤ",
-      "price": 35000,
-      "jan_code": "4521329322568",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 35000
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンタートウホク",
-      "site": "買取ルデヤ",
-      "price": 8000,
-      "jan_code": "4521329431277",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンターヒロシマ",
-      "site": "買取ルデヤ",
-      "price": 8000,
-      "jan_code": "4521329427669",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
-    },
-    {
-      "product_name": "スペシャルBOXポケモンセンターフクオカ",
-      "site": "買取ルデヤ",
-      "price": 8000,
-      "jan_code": "4521329431536",
-      "condition_badge": null,
-      "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
-      "prev_price": 8000
     },
     {
       "product_name": "30th CELEBRATION プレミアムデッキセット",
@@ -5177,7 +4777,7 @@
       "jan_code": "4521329462189",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 13000
     },
     {
@@ -5187,7 +4787,7 @@
       "jan_code": "4521329374758",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 17500
     },
     {
@@ -5197,7 +4797,7 @@
       "jan_code": "4521329431277",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 10000
     },
     {
@@ -5207,8 +4807,408 @@
       "jan_code": "4521329427669",
       "condition_badge": null,
       "stale": false,
-      "fetched_at": "2026-11-24T13:01:00.470766+09:00",
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
       "prev_price": 11000
+    },
+    {
+      "product_name": "30th CELEBRATION",
+      "site": "買取ルデヤ",
+      "price": 14000,
+      "jan_code": "4521329462424",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14000
+    },
+    {
+      "product_name": "30th CELEBRATION プレミアムデッキセット",
+      "site": "買取ルデヤ",
+      "price": 8000,
+      "jan_code": "4521329462189",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
+    },
+    {
+      "product_name": "30th CELEBRATION FUTURISTIC BOX",
+      "site": "買取ルデヤ",
+      "price": 40000,
+      "jan_code": "4521329463872",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 40000
+    },
+    {
+      "product_name": "ストームエメラルダ",
+      "site": "買取ルデヤ",
+      "price": 6500,
+      "jan_code": "4521329462233",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "アビスアイ",
+      "site": "買取ルデヤ",
+      "price": 6000,
+      "jan_code": "4521329462127",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6000
+    },
+    {
+      "product_name": "ニンジャスピナー",
+      "site": "買取ルデヤ",
+      "price": 6500,
+      "jan_code": "4521329432786",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "ムニキスゼロ",
+      "site": "買取ルデヤ",
+      "price": 6500,
+      "jan_code": "4521329432274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6500
+    },
+    {
+      "product_name": "MEGAドリームex",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329431932",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "インフェルノX",
+      "site": "買取ルデヤ",
+      "price": 14000,
+      "jan_code": "4521329431529",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14000
+    },
+    {
+      "product_name": "メガブレイブ",
+      "site": "買取ルデヤ",
+      "price": 6000,
+      "jan_code": "4521329431161",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6000
+    },
+    {
+      "product_name": "メガシンフォニア",
+      "site": "買取ルデヤ",
+      "price": 6000,
+      "jan_code": "4521329431185",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 6000
+    },
+    {
+      "product_name": "ブラックボルト",
+      "site": "買取ルデヤ",
+      "price": 20000,
+      "jan_code": "4521329427768",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20000
+    },
+    {
+      "product_name": "ホワイトフレア",
+      "site": "買取ルデヤ",
+      "price": 19000,
+      "jan_code": "4521329427782",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 19000
+    },
+    {
+      "product_name": "ロケット団の栄光",
+      "site": "買取ルデヤ",
+      "price": 19000,
+      "jan_code": "4521329374659",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 19000
+    },
+    {
+      "product_name": "熱風のアリーナ",
+      "site": "買取ルデヤ",
+      "price": 14500,
+      "jan_code": "4521329374758",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14500
+    },
+    {
+      "product_name": "バトルパートナーズ",
+      "site": "買取ルデヤ",
+      "price": 8000,
+      "jan_code": "4521329362649",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
+    },
+    {
+      "product_name": "テラスタルフェスex",
+      "site": "買取ルデヤ",
+      "price": 14000,
+      "jan_code": "4521329362342",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14000
+    },
+    {
+      "product_name": "超電ブレイカー",
+      "site": "買取ルデヤ",
+      "price": 20000,
+      "jan_code": "4521329361505",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 20000
+    },
+    {
+      "product_name": "楽園ドラゴーナ",
+      "site": "買取ルデヤ",
+      "price": 14500,
+      "jan_code": "4521329361352",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 14500
+    },
+    {
+      "product_name": "ステラミラクル",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329361000",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "ナイトワンダラー",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329362496",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "変幻の仮面",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329362526",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "クリムゾンヘイズ",
+      "site": "買取ルデヤ",
+      "price": 10500,
+      "jan_code": "4521329361239",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10500
+    },
+    {
+      "product_name": "ワイルドフォース",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329394831",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "サイバージャッジ",
+      "site": "買取ルデヤ",
+      "price": 9000,
+      "jan_code": "4521329394848",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9000
+    },
+    {
+      "product_name": "シャイニートレジャーex",
+      "site": "買取ルデヤ",
+      "price": 13000,
+      "jan_code": "4521329394824",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 13000
+    },
+    {
+      "product_name": "古代の咆哮",
+      "site": "買取ルデヤ",
+      "price": 10000,
+      "jan_code": "4521329394732",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 10000
+    },
+    {
+      "product_name": "未来の一閃",
+      "site": "買取ルデヤ",
+      "price": 9000,
+      "jan_code": "4521329394756",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9000
+    },
+    {
+      "product_name": "レイジングサーフ",
+      "site": "買取ルデヤ",
+      "price": 13000,
+      "jan_code": "4521329391397",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 13000
+    },
+    {
+      "product_name": "黒炎の支配者",
+      "site": "買取ルデヤ",
+      "price": 16000,
+      "jan_code": "4521329346014",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16000
+    },
+    {
+      "product_name": "クレイバースト",
+      "site": "買取ルデヤ",
+      "price": 9500,
+      "jan_code": "4521329346182",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9500
+    },
+    {
+      "product_name": "スノーハザード",
+      "site": "買取ルデヤ",
+      "price": 9500,
+      "jan_code": "4521329346229",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9500
+    },
+    {
+      "product_name": "トリプレットビート",
+      "site": "買取ルデヤ",
+      "price": 16000,
+      "jan_code": "4521329346274",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 16000
+    },
+    {
+      "product_name": "スカーレットex",
+      "site": "買取ルデヤ",
+      "price": 12000,
+      "jan_code": "4521329373515",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 12000
+    },
+    {
+      "product_name": "バイオレットex",
+      "site": "買取ルデヤ",
+      "price": 9000,
+      "jan_code": "4521329373539",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 9000
+    },
+    {
+      "product_name": "VSTARユニバース",
+      "site": "買取ルデヤ",
+      "price": 21000,
+      "jan_code": "4521329373362",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 21000
+    },
+    {
+      "product_name": "25th ANNIVERSARY COLLECTION",
+      "site": "買取ルデヤ",
+      "price": 35000,
+      "jan_code": "4521329322568",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 35000
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンタートウホク",
+      "site": "買取ルデヤ",
+      "price": 8000,
+      "jan_code": "4521329431277",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンターヒロシマ",
+      "site": "買取ルデヤ",
+      "price": 8000,
+      "jan_code": "4521329427669",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
+    },
+    {
+      "product_name": "スペシャルBOXポケモンセンターフクオカ",
+      "site": "買取ルデヤ",
+      "price": 8000,
+      "jan_code": "4521329431536",
+      "condition_badge": null,
+      "stale": false,
+      "fetched_at": "2026-11-24T14:01:03.274771+09:00",
+      "prev_price": 8000
     }
   ],
   "historical_observations": [
